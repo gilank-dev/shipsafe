@@ -93,6 +93,7 @@ export function TurnstileWidget({
   const enabled = isTurnstileEnabled()
   const sitekey = propSitekey || getTurnstileSiteKey()
   const isDev = !import.meta.env.PROD
+  const isInvisibleDummy = sitekey === '1x00000000000000000000AA'
   const isTestKey =
     sitekey === '1x00000000000000000000AA' ||
     sitekey === '1x00000000000000000000BB' ||
@@ -146,8 +147,8 @@ export function TurnstileWidget({
           const id = window.turnstile.render(containerRef.current, {
             sitekey,
             theme: theme === 'dark' ? 'dark' : 'light',
-            appearance: isTestKey ? 'interaction-only' : 'always',
-            size: isTestKey ? 'compact' : 'normal',
+            appearance: isInvisibleDummy ? 'interaction-only' : 'always',
+            size: 'normal',
             callback: (token: string) => {
               if (!isMounted) return
               setIsVerified(true)
@@ -232,7 +233,7 @@ export function TurnstileWidget({
       <div className="w-full max-w-full overflow-hidden flex justify-center">
         <div
           ref={containerRef}
-          className={isTestKey || isVerified ? 'h-0 overflow-hidden' : 'min-h-[65px]'}
+          className={isInvisibleDummy ? 'h-0 overflow-hidden' : 'min-h-[65px] flex items-center justify-center'}
         />
       </div>
       {loadError && (
