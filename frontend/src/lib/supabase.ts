@@ -39,7 +39,8 @@ export const DEV_USER_PROFILE: DevUserProfile = {
   id: 'usr-dev-auditor',
   email: 'developer@example.com',
   fullName: 'ShipSafe Lead Auditor',
-  avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ShipSafeLeadAuditor',
+  avatarUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" fill="%2318181b"/><path d="M16 6l8 3.5v7c0 5-3.5 8.5-8 9.5-4.5-1-8-4.5-8-9.5v-7L16 6z" stroke="%2322c55e" stroke-width="2"/><circle cx="16" cy="14" r="3" fill="%2322c55e"/><path d="M12 21c0-2.5 2-4 4-4s4 1.5 4 4" stroke="%2322c55e" stroke-width="2" stroke-linecap="round"/></svg>',
 }
 
 export const DEV_ACCESS_TOKEN = 'dev-token-developer@example.com'

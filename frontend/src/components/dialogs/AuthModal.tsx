@@ -253,11 +253,12 @@ export function AuthModal() {
         <div className="border-2 border-ink bg-canvas p-3.5 shadow-sm space-y-2.5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
-              <img
-                src={DEV_USER_PROFILE.avatarUrl}
-                alt="Developer Avatar"
-                className="size-8 rounded-full border border-ink shrink-0 bg-surface"
-              />
+              <div
+                className="size-8 rounded-full border border-ink shrink-0 bg-ink text-surface flex items-center justify-center font-mono font-bold text-xs select-none"
+                aria-hidden="true"
+              >
+                SA
+              </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-small font-bold text-ink">Lead Auditor Access</span>
