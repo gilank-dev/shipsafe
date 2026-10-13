@@ -34,6 +34,12 @@ export function SampleMenu() {
 
   const choose = (id: SampleId) => {
     setOpen(false)
+    const user = useStore.getState().auth.user
+    if (!user) {
+      useStore.getState().setAuthModalOpen(true)
+      announce('Authentication required. Please sign in before loading sample projects.')
+      return
+    }
     if (hasFile) setPending(id)
     else void load(id)
   }

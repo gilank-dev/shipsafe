@@ -17,6 +17,11 @@ describe('UploadDropzone', () => {
         agentTarget: 'Generic',
         turnstileToken: null,
       },
+      auth: {
+        user: { id: 'usr-test-123', email: 'test@example.com' },
+        isAuthModalOpen: false,
+        isHistoryModalOpen: false,
+      },
     })
     vi.restoreAllMocks()
   })
@@ -149,5 +154,26 @@ describe('UploadDropzone', () => {
     fireEvent.click(removeBtn)
 
     expect(useStore.getState().submission.file).toBeNull()
+  })
+
+  it('triggers auth modal when unauthenticated user attempts to import repo', () => {
+    useStore.setState({
+      auth: {
+        user: null,
+        isAuthModalOpen: false,
+        isHistoryModalOpen: false,
+      },
+    })
+
+    render(<UploadDropzone />)
+
+    fireEvent.click(screen.getByRole('tab', { name: /Import GitHub Repo/i }))
+    const input = screen.getByLabelText(/GitHub Repository/i)
+    fireEvent.change(input, { target: { value: 'gilank-dev/shipsafe' } })
+
+    const importButton = screen.getByRole('button', { name: /Import Repo/i })
+    fireEvent.click(importButton)
+
+    expect(useStore.getState().auth.isAuthModalOpen).toBe(true)
   })
 })

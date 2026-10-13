@@ -102,8 +102,18 @@ export const initialAudit: AuditState = {
   promptsError: null,
 }
 
+const getInitialUser = (): UserProfile | null => {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem('shipsafe.auth.user')
+    return raw ? (JSON.parse(raw) as UserProfile) : null
+  } catch {
+    return null
+  }
+}
+
 export const initialAuth: AuthState = {
-  user: null,
+  user: getInitialUser(),
   isAuthModalOpen: false,
   isHistoryModalOpen: false,
 }
@@ -119,7 +129,7 @@ const getInitialTheme = (): Theme => {
   return 'light'
 }
 
-// Nothing the user provides is persisted. Only the theme key is ever written to storage (ThemeToggle).
+// User session and theme are persisted to localStorage.
 export const useStore = create<ShipSafeState>()((set) => ({
   submission: initialSubmission,
   audit: initialAudit,
@@ -138,7 +148,20 @@ export const useStore = create<ShipSafeState>()((set) => ({
   loadProject: (file, context) =>
     set((s) => ({ submission: { ...s.submission, ...context, file, fileError: null } })),
   patchAudit: (patch) => set((s) => ({ audit: { ...s.audit, ...patch } })),
-  setAuthUser: (user) => set((s) => ({ auth: { ...s.auth, user } })),
+  setAuthUser: (user) => {
+    try {
+      if (typeof window !== 'undefined') {
+        if (user) {
+          window.localStorage.setItem('shipsafe.auth.user', JSON.stringify(user))
+        } else {
+          window.localStorage.removeItem('shipsafe.auth.user')
+        }
+      }
+    } catch {
+      // storage blocked
+    }
+    set((s) => ({ auth: { ...s.auth, user } }))
+  },
   setAuthModalOpen: (isAuthModalOpen) => set((s) => ({ auth: { ...s.auth, isAuthModalOpen } })),
   setHistoryModalOpen: (isHistoryModalOpen) => set((s) => ({ auth: { ...s.auth, isHistoryModalOpen } })),
   setTheme: (theme) => {

@@ -13,7 +13,14 @@ export const isSupabaseConfigured = Boolean(
 
 // Graceful fallback dummy client if environment variables are not yet provided
 export const supabase: SupabaseClient = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      },
+    })
   : (createClient('https://placeholder.supabase.co', 'placeholder-anon-key', {
       auth: {
         persistSession: false,

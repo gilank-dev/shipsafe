@@ -11,7 +11,16 @@ export function AuthModal() {
   const setAuthUser = useStore((s) => s.setAuthUser)
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return window.localStorage.getItem('shipsafe.auth.last_email') || ''
+      } catch {
+        return ''
+      }
+    }
+    return ''
+  })
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [otpLoading, setOtpLoading] = useState(false)
@@ -60,6 +69,14 @@ export function AuthModal() {
       return
     }
 
+    try {
+      if (typeof window !== 'undefined' && email) {
+        window.localStorage.setItem('shipsafe.auth.last_email', email)
+      }
+    } catch {
+      // storage blocked
+    }
+
     setLoading(true)
 
     if (mode === 'signin') {
@@ -68,7 +85,18 @@ export function AuthModal() {
       if (res.error) {
         setError(res.error.message)
       } else if (res.user) {
-        setAuthUser({ id: res.user.id, email: res.user.email ?? '' })
+        setAuthUser({
+          id: res.user.id,
+          email: res.user.email ?? '',
+          fullName:
+            (typeof res.user.user_metadata?.full_name === 'string' && res.user.user_metadata.full_name) ||
+            (typeof res.user.user_metadata?.name === 'string' && res.user.user_metadata.name) ||
+            '',
+          avatarUrl:
+            (typeof res.user.user_metadata?.avatar_url === 'string' && res.user.user_metadata.avatar_url) ||
+            (typeof res.user.user_metadata?.picture === 'string' && res.user.user_metadata.picture) ||
+            '',
+        })
         announce(`Signed in as ${res.user.email}`)
         handleClose()
       }
@@ -96,6 +124,14 @@ export function AuthModal() {
     if (!email) {
       setError('Please enter your email to receive a magic sign-in link.')
       return
+    }
+
+    try {
+      if (typeof window !== 'undefined' && email) {
+        window.localStorage.setItem('shipsafe.auth.last_email', email)
+      }
+    } catch {
+      // storage blocked
     }
 
     setOtpLoading(true)

@@ -23,6 +23,13 @@ const get = () => useStore.getState()
 
 /** Validates and stores a chosen file. Called by the dropzone and by the controller before every run. */
 export async function selectFile(input: File | File[] | FileList): Promise<boolean> {
+  if (!get().auth.user) {
+    get().setAuthModalOpen(true)
+    const msg = 'Authentication required. Please sign in with GitHub or Google before uploading files.'
+    announce(msg)
+    toast.error(msg)
+    return false
+  }
   const result = await validateZipFile(input)
   if (!result.ok) {
     get().setFile(null, result.message)
@@ -36,6 +43,13 @@ export async function selectFile(input: File | File[] | FileList): Promise<boole
 }
 
 export async function importGitHubRepo(repoUrl: string): Promise<boolean> {
+  if (!get().auth.user) {
+    get().setAuthModalOpen(true)
+    const msg = 'Authentication required. Please sign in with GitHub or Google before importing repositories.'
+    announce(msg)
+    toast.error(msg)
+    throw new Error(msg)
+  }
   const trimmed = repoUrl.trim()
   if (!trimmed) {
     const msg = 'Please enter a valid GitHub repository URL or owner/repo format.'

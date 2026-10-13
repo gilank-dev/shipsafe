@@ -20,6 +20,8 @@ export function UploadDropzone() {
   const file = useStore((s) => s.submission.file)
   const fileError = useStore((s) => s.submission.fileError)
   const setFile = useStore((s) => s.setFile)
+  const user = useStore((s) => s.auth.user)
+  const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
   const [sourceMode, setSourceMode] = useState<'zip' | 'repo'>('zip')
   const [repoInput, setRepoInput] = useState('')
   const [isImporting, setIsImporting] = useState(false)
@@ -31,6 +33,11 @@ export function UploadDropzone() {
   const onDrop = async (e: DragEvent) => {
     e.preventDefault()
     setDragging(false)
+    if (!user) {
+      setAuthModalOpen(true)
+      announce('Authentication required. Please sign in to upload files.')
+      return
+    }
     if (containsDirectory(e)) {
       const message = 'Folders cannot be uploaded. Compress the folder into a ZIP file and drop that instead.'
       setFile(null, message)
@@ -41,6 +48,11 @@ export function UploadDropzone() {
   }
 
   const handleImportRepo = async (urlToImport?: string) => {
+    if (!user) {
+      setAuthModalOpen(true)
+      announce('Authentication required. Please sign in to import repositories.')
+      return
+    }
     const target = (urlToImport ?? repoInput).trim()
     if (!target) {
       setImportError('Please enter a GitHub repository URL or owner/repo format.')
@@ -59,6 +71,14 @@ export function UploadDropzone() {
       setImportError(err instanceof Error ? err.message : 'Error importing repository.')
     } finally {
       setIsImporting(false)
+    }
+  }
+
+  const handleDropzoneClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault()
+      setAuthModalOpen(true)
+      announce('Authentication required. Please sign in to upload files.')
     }
   }
 
@@ -166,12 +186,23 @@ export function UploadDropzone() {
             aria-describedby={`${helpId}${fileError ? ` ${errorId}` : ''}`}
             aria-invalid={fileError ? true : undefined}
             onChange={async (e) => {
+              if (!user) {
+                e.target.value = ''
+                setAuthModalOpen(true)
+                announce('Authentication required. Please sign in to upload files.')
+                return
+              }
               const picked = e.target.files
               if (picked && picked.length > 0) await selectFile(picked)
               e.target.value = ''
             }}
           />
-          <label htmlFor={ZIP_INPUT_ID} className="dropzone" data-dragging={dragging}>
+          <label
+            htmlFor={user ? ZIP_INPUT_ID : undefined}
+            onClick={handleDropzoneClick}
+            className="dropzone cursor-pointer"
+            data-dragging={dragging}
+          >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
               <span className="flex items-center gap-3">
                 <IconUpload className="shrink-0" width={20} height={20} />

@@ -7,6 +7,7 @@ import * as controller from '../state/audit-controller'
 describe('UploadDropzone - GitHub Repo Import', () => {
   beforeEach(() => {
     useStore.getState().setFile(null, null)
+    useStore.getState().setAuthUser({ id: 'usr-test-123', email: 'developer@example.com' })
     vi.restoreAllMocks()
   })
 
