@@ -4,8 +4,10 @@ import type { AgentTarget, AuditReport } from '../domain/types'
 import { hitKey, scanSecrets, type SecretHit } from '../domain/secrets'
 import { snapshotOf } from '../domain/stale'
 import { validateZipFile } from '../domain/zip-validate'
+import { saveAuditToSupabase } from '../lib/supabase'
 import { announce } from './announcer'
 import { initialAudit, initialSubmission, useStore } from './store'
+import { toast } from './toast'
 
 export type AuditRequestResult =
   | { started: true }
@@ -116,6 +118,18 @@ async function runAudit(): Promise<void> {
       error: null,
     })
     announce(`Audit finished. ${report.findings.length} findings.`)
+
+    if (get().auth.user) {
+      void saveAuditToSupabase(report, file.name)
+        .then(({ id, error }) => {
+          if (!error && id) {
+            toast.info('Laporan audit berhasil disimpan ke riwayat cloud akun Anda.')
+          }
+        })
+        .catch((err) => {
+          console.warn('[ShipSafe] Gagal menyimpan audit ke cloud:', err)
+        })
+    }
   } catch (err) {
     if (ctrl.signal.aborted || (isApiError(err) && err.kind === 'aborted')) {
       // Cancel is silent: return to the state before the run.
@@ -182,4 +196,21 @@ export function resetAll(): void {
   promptsController?.abort()
   acknowledged.clear()
   useStore.setState({ submission: initialSubmission, audit: initialAudit })
+}
+
+export function loadAuditFromHistory(report: AuditReport, projectName: string): void {
+  controller?.abort()
+  promptsController?.abort()
+  get().patchAudit({
+    status: 'done',
+    stage: 'report',
+    reportId: report.id ?? 'history-report',
+    report,
+    reportAgent: 'Generic',
+    reportFileName: projectName,
+    snapshot: null,
+    finishedAt: Date.now(),
+    error: null,
+  })
+  announce(`Loaded audit report for ${projectName}`)
 }

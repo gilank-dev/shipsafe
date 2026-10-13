@@ -50,6 +50,7 @@ export interface UserProfile {
 export interface AuthState {
   user: UserProfile | null
   isAuthModalOpen: boolean
+  isHistoryModalOpen: boolean
 }
 
 export interface ShipSafeState {
@@ -67,6 +68,7 @@ export interface ShipSafeState {
   patchAudit: (patch: Partial<AuditState>) => void
   setAuthUser: (user: UserProfile | null) => void
   setAuthModalOpen: (open: boolean) => void
+  setHistoryModalOpen: (open: boolean) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -101,6 +103,7 @@ export const initialAudit: AuditState = {
 export const initialAuth: AuthState = {
   user: null,
   isAuthModalOpen: false,
+  isHistoryModalOpen: false,
 }
 
 const getInitialTheme = (): Theme => {
@@ -135,6 +138,7 @@ export const useStore = create<ShipSafeState>()((set) => ({
   patchAudit: (patch) => set((s) => ({ audit: { ...s.audit, ...patch } })),
   setAuthUser: (user) => set((s) => ({ auth: { ...s.auth, user } })),
   setAuthModalOpen: (isAuthModalOpen) => set((s) => ({ auth: { ...s.auth, isAuthModalOpen } })),
+  setHistoryModalOpen: (isHistoryModalOpen) => set((s) => ({ auth: { ...s.auth, isHistoryModalOpen } })),
   setTheme: (theme) => {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', theme)

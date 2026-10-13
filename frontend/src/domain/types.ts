@@ -111,3 +111,12 @@ export interface AuditRequest {
   turnstileToken?: string
 }
 
+export interface AuditHistoryItem {
+  id: string
+  projectName: string
+  summary: string
+  countsBySeverity: Record<Severity, number>
+  scorecard: ScorecardRow[]
+  createdAt: string
+}
+

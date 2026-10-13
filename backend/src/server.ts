@@ -11,6 +11,7 @@ import { buildAuditReport } from './engine/report-builder';
 import { generateRemediationPrompt } from './engine/prompts';
 import { enrichReportWithAi, getAiConfig, callAiCompletion } from './engine/ai-client';
 import { globalAuditQueue } from './engine/queue';
+import { supabaseAuthGuard, AuthRequest } from './security/auth-guard';
 import { AgentTarget, AuditReport, Finding } from './types';
 
 dotenv.config();
@@ -20,11 +21,36 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 23010;
 
 // Security Middleware
 app.use(helmet({ contentSecurityPolicy: false })); // API server
-app.use(cors({
-  origin: '*', // Allow frontend Vercel / local preview
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+
+const rawCorsOrigin = process.env.CORS_ORIGIN;
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000',
+  'https://shipsafe-lankdev.vercel.app',
+  'https://nusa-bench.vercel.app',
+];
+const allowedOrigins = rawCorsOrigin
+  ? rawCorsOrigin.split(',').map((s) => s.trim())
+  : defaultAllowedOrigins;
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow non-browser requests (e.g. server-side proxy, curl, automated testing)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        /^https:\/\/.*\.vercel\.app$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS whitelist.`));
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+);
 
 app.use(express.json({ limit: '2mb' }));
 
@@ -73,7 +99,7 @@ app.get('/api/ai/health', async (_req: Request, res: Response) => {
 });
 
 // 2. Audit Endpoint with Concurrency Limiter (Max 3 concurrent users + FIFO Queue)
-app.post('/api/audit', upload.single('file'), async (req: Request, res: Response, next: NextFunction) => {
+app.post('/api/audit', supabaseAuthGuard, upload.single('file'), async (req: AuthRequest, res: Response, next: NextFunction) => {
   const turnstileToken = req.body?.turnstileToken;
   const clientIp = (req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string | undefined;
 

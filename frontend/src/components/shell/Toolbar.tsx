@@ -25,6 +25,7 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
   const statusLine = useStatusLine()
   const user = useStore((s) => s.auth.user)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
+  const setHistoryModalOpen = useStore((s) => s.setHistoryModalOpen)
   const setAuthUser = useStore((s) => s.setAuthUser)
 
   const handleSignOut = async () => {
@@ -46,9 +47,19 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
           <div className="flex items-center gap-1.5 md:hidden">
             <ThemeToggle />
             {user ? (
-              <button type="button" className="btn text-small px-2.5 min-h-[44px]" onClick={handleSignOut}>
-                Sign out
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  className="btn text-small px-2.5 min-h-[44px]"
+                  onClick={() => setHistoryModalOpen(true)}
+                  title="View saved audit history"
+                >
+                  History
+                </button>
+                <button type="button" className="btn text-small px-2.5 min-h-[44px]" onClick={handleSignOut}>
+                  Sign out
+                </button>
+              </div>
             ) : (
               <button
                 type="button"
@@ -86,7 +97,15 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="text-small text-ink-2 truncate max-w-[150px]" title={user.email}>
+                <button
+                  type="button"
+                  className="btn btn-outline text-small"
+                  onClick={() => setHistoryModalOpen(true)}
+                  title="View saved audit history"
+                >
+                  History
+                </button>
+                <span className="text-small text-ink-2 truncate max-w-[140px]" title={user.email}>
                   {user.email ? user.email.split('@')[0] : 'User'}
                 </span>
                 <button type="button" className="btn text-small" onClick={handleSignOut}>
