@@ -1,12 +1,17 @@
-export const DEFAULT_TURNSTILE_SITE_KEY = '1x00000000000000000000AA'
+// Official Cloudflare Always-Passes Invisible Sitekey (avoids visible 'For testing only' watermark)
+export const DEFAULT_TURNSTILE_SITE_KEY = '1x00000000000000000000BB'
 
 /**
  * Returns the configured Cloudflare Turnstile Sitekey.
- * Defaults to the official Cloudflare Always-Passes Sitekey:
- * 1x00000000000000000000AA
+ * Defaults to the official Cloudflare Always-Passes Invisible Sitekey:
+ * 1x00000000000000000000BB
  */
 export function getTurnstileSiteKey(): string {
-  return import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY || DEFAULT_TURNSTILE_SITE_KEY
+  const configured = import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY
+  if (!configured || configured === '1x00000000000000000000AA') {
+    return DEFAULT_TURNSTILE_SITE_KEY
+  }
+  return configured
 }
 
 /**

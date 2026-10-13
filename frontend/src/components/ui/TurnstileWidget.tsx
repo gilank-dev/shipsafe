@@ -93,6 +93,12 @@ export function TurnstileWidget({
   const enabled = isTurnstileEnabled()
   const sitekey = propSitekey || getTurnstileSiteKey()
   const isDev = !import.meta.env.PROD
+  const isTestKey =
+    sitekey === '1x00000000000000000000AA' ||
+    sitekey === '1x00000000000000000000BB' ||
+    sitekey.startsWith('1x') ||
+    sitekey.startsWith('2x') ||
+    sitekey.startsWith('3x')
 
   // Synchronize with external store token resets (resetAll, cancelAudit, captcha_failed)
   useEffect(() => {
@@ -140,6 +146,8 @@ export function TurnstileWidget({
           const id = window.turnstile.render(containerRef.current, {
             sitekey,
             theme: theme === 'dark' ? 'dark' : 'light',
+            appearance: isTestKey ? 'interaction-only' : 'always',
+            size: isTestKey ? 'compact' : 'normal',
             callback: (token: string) => {
               if (!isMounted) return
               setIsVerified(true)
@@ -222,7 +230,10 @@ export function TurnstileWidget({
         Security Verification
       </div>
       <div className="w-full max-w-full overflow-hidden flex justify-center">
-        <div ref={containerRef} className="min-h-[65px]" />
+        <div
+          ref={containerRef}
+          className={isTestKey || isVerified ? 'h-0 overflow-hidden' : 'min-h-[65px]'}
+        />
       </div>
       {loadError && (
         <div className="mt-2 space-y-2 border border-status-fail bg-surface p-2.5 text-small text-status-fail" role="alert">
@@ -249,9 +260,12 @@ export function TurnstileWidget({
         </div>
       )}
       {isVerified && (
-        <p className="mt-1 text-xs font-mono text-pass">
-          ✓ Verified by Cloudflare Turnstile
-        </p>
+        <div className="mt-1 flex items-center gap-2 py-1.5 px-3 border border-rule bg-surface text-xs font-mono text-ink">
+          <span className="size-2 rounded-full bg-status-pass" aria-hidden="true" />
+          <span className="text-ink-2">Cloudflare Turnstile:</span>
+          <span className="font-semibold text-status-pass">Human Verified</span>
+          <span className="sr-only">Verified by Cloudflare Turnstile</span>
+        </div>
       )}
     </div>
   )
