@@ -31,7 +31,13 @@ const IGNORE_SUBSTRINGS = [
   'XXXX',
   '****',
   'CHANGE_ME',
-  'INSERT_HERE'
+  'CHANGEME',
+  'INSERT_HERE',
+  'REPLACE_ME',
+  'YOUR_KEY',
+  'YOUR_API_KEY',
+  'FOOBAR',
+  'FAKE_KEY'
 ];
 
 export function maskSecret(value: string): string {
@@ -39,13 +45,42 @@ export function maskSecret(value: string): string {
   return value.substring(0, 4) + '****';
 }
 
-export function isFalsePositive(match: string): boolean {
+export function isFalsePositive(match: string, line?: string, filePath?: string): boolean {
+  // 1. Template / Example file ignore
+  if (filePath && /\.(?:example|sample|template|dist)$/i.test(filePath)) {
+    return true;
+  }
+
+  // 2. Substrings check in match
   const upper = match.toUpperCase();
   for (const ignored of IGNORE_SUBSTRINGS) {
     if (upper.includes(ignored)) return true;
   }
-  // All identical characters check
+
+  // 3. All identical characters check (e.g. AAAAA...)
   if (/^(.)\1+$/.test(match)) return true;
+
+  // 4. Localhost / local dev database connection strings
+  if (/^(?:postgres|postgresql|mysql|mongodb|mongodb\+srv|redis):\/\//i.test(match)) {
+    if (/localhost|127\.0\.0\.1|0\.0\.0\.0|test\.local|example\.com|host\.docker\.internal/i.test(match)) {
+      return true;
+    }
+  }
+
+  // 5. Line context check (documentation, comments, or explicit mock/sample markers)
+  if (line) {
+    const trimmed = line.trim();
+    if (/^\s*(?:\/\/|#|\/\*|\*)\s*(?:e\.g\.|example|sample|placeholder|dummy|mock)\b/i.test(trimmed)) {
+      return true;
+    }
+    if (/\b(?:process\.env\.[A-Z0-9_]+\s*\|\|\s*['"`]|import\.meta\.env\.[A-Z0-9_]+\s*\|\|\s*['"`])/i.test(trimmed)) {
+      // Fallback default value in code like process.env.KEY || 'dummy'
+      if (/mock|dummy|sample|local|test|dev/i.test(trimmed)) {
+        return true;
+      }
+    }
+  }
+
   return false;
 }
 
@@ -60,7 +95,7 @@ export function scanContentForSecrets(content: string, filePath?: string): Secre
 
       while ((match = pattern.regex.exec(line)) !== null) {
         const rawSecret = match[0];
-        if (!isFalsePositive(rawSecret)) {
+        if (!isFalsePositive(rawSecret, line, filePath)) {
           findings.push({
             patternName: pattern.name,
             masked: maskSecret(rawSecret),

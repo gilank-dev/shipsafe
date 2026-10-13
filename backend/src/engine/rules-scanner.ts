@@ -52,16 +52,22 @@ export function runStaticSecurityAudit(
   }
 
   // ==========================================
+function isTestOrDocFile(relativePath: string): boolean {
+  return /(?:^|\/)(?:__tests__|__mocks__|tests?|specs?|fixtures?|examples?|samples?)\/|\.(?:test|spec)\.[a-zA-Z0-9]+$|\.(?:md|mdx|txt)$/i.test(relativePath);
+}
+
+  // ==========================================
   // AREA 1: SECRETS AUDIT
   // ==========================================
   for (const file of files.securityFiles) {
+    const isTestFile = isTestOrDocFile(file.relativePath);
     const secretHits = scanContentForSecrets(file.content, file.relativePath);
     for (const hit of secretHits) {
       secretsToRotate.add(hit.masked);
 
       addThreatFinding({
         title: `Exposed ${hit.patternName}`,
-        severity: 'Critical',
+        severity: isTestFile ? 'Low' : 'Critical',
         area: 'Secrets',
         threatCategory: 'mitm',
         location: {
@@ -73,8 +79,13 @@ export function runStaticSecurityAudit(
         why: `Exposing secrets allows attackers to bypass authentication and directly compromise downstream cloud providers or databases.`,
         recommendedFix: `1. Move secret to an environment variable or secret manager.\n2. Add the file to .gitignore if it is an env file.\n3. ROTATE the credential immediately in the upstream provider.`,
         verifyWith: `git log -S "${hit.masked.substring(0, 4)}" to check historical exposure`,
-        confidence: 'Confirmed'
+        confidence: isTestFile ? 'Likely, verify' : 'Confirmed'
       });
+    }
+
+    // Skip AST / code logic vulnerability heuristics on test and doc files to prevent false alarms
+    if (isTestFile) {
+      continue;
     }
 
     // Check lines in files
@@ -99,14 +110,17 @@ export function runStaticSecurityAudit(
         });
       }
 
-      // 1.2 Insecure logging of sensitive parameters
-      if (/console\.(?:log|debug|info)\s*\([^)]*(?:password|token|secret|credit_card|card_number|authorization)[^)]*\)/i.test(line)) {
+      // 1.2 Insecure logging of sensitive parameters (only when logging actual variables, not static strings)
+      if (
+        /console\.(?:log|debug|info)\s*\([^)]*(?:,\s*|\{\s*|\$\{\s*)(?:[a-zA-Z0-9_.]*(?:password|token|secret|credit_card|card_number|authorization)|req\.body\.[a-zA-Z0-9_]+)/i.test(line) &&
+        !/console\.(?:log|debug|info)\s*\(\s*['"`][^'"`$]*(?:success|received|sent|started|finished|verified)['"`]\s*\)/i.test(line)
+      ) {
         addThreatFinding({
           title: `Sensitive Data Printed to Application Logs`,
           severity: 'Medium',
           area: 'Secrets',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Console log statement outputs sensitive attributes (passwords/tokens/secrets).`,
+          what: `Console log statement outputs sensitive variable or property (passwords/tokens/secrets).`,
           why: `Application logs stored in logging aggregators or terminal output may leak sensitive user or infrastructure data.`,
           recommendedFix: `Sanitize or remove sensitive fields before logging, or use a redaction logger.`,
           verifyWith: `grep -rn "console.log" ${file.relativePath}`,
@@ -119,8 +133,8 @@ export function runStaticSecurityAudit(
       // ==========================================
       if (
         /(?:db|conn|client|sequelize|pool|knex|prisma)\.(?:query|execute|raw|\$queryRawUnsafe)\s*\(\s*['"`]\s*(?:SELECT|INSERT|UPDATE|DELETE)[^'`"]*\$\{[^}]+\}/i.test(line) ||
-        /(?:db|conn|client|sequelize|pool)\.(?:query|execute)\s*\(\s*['"`]\s*(?:SELECT|INSERT|UPDATE|DELETE)[^'`"]*['"`]\s*\+\s*[a-zA-Z0-9_.]+/i.test(line) ||
-        /(?:const|let|var)?\s*[a-zA-Z0-9_]*(?:query|sql|stmt)\s*=\s*['"`]\s*(?:SELECT|INSERT|UPDATE|DELETE)[^'`"]*['"`]\s*\+\s*[a-zA-Z0-9_.]+/i.test(line) ||
+        /(?:db|conn|client|sequelize|pool)\.(?:query|execute)\s*\(\s*['"`]\s*(?:SELECT|INSERT|UPDATE|DELETE)[^'`"]*['"`]\s*\+\s*(?!['"`])[a-zA-Z0-9_.]+/i.test(line) ||
+        /(?:const|let|var)?\s*[a-zA-Z0-9_]*(?:query|sql|stmt)\s*=\s*['"`]\s*(?:SELECT|INSERT|UPDATE|DELETE)[^'`"]*['"`]\s*\+\s*(?!['"`])[a-zA-Z0-9_.]+/i.test(line) ||
         /(?:const|let|var)?\s*[a-zA-Z0-9_]*(?:query|sql|stmt)\s*=\s*`\s*(?:SELECT|INSERT|UPDATE|DELETE)[^`]*\$\{[^}]+\}/i.test(line) ||
         /\$db->(?:query|exec)\s*\(\s*['"][^'"]*\$[a-zA-Z0-9_]+/i.test(line)
       ) {
@@ -142,10 +156,11 @@ export function runStaticSecurityAudit(
       // THREAT 2: CROSS-SITE SCRIPTING (XSS)
       // ==========================================
       if (
-        /dangerouslySetInnerHTML\s*=\s*\{\s*\{\s*__html\s*:\s*(?!sanitize|DOMPurify)[a-zA-Z0-9_.]+\s*\}\s*\}/.test(line) ||
-        /\.innerHTML\s*=\s*(?!sanitize)[a-zA-Z0-9_.]*(?:req\.|params\.|searchParams|userInput)/i.test(line) ||
-        /document\.write\s*\([^)]*(?:location|search|query|params)/i.test(line) ||
-        /res\.(?:send|write)\s*\(\s*['"`]<[^>]+>[^'"`]*\$\{[^}]+\}/i.test(line)
+        (/dangerouslySetInnerHTML\s*=\s*\{\s*\{\s*__html\s*:\s*(?!sanitize|DOMPurify)[a-zA-Z0-9_.]+\s*\}\s*\}/.test(line) ||
+         /\.innerHTML\s*=\s*(?!sanitize|DOMPurify)[a-zA-Z0-9_.]*(?:req\.|params\.|searchParams|userInput)/i.test(line) ||
+         /document\.write\s*\([^)]*(?:location|search|query|params)/i.test(line) ||
+         /res\.(?:send|write)\s*\(\s*['"`]<[^>]+>[^'"`]*\$\{[^}]+\}/i.test(line)) &&
+        !/DOMPurify\.sanitize|sanitizeHtml|validator\.escape/i.test(line)
       ) {
         addThreatFinding({
           title: `Cross-Site Scripting (XSS) via Unsanitized Markup Insertion`,
@@ -517,6 +532,13 @@ export function runStaticSecurityAudit(
   let hasCspConfigured = false;
   let hasFrameGuard = false;
 
+  const allSourceContent = files.securityFiles.map((f) => f.content).join('\n');
+  const usesHelmet = /helmet\s*\(|koa-helmet|fastify-helmet|@fastify\/helmet/i.test(allSourceContent);
+  if (usesHelmet) {
+    hasFrameGuard = true;
+    hasCspConfigured = true;
+  }
+
   for (const config of files.configs) {
     if (/Content-Security-Policy/i.test(config.content)) {
       hasCspConfigured = true;
@@ -544,8 +566,8 @@ export function runStaticSecurityAudit(
     }
   }
 
-  if (!hasCspConfigured && files.configs.length > 0) {
-    const primaryConfig = files.configs[0]?.path || 'next.config.js';
+  if (!hasCspConfigured && (files.configs.length > 0 || isBackendProject)) {
+    const primaryConfig = files.configs[0]?.path || files.securityFiles[0]?.relativePath || 'next.config.js';
     addThreatFinding({
       title: `Missing Content Security Policy (CSP) Header`,
       severity: 'Medium',
@@ -560,8 +582,8 @@ export function runStaticSecurityAudit(
     });
   }
 
-  if (!hasFrameGuard && files.configs.length > 0) {
-    const primaryConfig = files.configs[0]?.path || 'server.ts';
+  if (!hasFrameGuard && (files.configs.length > 0 || isBackendProject)) {
+    const primaryConfig = files.configs[0]?.path || files.securityFiles[0]?.relativePath || 'server.ts';
     addThreatFinding({
       title: `Missing X-Frame-Options / Clickjacking Protection Header`,
       severity: 'Low',

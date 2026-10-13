@@ -7,11 +7,12 @@ import { IconChevron } from '../ui/icons'
 interface FindingCardProps {
   finding: Finding
   isExpanded?: boolean
+  viewMode?: 'compact' | 'detailed'
   onToggle?: () => void
   onViewPrompt: (finding: Finding) => void
 }
 
-export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle, onViewPrompt }: FindingCardProps) {
+export function FindingCard({ finding, isExpanded: controlledExpanded, viewMode = 'detailed', onToggle, onViewPrompt }: FindingCardProps) {
   const [internalExpanded, setInternalExpanded] = useState(true)
   const expanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded
 
@@ -32,9 +33,13 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
       className="border border-rule bg-raised transition-all hover:border-rule-strong rounded-[var(--radius-control)] overflow-hidden"
       data-finding-id={finding.id}
     >
-      <header className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-rule/70 bg-surface/40 hover:bg-surface/80 transition-colors">
+      <header
+        className={`${
+          viewMode === 'compact' ? 'p-2 sm:p-2.5' : 'p-3 sm:p-3.5'
+        } flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rule/70 bg-surface/40 hover:bg-surface/80 transition-colors`}
+      >
         <div className="flex-1 min-w-0 cursor-pointer select-none" onClick={handleToggle}>
-          <div className="flex flex-wrap items-center gap-1.5 mb-1">
+          <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
             <span className="font-mono text-small font-bold text-ink">{finding.id}</span>
             <SeverityTag level={finding.severity} />
             <span className="tag tag-outline text-ink-2 text-caption">{finding.area}</span>
@@ -50,7 +55,7 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
               {locationText}
             </span>
           </div>
-          <h4 className="text-body font-bold text-ink leading-snug break-words">
+          <h4 className={`${viewMode === 'compact' ? 'text-small' : 'text-body'} font-bold text-ink leading-snug break-words`}>
             {finding.title}
           </h4>
         </div>

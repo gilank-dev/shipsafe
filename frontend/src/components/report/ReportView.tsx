@@ -219,7 +219,7 @@ export function ReportView() {
       <nav
         role="tablist"
         aria-label="Report sections"
-        className="flex items-center gap-1.5 border-b border-rule pb-1 overflow-x-auto select-none"
+        className="flex items-center gap-1.5 border-b border-rule pb-1 overflow-x-auto select-none sticky top-[calc(var(--rail-h))] z-20 bg-canvas/95 backdrop-blur-xs pt-1"
       >
         <button
           role="tab"

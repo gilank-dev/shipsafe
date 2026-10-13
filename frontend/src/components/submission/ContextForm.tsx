@@ -27,19 +27,19 @@ export function ContextForm() {
   const firstHit = hits[0]
 
   return (
-    <fieldset className="rule-top mt-8 min-w-0 pt-4">
+    <fieldset className="rule-top mt-5 min-w-0 pt-3">
       <legend className="float-left w-full text-title font-bold [font-stretch:112%]">Project context (optional)</legend>
       <p className="clear-both mt-1 text-small text-ink-2">
         Context helps the review judge severity. Do not paste secrets or code here.
       </p>
 
-      <label htmlFor={DESCRIPTION_ID} className="mt-4 block text-small font-semibold">
+      <label htmlFor={DESCRIPTION_ID} className="mt-3 block text-small font-semibold">
         What does the project do?
       </label>
       <textarea
         id={DESCRIPTION_ID}
         className="control mt-1"
-        rows={6}
+        rows={3}
         maxLength={MAX_DESCRIPTION_CHARS}
         value={description}
         placeholder="Who uses it, what data it stores, and how it signs people in."

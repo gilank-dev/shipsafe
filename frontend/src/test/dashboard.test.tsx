@@ -201,4 +201,48 @@ describe('Compact Dashboard & Tabbed Report Navigation', () => {
     expect(screen.getByText(/Avg Score:/i)).toBeInTheDocument()
     expect(screen.getByText('6.3/10')).toBeInTheDocument()
   })
+
+  it('supports density mode toggle and renders pagination controls when findings exceed page size', () => {
+    const handleViewPrompt = vi.fn()
+    // Create 8 dummy findings with same severity so sort order is deterministic
+    const manyFindings: Finding[] = Array.from({ length: 8 }).map((_, i) => ({
+      id: `F-00${i + 1}`,
+      title: `Vulnerability issue number ${i + 1}`,
+      severity: 'Medium',
+      area: 'Code',
+      what: `Explanation for finding ${i + 1}`,
+      why: 'Risk impact detail',
+      recommendedFix: 'Apply code patch',
+      remediationPrompt: 'Fix prompt',
+      location: { file: `src/mod${i + 1}.ts`, line: i + 10 },
+    }))
+
+    render(<FindingList findings={manyFindings} onViewPrompt={handleViewPrompt} />)
+
+    // Verify density buttons
+    const detailedBtn = screen.getByRole('button', { name: /Detailed/i })
+    const denseBtn = screen.getByRole('button', { name: /Dense/i })
+    expect(detailedBtn).toBeInTheDocument()
+    expect(denseBtn).toBeInTheDocument()
+
+    // Toggle to dense view
+    fireEvent.click(denseBtn)
+    expect(denseBtn).toHaveClass('font-bold')
+
+    // Verify pagination controls are present
+    expect(screen.getByLabelText(/Findings pagination/i)).toBeInTheDocument()
+    expect(screen.getByText(/Showing/i)).toHaveTextContent('Showing 1-6 of 8 findings')
+
+    // First 6 items should be in document, 7th item should not be on page 1
+    expect(screen.getByText(/Vulnerability issue number 1/i)).toBeInTheDocument()
+    expect(screen.queryByText(/Vulnerability issue number 7/i)).not.toBeInTheDocument()
+
+    // Navigate to page 2
+    const nextBtn = screen.getByLabelText(/Next findings page/i)
+    fireEvent.click(nextBtn)
+
+    expect(screen.queryByText(/Vulnerability issue number 1/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Vulnerability issue number 7/i)).toBeInTheDocument()
+    expect(screen.getByText(/Vulnerability issue number 8/i)).toBeInTheDocument()
+  })
 })

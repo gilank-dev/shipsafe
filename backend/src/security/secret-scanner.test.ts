@@ -44,4 +44,14 @@ describe('Secret Scanner and Masking', () => {
     expect(masked).toBe('Authorization: Bearer sk_l**** in header');
     expect(masked).not.toContain('123456789012345678901234');
   });
+
+  it('does not flag localhost database connection strings or template files as real secrets', () => {
+    const localDb = 'DATABASE_URL=postgres://postgres:password123@localhost:5432/mydb';
+    const findings = scanContentForSecrets(localDb, 'docker-compose.yml');
+    expect(findings.length).toBe(0);
+
+    const templateText = `STRIPE=${fakeStripe}`;
+    const templateFindings = scanContentForSecrets(templateText, '.env.sample');
+    expect(templateFindings.length).toBe(0);
+  });
 });
