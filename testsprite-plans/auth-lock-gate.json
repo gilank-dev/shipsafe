@@ -20,11 +20,19 @@
     },
     {
       "type": "action",
-      "description": "Click the Sign In button in the navigation toolbar"
+      "description": "Click the file dropzone upload area while unauthenticated"
     },
     {
       "type": "assertion",
-      "description": "Verify that the authentication dialog opens with 'Sign in to ShipSafe', displaying GitHub, Google, and Send Magic Link options"
+      "description": "Verify that the authentication modal popup immediately appears with 'Sign in to ShipSafe' before any upload occurs"
+    },
+    {
+      "type": "action",
+      "description": "Click the Sign in to Run Audit button in the submission controls"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the authentication dialog is visible with GitHub, Google, and Send Magic Link options"
     }
   ]
 }

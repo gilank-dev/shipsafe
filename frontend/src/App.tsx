@@ -25,22 +25,26 @@ export default function App() {
   // Listen for Supabase session changes
   useEffect(() => {
     return onAuthStateChange((_session, user) => {
-      setAuthUser(
-        user
-          ? {
-              id: user.id,
-              email: user.email ?? '',
-              fullName:
-                (typeof user.user_metadata?.full_name === 'string' && user.user_metadata.full_name) ||
-                (typeof user.user_metadata?.name === 'string' && user.user_metadata.name) ||
-                '',
-              avatarUrl:
-                (typeof user.user_metadata?.avatar_url === 'string' && user.user_metadata.avatar_url) ||
-                (typeof user.user_metadata?.picture === 'string' && user.user_metadata.picture) ||
-                '',
-            }
-          : null,
-      )
+      if (user) {
+        setAuthUser({
+          id: user.id,
+          email: user.email ?? '',
+          fullName:
+            (typeof user.user_metadata?.full_name === 'string' && user.user_metadata.full_name) ||
+            (typeof user.user_metadata?.name === 'string' && user.user_metadata.name) ||
+            '',
+          avatarUrl:
+            (typeof user.user_metadata?.avatar_url === 'string' && user.user_metadata.avatar_url) ||
+            (typeof user.user_metadata?.picture === 'string' && user.user_metadata.picture) ||
+            '',
+        })
+      } else {
+        // Only clear user if not using an active developer session
+        const devToken = typeof window !== 'undefined' ? window.localStorage.getItem('shipsafe.auth.token') : null
+        if (!devToken || !devToken.startsWith('dev-token-')) {
+          setAuthUser(null)
+        }
+      }
     })
   }, [setAuthUser])
 

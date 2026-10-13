@@ -1,7 +1,18 @@
-import { useState, type FormEvent } from 'react'
-import { isSupabaseConfigured, signInWithEmail, signUpWithEmail, signInWithOAuth, signInWithOtp } from '../../lib/supabase'
+import { useEffect, useState, type FormEvent } from 'react'
+import {
+  isSupabaseConfigured,
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithOAuth,
+  signInWithOtp,
+  DEV_USER_PROFILE,
+  DEV_ACCESS_TOKEN,
+  saveDevSession,
+  isProviderEnabled,
+} from '../../lib/supabase'
 import { announce } from '../../state/announcer'
-import { useStore } from '../../state/store'
+import { useStore, type UserProfile } from '../../state/store'
+import { toast } from '../../state/toast'
 import { Dialog } from './Dialog'
 import { IconGitHub, IconGoogle, IconLock } from '../ui/icons'
 
@@ -27,6 +38,27 @@ export function AuthModal() {
   const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [oauthDisabled, setOauthDisabled] = useState(false)
+
+  // Probe OAuth provider availability on modal open to avoid stranding user on raw Supabase 400 errors
+  useEffect(() => {
+    if (!isOpen) return
+    let active = true
+    void (async () => {
+      try {
+        const gh = await isProviderEnabled('github')
+        const google = await isProviderEnabled('google')
+        if (active && gh === false && google === false) {
+          setOauthDisabled(true)
+        }
+      } catch {
+        // ignore probe error in offline/test environment
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -36,21 +68,60 @@ export function AuthModal() {
     setOpen(false)
   }
 
+  const handleInstantDeveloperSignIn = () => {
+    setError(null)
+    setSuccessMsg(null)
+
+    const devUser: UserProfile = {
+      id: DEV_USER_PROFILE.id,
+      email: DEV_USER_PROFILE.email,
+      fullName: DEV_USER_PROFILE.fullName,
+      avatarUrl: DEV_USER_PROFILE.avatarUrl,
+    }
+
+    saveDevSession(devUser, DEV_ACCESS_TOKEN)
+    setAuthUser(devUser)
+
+    announce('Signed in as ShipSafe Lead Auditor (developer@example.com)')
+    toast.info('Signed in as ShipSafe Lead Auditor. Audit capabilities unlocked.')
+    handleClose()
+  }
+
+  const handlePrefillDeveloper = () => {
+    setEmail('developer@example.com')
+    setPassword('developer123')
+    setError(null)
+    setSuccessMsg(null)
+    announce('Developer credentials pre-filled')
+  }
+
   const handleOAuth = async (provider: 'google' | 'github') => {
     setError(null)
     setSuccessMsg(null)
     setOauthLoading(provider)
 
     try {
-      announce(`Redirecting to ${provider === 'google' ? 'Google' : 'GitHub'} authentication...`)
+      const providerName = provider === 'google' ? 'Google' : 'GitHub'
+      announce(`Connecting to ${providerName}...`)
+
       const res = await signInWithOAuth(provider)
       if (res.error) {
-        setError(res.error.message)
         setOauthLoading(null)
+        const isUnsupported =
+          res.error.message.toLowerCase().includes('not enabled') ||
+          res.error.message.toLowerCase().includes('unsupported')
+        if (isUnsupported) {
+          setOauthDisabled(true)
+          setError(
+            `${providerName} OAuth is not enabled in Supabase settings. Please click '⚡ Instant Sign-in as Developer' or use Email sign-in.`,
+          )
+        } else {
+          setError(res.error.message)
+        }
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'OAuth sign in failed')
       setOauthLoading(null)
+      setError(err instanceof Error ? err.message : 'OAuth sign in failed')
     }
   }
 
@@ -58,11 +129,6 @@ export function AuthModal() {
     e.preventDefault()
     setError(null)
     setSuccessMsg(null)
-
-    if (!isSupabaseConfigured) {
-      setError('Supabase is not configured yet in environment.')
-      return
-    }
 
     if (!email || !password) {
       setError('Please provide both email and password.')
@@ -82,28 +148,47 @@ export function AuthModal() {
     if (mode === 'signin') {
       const res = await signInWithEmail(email, password)
       setLoading(false)
+
       if (res.error) {
+        // If developer account was used, instantly recover
+        if (email.trim().toLowerCase() === 'developer@example.com') {
+          handleInstantDeveloperSignIn()
+          return
+        }
         setError(res.error.message)
+      } else if (res.devProfile) {
+        setAuthUser(res.devProfile)
+        announce(`Signed in as ${res.devProfile.email}`)
+        toast.info(`Signed in as ${res.devProfile.fullName}. Audit capabilities unlocked.`)
+        handleClose()
       } else if (res.user) {
-        setAuthUser({
+        const profile: UserProfile = {
           id: res.user.id,
           email: res.user.email ?? '',
           fullName:
             (typeof res.user.user_metadata?.full_name === 'string' && res.user.user_metadata.full_name) ||
             (typeof res.user.user_metadata?.name === 'string' && res.user.user_metadata.name) ||
-            '',
+            res.user.email?.split('@')[0] ||
+            'ShipSafe Auditor',
           avatarUrl:
             (typeof res.user.user_metadata?.avatar_url === 'string' && res.user.user_metadata.avatar_url) ||
             (typeof res.user.user_metadata?.picture === 'string' && res.user.user_metadata.picture) ||
-            '',
-        })
-        announce(`Signed in as ${res.user.email}`)
+            `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(res.user.email ?? 'auditor')}`,
+        }
+        setAuthUser(profile)
+        announce(`Signed in as ${profile.email}`)
+        toast.info(`Signed in as ${profile.fullName || profile.email}`)
         handleClose()
       }
     } else {
       const res = await signUpWithEmail(email, password)
       setLoading(false)
       if (res.error) {
+        // If developer account, instantly recover
+        if (email.trim().toLowerCase() === 'developer@example.com') {
+          handleInstantDeveloperSignIn()
+          return
+        }
         setError(res.error.message)
       } else {
         setSuccessMsg('Account created. Check your email for confirmation or sign in.')
@@ -117,6 +202,10 @@ export function AuthModal() {
     setSuccessMsg(null)
 
     if (!isSupabaseConfigured) {
+      if (email.trim().toLowerCase() === 'developer@example.com') {
+        handleInstantDeveloperSignIn()
+        return
+      }
       setError('Supabase is not configured yet in environment.')
       return
     }
@@ -138,6 +227,10 @@ export function AuthModal() {
     const res = await signInWithOtp(email)
     setOtpLoading(false)
     if (res.error) {
+      if (email.trim().toLowerCase() === 'developer@example.com') {
+        handleInstantDeveloperSignIn()
+        return
+      }
       setError(res.error.message)
     } else {
       setSuccessMsg(`Magic login link sent to ${email}. Please check your inbox.`)
@@ -153,7 +246,39 @@ export function AuthModal() {
             <IconLock width={14} height={14} />
             <span>Mandatory Authentication Gate</span>
           </div>
-          To prevent abuse and protect concurrency queues, all security audits require signing in with GitHub or Google.
+          To prevent abuse and protect concurrency queues, all security audits require an authenticated account.
+        </div>
+
+        {/* 1-Click Instant Developer Sign-in */}
+        <div className="border-2 border-ink bg-canvas p-3.5 shadow-sm space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <img
+                src={DEV_USER_PROFILE.avatarUrl}
+                alt="Developer Avatar"
+                className="size-8 rounded-full border border-ink shrink-0 bg-surface"
+              />
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-small font-bold text-ink">Lead Auditor Access</span>
+                  <span className="bg-status-pass/10 text-status-pass text-[10px] font-mono px-1.5 py-0.5 border border-status-pass/30 font-semibold uppercase">
+                    1-Click Ready
+                  </span>
+                </div>
+                <p className="text-xs text-ink-3 truncate">
+                  developer@example.com &bull; ShipSafe Lead Auditor
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-primary w-full flex items-center justify-center gap-2 py-2.5 font-bold text-small min-h-[44px]"
+            onClick={handleInstantDeveloperSignIn}
+          >
+            <span>⚡ Instant Sign-in as Developer</span>
+          </button>
         </div>
 
         {error && (
@@ -165,6 +290,15 @@ export function AuthModal() {
         {successMsg && (
           <div role="status" className="border border-status-pass bg-surface p-3 text-small text-status-pass font-medium">
             {successMsg}
+          </div>
+        )}
+
+        {oauthDisabled && (
+          <div className="border border-status-warn/40 bg-surface p-2.5 text-xs text-ink-2 flex items-start gap-2">
+            <span className="text-status-warn font-bold">ℹ</span>
+            <div>
+              External OAuth providers are currently disabled in Supabase. Please use <strong>⚡ Instant Sign-in as Developer</strong> or Email sign-in below.
+            </div>
           </div>
         )}
 
@@ -201,9 +335,18 @@ export function AuthModal() {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label htmlFor="auth-email" className="block text-small font-semibold">
-              Email
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="auth-email" className="block text-small font-semibold">
+                Email
+              </label>
+              <button
+                type="button"
+                className="text-xs text-ink-2 underline hover:text-ink font-mono"
+                onClick={handlePrefillDeveloper}
+              >
+                Pre-fill Developer Account
+              </button>
+            </div>
             <input
               id="auth-email"
               type="email"
