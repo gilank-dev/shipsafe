@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TestSprite/testsprite-cli/v0.14.0/schemas/plan.schema.json",
+  "projectId": "71a75cb9-edc9-4a89-9207-e05fdd6f0bd6",
+  "type": "frontend",
+  "name": "Cloudflare Turnstile and Audit Context Controls",
+  "description": "Verifies that Cloudflare Turnstile anti-bot widget is present and audit context controls are interactive.",
+  "priority": "p2",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to the ShipSafe security cockpit at the root page"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the Turnstile human verification container is rendered with security status badge"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that deployment context dropdown and security compliance flags are present"
+    }
+  ]
+}

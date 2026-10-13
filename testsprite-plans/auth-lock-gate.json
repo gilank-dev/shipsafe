@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TestSprite/testsprite-cli/v0.14.0/schemas/plan.schema.json",
+  "projectId": "71a75cb9-edc9-4a89-9207-e05fdd6f0bd6",
+  "type": "frontend",
+  "name": "Mandatory Authentication Gate Enforcement",
+  "description": "Verifies that unauthenticated visitors are blocked from triggering audits and that the authentication modal opens with Supabase OAuth and Magic Link options.",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to the ShipSafe security cockpit at the root page"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the Sign In Required banner is displayed in the submission panel with GitHub and Google login buttons"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the main audit execution button displays 'Sign in to Run Audit' and remains locked"
+    },
+    {
+      "type": "action",
+      "description": "Click the Sign In button in the navigation toolbar"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the authentication dialog opens with 'Sign in to ShipSafe', displaying GitHub, Google, and Send Magic Link options"
+    }
+  ]
+}

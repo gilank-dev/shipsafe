@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TestSprite/testsprite-cli/v0.14.0/schemas/plan.schema.json",
+  "projectId": "71a75cb9-edc9-4a89-9207-e05fdd6f0bd6",
+  "type": "frontend",
+  "name": "Custom 404 Boundary Breach Verification",
+  "description": "Verifies that navigating to an unrecognized route displays the custom 404 Boundary Breach page and allows returning to cockpit.",
+  "priority": "p1",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to the unrecognized perimeter path at /unknown-perimeter-boundary"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the page displays '404 // Boundary Breach' and 'Perimeter Breach: Path Undefined'"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that the button 'Return to Security Cockpit' is visible and clickable"
+    },
+    {
+      "type": "action",
+      "description": "Click the 'Return to Security Cockpit' button"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify that navigation returns to the root cockpit showing the ShipSafe header and submission panel"
+    }
+  ]
+}
