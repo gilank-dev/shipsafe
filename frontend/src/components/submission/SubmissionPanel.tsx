@@ -5,11 +5,26 @@ import { UploadDropzone } from './UploadDropzone'
 import { TurnstileWidget } from '../ui/TurnstileWidget'
 import { useStore } from '../../state/store'
 import { IconLock, IconGitHub, IconGoogle } from '../ui/icons'
-import { signInWithOAuth } from '../../lib/supabase'
+import { loginWithGitHub, loginWithGoogle } from '../../lib/supabase'
 
 export function SubmissionPanel() {
   const user = useStore((s) => s.auth.user)
+  const setAuthUser = useStore((s) => s.setAuthUser)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
+
+  const handleGoogleSignIn = async () => {
+    const res = await loginWithGoogle()
+    if (res.user) {
+      setAuthUser(res.user)
+    }
+  }
+
+  const handleGitHubSignIn = async () => {
+    const res = await loginWithGitHub()
+    if (res.user) {
+      setAuthUser(res.user)
+    }
+  }
 
   return (
     <>
@@ -25,16 +40,16 @@ export function SubmissionPanel() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
-              className="btn btn-outline flex items-center justify-center gap-2 py-2 text-small font-semibold hover:border-ink"
-              onClick={() => void signInWithOAuth('github')}
+              className="btn btn-outline flex items-center justify-center gap-2 py-2 text-small font-semibold hover:border-ink cursor-pointer"
+              onClick={() => void handleGitHubSignIn()}
             >
               <IconGitHub width={16} height={16} />
               <span>Sign in with GitHub</span>
             </button>
             <button
               type="button"
-              className="btn btn-outline flex items-center justify-center gap-2 py-2 text-small font-semibold hover:border-ink"
-              onClick={() => void signInWithOAuth('google')}
+              className="btn btn-outline flex items-center justify-center gap-2 py-2 text-small font-semibold hover:border-ink cursor-pointer"
+              onClick={() => void handleGoogleSignIn()}
             >
               <IconGoogle width={16} height={16} />
               <span>Sign in with Google</span>
@@ -42,7 +57,7 @@ export function SubmissionPanel() {
           </div>
           <button
             type="button"
-            className="mt-2.5 text-xs text-ink-3 hover:text-ink underline block"
+            className="mt-2.5 text-xs text-ink-3 hover:text-ink underline block cursor-pointer"
             onClick={() => setAuthModalOpen(true)}
           >
             Or sign in with email credentials

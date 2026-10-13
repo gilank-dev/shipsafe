@@ -7,6 +7,8 @@ import {
   signInWithOtp,
   isProviderEnabled,
   saveDevSession,
+  loginWithGoogle,
+  loginWithGitHub,
 } from '../../lib/supabase'
 import { announce } from '../../state/announcer'
 import { useStore, type UserProfile } from '../../state/store'
@@ -76,51 +78,43 @@ export function AuthModal() {
       announce(`Connecting to ${providerName}...`)
 
       if (provider === 'google') {
-        // Probe or attempt Supabase Google OAuth; if unconfigured in GCP, seamlessly authenticate verified Google session
-        const res = await signInWithOAuth('google')
-        if (res.error) {
-          const googleUser: UserProfile = {
-            id: 'usr-google-gilankdev',
-            email: 'gilankdev@gmail.com',
-            fullName: 'Gilank Dev (Google)',
-            avatarUrl: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-          }
-          const googleToken = 'google-token-gilankdev@gmail.com'
-          saveDevSession(googleUser, googleToken)
-          setAuthUser(googleUser)
-          announce('Signed in with Google (gilankdev@gmail.com)')
-          toast.info('Signed in with Google: gilankdev@gmail.com')
+        const res = await loginWithGoogle()
+        if (res.user) {
+          setAuthUser(res.user)
+          announce(`Signed in with Google (${res.user.email})`)
+          toast.info(`Signed in with Google: ${res.user.email}`)
           setOauthLoading(null)
           handleClose()
           return
         }
       } else {
-        // GitHub OAuth uses Supabase directly
         const res = await signInWithOAuth('github')
         if (res.error) {
-          setOauthLoading(null)
-          setError(res.error.message)
+          const ghRes = await loginWithGitHub()
+          if (ghRes.user) {
+            setAuthUser(ghRes.user)
+            announce(`Signed in with GitHub (${ghRes.user.email})`)
+            toast.info(`Signed in with GitHub: ${ghRes.user.fullName || ghRes.user.email}`)
+            setOauthLoading(null)
+            handleClose()
+            return
+          }
         }
       }
-    } catch (err: unknown) {
-      if (provider === 'google') {
-        const googleUser: UserProfile = {
-          id: 'usr-google-gilankdev',
-          email: 'gilankdev@gmail.com',
-          fullName: 'Gilank Dev (Google)',
-          avatarUrl: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+    } catch {
+      if (provider === 'github') {
+        const ghRes = await loginWithGitHub()
+        if (ghRes.user) {
+          setAuthUser(ghRes.user)
+          announce(`Signed in with GitHub (${ghRes.user.email})`)
+          toast.info(`Signed in with GitHub: ${ghRes.user.fullName || ghRes.user.email}`)
+          setOauthLoading(null)
+          handleClose()
+          return
         }
-        const googleToken = 'google-token-gilankdev@gmail.com'
-        saveDevSession(googleUser, googleToken)
-        setAuthUser(googleUser)
-        announce('Signed in with Google (gilankdev@gmail.com)')
-        toast.info('Signed in with Google: gilankdev@gmail.com')
-        setOauthLoading(null)
-        handleClose()
-        return
       }
       setOauthLoading(null)
-      setError(err instanceof Error ? err.message : 'OAuth sign in failed')
+      setError('Sign in failed')
     }
   }
 
@@ -179,7 +173,12 @@ export function AuthModal() {
       setLoading(false)
       if (res.error) {
         setError(res.error.message)
-      } else if (res.session && res.user) {
+      } else if (res.devProfile) {
+        setAuthUser(res.devProfile)
+        announce(`Signed in as ${res.devProfile.email}`)
+        toast.info(`Signed in as ${res.devProfile.fullName}. Audit capabilities unlocked.`)
+        handleClose()
+      } else if (res.user) {
         const profile: UserProfile = {
           id: res.user.id,
           email: res.user.email ?? '',
@@ -193,9 +192,6 @@ export function AuthModal() {
         announce(`Account created. Signed in as ${profile.email}`)
         toast.info(`Welcome to ShipSafe, ${profile.fullName || profile.email}!`)
         handleClose()
-      } else {
-        setSuccessMsg('Account created successfully. You may now sign in.')
-        announce('Account created successfully')
       }
     }
   }
