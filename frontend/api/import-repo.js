@@ -92,6 +92,8 @@ export default async function handler(req, res) {
       });
     }
 
+    const buffer = Buffer.from(arrayBuffer);
+
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', `attachment; filename="${owner}-${repo}.zip"`);
     res.setHeader('X-File-Name', `${owner}-${repo}.zip`);
