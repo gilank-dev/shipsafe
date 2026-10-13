@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { isSupabaseConfigured, signInWithEmail, signUpWithEmail, signInWithOAuth } from '../../lib/supabase'
+import { isSupabaseConfigured, signInWithEmail, signUpWithEmail, signInWithOAuth, signInWithOtp } from '../../lib/supabase'
 import { announce } from '../../state/announcer'
 import { useStore } from '../../state/store'
 import { Dialog } from './Dialog'
@@ -14,6 +14,7 @@ export function AuthModal() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [otpLoading, setOtpLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -83,6 +84,31 @@ export function AuthModal() {
     }
   }
 
+  const handleMagicLink = async () => {
+    setError(null)
+    setSuccessMsg(null)
+
+    if (!isSupabaseConfigured) {
+      setError('Supabase is not configured yet in environment.')
+      return
+    }
+
+    if (!email) {
+      setError('Please enter your email to receive a magic sign-in link.')
+      return
+    }
+
+    setOtpLoading(true)
+    const res = await signInWithOtp(email)
+    setOtpLoading(false)
+    if (res.error) {
+      setError(res.error.message)
+    } else {
+      setSuccessMsg(`Magic login link sent to ${email}. Please check your inbox.`)
+      announce('Magic link sent to email')
+    }
+  }
+
   return (
     <Dialog title={mode === 'signin' ? 'Sign in to ShipSafe' : 'Create an Account'} onClose={handleClose}>
       <div className="space-y-4">
@@ -111,7 +137,7 @@ export function AuthModal() {
           <button
             type="button"
             className="btn btn-outline w-full flex items-center justify-center gap-2.5 py-2.5 font-medium min-h-[44px] hover:border-ink"
-            disabled={oauthLoading !== null || loading}
+            disabled={oauthLoading !== null || loading || otpLoading}
             onClick={() => handleOAuth('github')}
           >
             <IconGitHub width={18} height={18} />
@@ -121,7 +147,7 @@ export function AuthModal() {
           <button
             type="button"
             className="btn btn-outline w-full flex items-center justify-center gap-2.5 py-2.5 font-medium min-h-[44px] hover:border-ink"
-            disabled={oauthLoading !== null || loading}
+            disabled={oauthLoading !== null || loading || otpLoading}
             onClick={() => handleOAuth('google')}
           >
             <IconGoogle width={18} height={18} />
@@ -182,9 +208,24 @@ export function AuthModal() {
             >
               {mode === 'signin' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
-            <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={loading || oauthLoading !== null}>
-              {loading ? 'Please wait...' : mode === 'signin' ? 'Sign in' : 'Create account'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-outline text-small w-full sm:w-auto"
+                disabled={loading || otpLoading || oauthLoading !== null}
+                onClick={handleMagicLink}
+                title="Send a passwordless magic login link to your email"
+              >
+                {otpLoading ? 'Sending...' : 'Send Magic Link'}
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary w-full sm:w-auto"
+                disabled={loading || otpLoading || oauthLoading !== null}
+              >
+                {loading ? 'Please wait...' : mode === 'signin' ? 'Sign in' : 'Create account'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

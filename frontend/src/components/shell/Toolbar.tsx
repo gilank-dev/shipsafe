@@ -105,9 +105,22 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
                 >
                   History
                 </button>
-                <span className="text-small text-ink-2 truncate max-w-[140px]" title={user.email}>
-                  {user.email ? user.email.split('@')[0] : 'User'}
-                </span>
+                <div className="flex items-center gap-2 max-w-[180px] pl-1">
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.fullName || user.email || 'User avatar'}
+                      className="size-7 rounded-full border border-ink object-cover shrink-0"
+                    />
+                  ) : (
+                    <span className="size-7 rounded-full border border-ink bg-surface flex items-center justify-center text-xs font-bold font-mono shrink-0">
+                      {((user.fullName || user.email || 'U')[0] || 'U').toUpperCase()}
+                    </span>
+                  )}
+                  <span className="text-small text-ink-2 truncate font-medium" title={user.email || user.fullName}>
+                    {user.fullName || (user.email ? user.email.split('@')[0] : 'User')}
+                  </span>
+                </div>
                 <button type="button" className="btn text-small" onClick={handleSignOut}>
                   Sign out
                 </button>

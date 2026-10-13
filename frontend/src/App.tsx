@@ -25,7 +25,22 @@ export default function App() {
   // Listen for Supabase session changes
   useEffect(() => {
     return onAuthStateChange((_session, user) => {
-      setAuthUser(user ? { id: user.id, email: user.email ?? '' } : null)
+      setAuthUser(
+        user
+          ? {
+              id: user.id,
+              email: user.email ?? '',
+              fullName:
+                (typeof user.user_metadata?.full_name === 'string' && user.user_metadata.full_name) ||
+                (typeof user.user_metadata?.name === 'string' && user.user_metadata.name) ||
+                '',
+              avatarUrl:
+                (typeof user.user_metadata?.avatar_url === 'string' && user.user_metadata.avatar_url) ||
+                (typeof user.user_metadata?.picture === 'string' && user.user_metadata.picture) ||
+                '',
+            }
+          : null,
+      )
     })
   }, [setAuthUser])
 
