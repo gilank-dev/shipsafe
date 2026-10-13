@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useSignIn } from '@clerk/react'
 import {
   isSupabaseConfigured,
   signInWithEmail,
@@ -21,6 +22,8 @@ export function AuthModal() {
   const setOpen = useStore((s) => s.setAuthModalOpen)
   const setAuthUser = useStore((s) => s.setAuthUser)
 
+  const { isLoaded: isClerkLoaded, signIn: clerkSignIn } = useSignIn()
+
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -42,7 +45,7 @@ export function AuthModal() {
 
   // Probe OAuth provider availability on modal open
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen || Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)) return
     let active = true
     void (async () => {
       try {
@@ -76,6 +79,21 @@ export function AuthModal() {
     try {
       const providerName = provider === 'google' ? 'Google' : 'GitHub'
       announce(`Connecting to ${providerName}...`)
+
+      // Attempt Clerk OAuth first (supports both Google and GitHub out of the box)
+      if (isClerkLoaded && clerkSignIn) {
+        try {
+          const strategy = provider === 'google' ? 'oauth_google' : 'oauth_github'
+          await clerkSignIn.authenticateWithRedirect({
+            strategy,
+            redirectUrl: `${window.location.origin}/sso-callback`,
+            redirectUrlComplete: window.location.origin,
+          })
+          return
+        } catch (clerkErr) {
+          console.warn('[ShipSafe] Clerk OAuth redirect error, falling back:', clerkErr)
+        }
+      }
 
       if (provider === 'google') {
         const res = await loginWithGoogle()

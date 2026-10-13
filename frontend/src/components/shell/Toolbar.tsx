@@ -1,4 +1,5 @@
 import type { Ref } from 'react'
+import { useClerk } from '@clerk/react'
 import { isMockMode } from '../../api/client'
 import { signOut } from '../../lib/supabase'
 import { announce } from '../../state/announcer'
@@ -27,8 +28,16 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
   const setHistoryModalOpen = useStore((s) => s.setHistoryModalOpen)
   const setAuthUser = useStore((s) => s.setAuthUser)
+  const clerk = useClerk()
 
   const handleSignOut = async () => {
+    try {
+      if (clerk?.signOut) {
+        await clerk.signOut()
+      }
+    } catch {
+      // non-blocking
+    }
     await signOut()
     setAuthUser(null)
     announce('Signed out')

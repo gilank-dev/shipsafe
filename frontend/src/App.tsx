@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useUser, useAuth, AuthenticateWithRedirectCallback } from '@clerk/react'
 import { AppShell } from './components/shell/AppShell'
 import { ReportArea } from './components/run/ReportArea'
 import { SubmissionPanel } from './components/submission/SubmissionPanel'
@@ -22,6 +23,48 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
+  // Clerk session synchronization
+  const { user: clerkUser, isSignedIn: isClerkSignedIn } = useUser()
+  const { getToken: getClerkToken } = useAuth()
+
+  useEffect(() => {
+    if (!isClerkSignedIn || !clerkUser) return
+    let active = true
+    void (async () => {
+      try {
+        const token = await getClerkToken()
+        if (!active) return
+        if (token && typeof window !== 'undefined') {
+          window.localStorage.setItem('shipsafe.auth.token', token)
+        }
+        const email =
+          clerkUser.primaryEmailAddress?.emailAddress ||
+          clerkUser.emailAddresses?.[0]?.emailAddress ||
+          ''
+        const fullName =
+          clerkUser.fullName ||
+          `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim() ||
+          email.split('@')[0] ||
+          'ShipSafe Auditor'
+        const avatarUrl =
+          clerkUser.imageUrl ||
+          `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email || 'auditor')}`
+
+        setAuthUser({
+          id: clerkUser.id,
+          email,
+          fullName,
+          avatarUrl,
+        })
+      } catch (err) {
+        console.error('[ShipSafe] Error obtaining Clerk session token:', err)
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [isClerkSignedIn, clerkUser, getClerkToken, setAuthUser])
+
   // Listen for Supabase session changes
   useEffect(() => {
     return onAuthStateChange((_session, user) => {
@@ -39,9 +82,9 @@ export default function App() {
             '',
         })
       } else {
-        // Only clear user if not using an active developer session
-        const devToken = typeof window !== 'undefined' ? window.localStorage.getItem('shipsafe.auth.token') : null
-        if (!devToken || !devToken.startsWith('dev-token-')) {
+        // Only clear user if not using an active Clerk, dev, or custom session
+        const storedToken = typeof window !== 'undefined' ? window.localStorage.getItem('shipsafe.auth.token') : null
+        if (!storedToken || (!storedToken.startsWith('dev-token-') && !storedToken.startsWith('google-token-') && !storedToken.startsWith('github-token-') && !storedToken.includes('.'))) {
           setAuthUser(null)
         }
       }
@@ -56,6 +99,11 @@ export default function App() {
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
   }, [hasWork])
+
+  // SSO Callback for Clerk OAuth
+  if (currentPath === '/sso-callback') {
+    return <AuthenticateWithRedirectCallback signInForceRedirectUrl="/" />
+  }
 
   // Custom 404 Route handling
   if (currentPath !== '/' && currentPath !== '') {

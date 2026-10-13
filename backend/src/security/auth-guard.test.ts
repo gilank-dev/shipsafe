@@ -195,5 +195,23 @@ describe('Supabase Auth Guard Middleware', () => {
         email: 'gilankdev@gmail.com',
       });
     });
+
+    it('rejects tampered or forged Clerk tokens with 401', async () => {
+      const fakeClerkHeader = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
+      const fakeClerkPayload = Buffer.from(
+        JSON.stringify({
+          sub: 'user_fake_attacker',
+          iss: 'https://poetic-locust-5326.clerk.accounts.dev',
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        })
+      ).toString('base64url');
+      const fakeClerkToken = `${fakeClerkHeader}.${fakeClerkPayload}.invalidsignature123`;
+
+      const result = await verifySupabaseJwt(fakeClerkToken);
+      expect(result.valid).toBe(false);
+      expect(result.statusCode).toBe(401);
+      expect(result.error).toContain('Clerk verification failed');
+    });
   });
 });
+

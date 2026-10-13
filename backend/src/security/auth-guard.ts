@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { verifyToken, createClerkClient } from '@clerk/backend';
 
 export interface AuthenticatedUser {
   id: string;
@@ -16,12 +17,63 @@ export interface VerifyJwtResult {
   statusCode?: number;
 }
 
+const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || 'sk_test_UgZSMf9NW14F5Wg5964xUGNP976f0rWFyFKl3kwamR';
+const clerkClient = createClerkClient({ secretKey: CLERK_SECRET_KEY });
+
+// In-memory cache for user email lookups to reduce Clerk API calls
+const userEmailCache = new Map<string, { email: string; timestamp: number }>();
+
 /**
- * Verifies Supabase JWT against Supabase Auth endpoint or test bypass.
+ * Verifies authentication token against Clerk or Supabase Auth.
  */
 export async function verifySupabaseJwt(token: string): Promise<VerifyJwtResult> {
   if (!token || typeof token !== 'string') {
     return { valid: false, error: 'Token is missing or empty', statusCode: 401 };
+  }
+
+  // Check if token is a Clerk JWT or session token
+  const parts = token.split('.');
+  if (parts.length === 3) {
+    try {
+      const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf8');
+      const payload = JSON.parse(payloadJson);
+      if (payload && (payload.iss?.includes('clerk') || payload.sub?.startsWith('user_'))) {
+        try {
+          const verified = await verifyToken(token, { secretKey: CLERK_SECRET_KEY });
+          if (verified && verified.sub) {
+            let userEmail = (verified as Record<string, unknown>).email as string | undefined;
+            if (!userEmail) {
+              const cached = userEmailCache.get(verified.sub);
+              if (cached && Date.now() - cached.timestamp < 300000) {
+                userEmail = cached.email;
+              } else {
+                try {
+                  const clerkUser = await clerkClient.users.getUser(verified.sub);
+                  userEmail = clerkUser.emailAddresses?.[0]?.emailAddress;
+                  if (userEmail) {
+                    userEmailCache.set(verified.sub, { email: userEmail, timestamp: Date.now() });
+                  }
+                } catch {
+                  // user info lookup non-blocking
+                }
+              }
+            }
+            return {
+              valid: true,
+              user: {
+                id: verified.sub,
+                email: userEmail || `${verified.sub}@clerk.user`,
+              },
+            };
+          }
+        } catch (clerkErr: unknown) {
+          const errMsg = clerkErr instanceof Error ? clerkErr.message : 'Invalid Clerk token';
+          return { valid: false, error: `Clerk verification failed: ${errMsg}`, statusCode: 401 };
+        }
+      }
+    } catch {
+      // Not a valid JSON payload, proceed to standard verifiers
+    }
   }
 
   // Validate developer or direct provider tokens (dev-token-, google-token-, github-token-)
