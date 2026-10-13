@@ -38,3 +38,7 @@ Thumbs.db
 *.zip
 .turbo
 .eslintcache
+
+supabase/.temp/
+frontend/.env
+frontend/.env.production

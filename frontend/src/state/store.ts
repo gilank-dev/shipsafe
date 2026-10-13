@@ -13,6 +13,7 @@ export interface SubmissionState {
   handlesPII: boolean
   handlesPayments: boolean
   agentTarget: AgentTarget
+  turnstileToken: string | null
 }
 
 export interface AuditErrorView {
@@ -61,6 +62,7 @@ export interface ShipSafeState {
   setDeployTarget: (value: string) => void
   setFlag: (flag: 'handlesPII' | 'handlesPayments', value: boolean) => void
   setAgentTarget: (target: AgentTarget) => void
+  setTurnstileToken: (token: string | null) => void
   loadProject: (file: File, context: Pick<SubmissionState, 'description' | 'deployTarget' | 'handlesPII' | 'handlesPayments'>) => void
   patchAudit: (patch: Partial<AuditState>) => void
   setAuthUser: (user: UserProfile | null) => void
@@ -77,6 +79,7 @@ export const initialSubmission: SubmissionState = {
   handlesPII: false,
   handlesPayments: false,
   agentTarget: 'Generic',
+  turnstileToken: null,
 }
 
 export const initialAudit: AuditState = {
@@ -126,6 +129,7 @@ export const useStore = create<ShipSafeState>()((set) => ({
   setDeployTarget: (value) => set((s) => ({ submission: { ...s.submission, deployTarget: value } })),
   setFlag: (flag, value) => set((s) => ({ submission: { ...s.submission, [flag]: value } })),
   setAgentTarget: (target) => set((s) => ({ submission: { ...s.submission, agentTarget: target } })),
+  setTurnstileToken: (turnstileToken) => set((s) => ({ submission: { ...s.submission, turnstileToken } })),
   loadProject: (file, context) =>
     set((s) => ({ submission: { ...s.submission, ...context, file, fileError: null } })),
   patchAudit: (patch) => set((s) => ({ audit: { ...s.audit, ...patch } })),

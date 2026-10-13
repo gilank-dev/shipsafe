@@ -227,6 +227,10 @@ describe('parseReport', () => {
 
 describe('mapHttpError', () => {
   it('maps the documented status codes', () => {
+    expect(mapHttpError(403, { error: { code: 'captcha_failed', message: 'Turnstile check failed' } })).toMatchObject({
+      kind: 'captcha_failed',
+      message: 'Turnstile check failed',
+    })
     expect(mapHttpError(413, null).kind).toBe('too_large')
     expect(mapHttpError(415, null).kind).toBe('not_zip')
     expect(mapHttpError(422, { error: { message: 'zip-slip entry' } })).toMatchObject({ kind: 'unsafe_archive', message: 'zip-slip entry' })

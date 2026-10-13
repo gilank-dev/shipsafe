@@ -5,6 +5,7 @@ import multer from 'multer';
 import dotenv from 'dotenv';
 import { validateAndExtractZip, cleanupTempDir } from './security/zip-guard';
 import { walkAndFilterDirectory } from './security/file-filter';
+import { verifyTurnstileToken } from './security/turnstile';
 import { runStaticSecurityAudit } from './engine/rules-scanner';
 import { buildAuditReport } from './engine/report-builder';
 import { generateRemediationPrompt } from './engine/prompts';
@@ -73,6 +74,20 @@ app.get('/api/ai/health', async (_req: Request, res: Response) => {
 
 // 2. Audit Endpoint with Concurrency Limiter (Max 3 concurrent users + FIFO Queue)
 app.post('/api/audit', upload.single('file'), async (req: Request, res: Response, next: NextFunction) => {
+  const turnstileToken = req.body?.turnstileToken;
+  const clientIp = (req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string | undefined;
+
+  const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp);
+  if (!turnstileResult.success) {
+    res.status(403).json({
+      error: {
+        code: 'captcha_failed',
+        message: 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.'
+      }
+    });
+    return;
+  }
+
   if (!req.file) {
     res.status(400).json({
       error: {

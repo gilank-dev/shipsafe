@@ -89,7 +89,12 @@ async function runAudit(): Promise<void> {
 
   try {
     const { reportId, report } = await api.audit(
-      { file, context, agentTarget: submission.agentTarget },
+      {
+        file,
+        context,
+        agentTarget: submission.agentTarget,
+        turnstileToken: submission.turnstileToken ?? undefined,
+      },
       {
         signal: ctrl.signal,
         onStage: (stage, pct) => {

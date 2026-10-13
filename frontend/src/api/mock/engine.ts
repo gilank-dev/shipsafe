@@ -29,6 +29,7 @@ const SENTINELS: Record<string, () => ApiError> = {
   __mock_fail_rate_limited: () => new ApiError('rate_limited', 'Too many requests.', 8000),
   __mock_fail_timeout: () => new ApiError('timeout', 'The audit timed out.'),
   __mock_fail_server: () => new ApiError('server', 'The audit service failed.'),
+  __mock_fail_captcha: () => new ApiError('captcha_failed', 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.'),
 }
 
 const WEIGHT: Record<Severity, number> = { Critical: 4, High: 2.5, Medium: 1, Low: 0.4, Info: 0 }

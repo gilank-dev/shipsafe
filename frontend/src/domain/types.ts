@@ -92,6 +92,7 @@ export type ApiErrorKind =
   | 'too_large'
   | 'not_zip'
   | 'unsafe_archive'
+  | 'captcha_failed'
   | 'server'
   | 'bad_response'
   | 'aborted'
@@ -107,4 +108,6 @@ export interface AuditRequest {
   file: File
   context: ProjectContext
   agentTarget: AgentTarget
+  turnstileToken?: string
 }
+

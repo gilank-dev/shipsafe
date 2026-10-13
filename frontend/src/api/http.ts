@@ -18,6 +18,8 @@ export function mapHttpError(status: number, body: unknown, retryAfterHeader?: s
       ? detail.retryAfterSeconds
       : Number.parseInt(retryAfterHeader ?? '', 10)
   switch (status) {
+    case 403:
+      return new ApiError('captcha_failed', message || 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.')
     case 413:
       return new ApiError('too_large', message || 'The server rejected this ZIP as too large.')
     case 415:
@@ -121,6 +123,9 @@ export function createHttpApi(base: string): ShipSafeApi {
         form.append('file', req.file)
         form.append('context', JSON.stringify(req.context))
         form.append('agentTarget', req.agentTarget)
+        if (req.turnstileToken) {
+          form.append('turnstileToken', req.turnstileToken)
+        }
         opts.onStage('upload', 0)
         xhr.send(form)
       })
