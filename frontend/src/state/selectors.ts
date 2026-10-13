@@ -21,7 +21,8 @@ export const selectCanRun = (s: ShipSafeState): boolean =>
   s.submission.file !== null &&
   s.submission.fileError === null &&
   s.audit.status !== 'running' &&
-  selectIsCaptchaReady(s)
+  selectIsCaptchaReady(s) &&
+  Boolean(s.auth.user)
 
 export const useOutdated = () => useStore(selectOutdated)
 export const useCanRun = () => useStore(selectCanRun)

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { supabaseAuthGuard, verifySupabaseJwt, AuthRequest } from './auth-guard';
+import { supabaseAuthGuard, requireSupabaseAuth, verifySupabaseJwt, AuthRequest } from './auth-guard';
 import { Response } from 'express';
 
 describe('Supabase Auth Guard Middleware', () => {
@@ -87,5 +87,44 @@ describe('Supabase Auth Guard Middleware', () => {
     const result = await verifySupabaseJwt('');
     expect(result.valid).toBe(false);
     expect(result.statusCode).toBe(401);
+  });
+
+  describe('requireSupabaseAuth', () => {
+    it('rejects unauthenticated requests with HTTP 401 and unauthorized code', async () => {
+      const req = { headers: {} } as AuthRequest;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      } as unknown as Response;
+      const next = vi.fn();
+
+      await requireSupabaseAuth(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          code: 'unauthorized',
+          message: expect.stringContaining('Authentication required'),
+        },
+      });
+    });
+
+    it('allows valid authenticated requests to proceed with req.user attached', async () => {
+      const req = { headers: { authorization: 'Bearer valid-test-token' } } as AuthRequest;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      } as unknown as Response;
+      const next = vi.fn();
+
+      await requireSupabaseAuth(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(req.user).toEqual({
+        id: 'usr-test-123',
+        email: 'tester@shipsafe.internal',
+      });
+    });
   });
 });

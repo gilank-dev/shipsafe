@@ -85,14 +85,14 @@ export async function verifySupabaseJwt(token: string): Promise<VerifyJwtResult>
 export async function supabaseAuthGuard(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
-  // Anonymous request allowed (Requirement 2.6)
+  // Anonymous request allowed (when auth is optional)
   if (!authHeader) {
     req.user = null;
     next();
     return;
   }
 
-  // Must format as "Bearer <token>" (Requirement 2.7)
+  // Must format as "Bearer <token>"
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   if (!match || !match[1]?.trim()) {
     res.status(401).json({
@@ -120,4 +120,33 @@ export async function supabaseAuthGuard(req: AuthRequest, res: Response, next: N
 
   req.user = result.user;
   next();
+}
+
+/**
+ * Mandatory Authentication Middleware:
+ * Rejects any unauthenticated requests with HTTP 401 Unauthorized.
+ * Users must sign in via GitHub or Google to audit code or import repositories.
+ */
+export async function requireSupabaseAuth(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    // Check if test bypass is explicitly active for integration suites
+    if (process.env.AUTH_TEST_BYPASS === 'true') {
+      req.user = { id: 'usr-test-bypass', email: 'bypass@shipsafe.internal' };
+      next();
+      return;
+    }
+
+    res.status(401).json({
+      error: {
+        code: 'unauthorized',
+        message: 'Authentication required. Please sign in with GitHub or Google before auditing code.',
+      },
+    });
+    return;
+  }
+
+  // Delegate to standard token verifier
+  return supabaseAuthGuard(req, res, next);
 }

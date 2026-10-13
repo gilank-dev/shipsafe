@@ -23,6 +23,8 @@ export function mapHttpError(status: number, body: unknown, retryAfterHeader?: s
         return new ApiError('invalid_repo_url', message || 'Format URL GitHub tidak valid. Gunakan owner/repo atau https://github.com/owner/repo.')
       }
       return new ApiError('bad_response', message || 'Permintaan tidak valid.')
+    case 401:
+      return new ApiError('unauthorized', message || 'Authentication required. Please sign in with GitHub or Google before auditing code.')
     case 403:
       return new ApiError('captcha_failed', message || 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.')
     case 404:
@@ -171,10 +173,15 @@ export function createHttpApi(base: string): ShipSafeApi {
 
     async importRepo(repoUrl: string, opts?: { signal?: AbortSignal }): Promise<File> {
       let res: Response
+      const token = await getAccessToken().catch(() => null)
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
       try {
         res = await fetch(`${cleanBase}/import-repo`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ repoUrl }),
           signal: opts?.signal,
         })

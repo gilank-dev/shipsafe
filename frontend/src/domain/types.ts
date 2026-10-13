@@ -95,6 +95,7 @@ export type ApiErrorKind =
   | 'captcha_failed'
   | 'invalid_repo_url'
   | 'repo_not_found'
+  | 'unauthorized'
   | 'server'
   | 'bad_response'
   | 'aborted'

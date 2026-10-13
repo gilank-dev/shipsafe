@@ -227,6 +227,10 @@ describe('parseReport', () => {
 
 describe('mapHttpError', () => {
   it('maps the documented status codes', () => {
+    expect(mapHttpError(401, { error: { message: 'Authentication required' } })).toMatchObject({
+      kind: 'unauthorized',
+      message: 'Authentication required',
+    })
     expect(mapHttpError(403, { error: { code: 'captcha_failed', message: 'Turnstile check failed' } })).toMatchObject({
       kind: 'captcha_failed',
       message: 'Turnstile check failed',

@@ -30,6 +30,8 @@ export function errorCopy(error: AuditErrorView, secondsLeft?: number): string {
       return error.message || 'The GitHub repository URL is invalid. Use owner/repo or https://github.com/owner/repo.'
     case 'repo_not_found':
       return error.message || 'The GitHub repository was not found or is private. Make sure the repository is public and spelled correctly.'
+    case 'unauthorized':
+      return error.message || 'Authentication required. Please sign in with GitHub or Google before auditing code.'
     case 'server':
       return 'The audit service failed on its side. Retry in a moment.'
     case 'bad_response':

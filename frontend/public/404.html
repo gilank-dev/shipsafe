@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 // Boundary Breach - ShipSafe</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        --canvas: #fcfcf9;
+        --surface: #ffffff;
+        --ink: #111418;
+        --ink-2: #4b5563;
+        --ink-3: #9ca3af;
+        --rule: #e5e7eb;
+        --fail: #dc2626;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --canvas: #090a0f;
+          --surface: #11131a;
+          --ink: #f3f4f6;
+          --ink-2: #9ca3af;
+          --ink-3: #6b7280;
+          --rule: #27272a;
+          --fail: #ef4444;
+        }
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        background-color: var(--canvas);
+        color: var(--ink);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      header {
+        border-bottom: 1px solid var(--rule);
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .logo-sq {
+        width: 14px;
+        height: 14px;
+        background: var(--ink);
+      }
+      .logo-title {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-weight: 800;
+        font-size: 1.15rem;
+      }
+      main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+      }
+      .card {
+        border: 2px solid var(--ink);
+        background: var(--surface);
+        padding: 2rem;
+        max-width: 620px;
+        width: 100%;
+        border-radius: 4px;
+      }
+      .badge {
+        display: inline-block;
+        border: 1px solid var(--fail);
+        color: var(--fail);
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.25rem 0.5rem;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+      }
+      h1 {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.02em;
+      }
+      p {
+        font-family: system-ui, -apple-system, sans-serif;
+        color: var(--ink-2);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+      }
+      .box {
+        border: 1px solid var(--rule);
+        background: var(--canvas);
+        padding: 1rem;
+        font-size: 0.8rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.25rem;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-decoration: none;
+        background: var(--ink);
+        color: var(--canvas);
+        border: 2px solid var(--ink);
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        opacity: 0.92;
+      }
+      footer {
+        border-top: 1px solid var(--rule);
+        padding: 1rem;
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--ink-3);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-sq"></div>
+      <div class="logo-title">ShipSafe</div>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="badge">404 // Boundary Breach</div>
+        <h1>Perimeter Breach: Path Undefined</h1>
+        <p>
+          The requested endpoint does not exist within ShipSafe's verified security envelope.
+        </p>
+
+        <div class="box">
+          <div>GATEKEEPER_STATUS: UNRESOLVED</div>
+          <div>DIAGNOSTIC: Route outside pre-deployment scan perimeter</div>
+          <div>ACTION: Return to the root security cockpit to audit projects</div>
+        </div>
+
+        <a href="/" class="btn">Return to Security Cockpit</a>
+      </div>
+    </main>
+
+    <footer>
+      ShipSafe Security Architecture. Zero data retention sandbox.
+    </footer>
+  </body>
+</html>

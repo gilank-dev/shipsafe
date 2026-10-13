@@ -3,120 +3,117 @@ import { Finding, AgentTarget } from '../types';
 export function generateRemediationPrompt(finding: Finding, target: AgentTarget): string {
   const locStr = finding.location?.file
     ? `${finding.location.file}${finding.location.line ? `:${finding.location.line}` : ''}`
-    : 'Location not determined. Search the codebase for the relevant implementation.';
+    : 'Location not determined. Inspect the codebase for the relevant pattern.';
 
   const snippetStr = finding.location?.snippet
-    ? `\nCode snippet context:\n\`\`\`\n${finding.location.snippet}\n\`\`\`\n`
+    ? `\nContext Snippet:\n\`\`\`\n${finding.location.snippet}\n\`\`\`\n`
     : '';
 
   const verifyStr = finding.verifyWith
-    ? `Verification command / step: \`${finding.verifyWith}\``
-    : 'Verification: Ensure all existing tests pass and verify the security invariant.';
+    ? `Verification command: \`${finding.verifyWith}\``
+    : 'Verification command: Run test suite and check static security invariants.';
 
   switch (target) {
     case 'Cursor':
       return [
-        `You are a senior security engineer. Fix the following security vulnerability:`,
-        ``,
-        `### Issue: [${finding.id}] ${finding.title}`,
-        `- Severity: ${finding.severity}`,
-        `- Area: ${finding.area}`,
-        `- Target File: @${locStr}`,
+        `/* @security-fix: [${finding.id}] ${finding.title} */`,
+        `TARGET: @${locStr}`,
+        `SEVERITY: ${finding.severity} | AREA: ${finding.area}`,
         snippetStr,
-        `### Vulnerability Details`,
-        `- What: ${finding.what}`,
-        `- Why it matters: ${finding.why}`,
+        `VULNERABILITY DESCRIPTION:`,
+        `${finding.what}`,
         ``,
-        `### Recommended Solution`,
-        finding.recommendedFix,
+        `SECURITY RISK:`,
+        `${finding.why}`,
         ``,
-        `### Verification`,
-        verifyStr,
+        `REMEDIATION DIRECTIVE:`,
+        `${finding.recommendedFix}`,
         ``,
-        `### Constraints`,
-        `1. Make minimal surgical edits directly to @${finding.location?.file || 'target file'}.`,
-        `2. Do not change other business logic or break existing features.`,
-        `3. Do not hardcode any sensitive credentials or secrets.`,
-        `4. If an exposed real secret was involved, rotate it in your secrets manager immediately.`
+        `VERIFICATION:`,
+        `${verifyStr}`,
+        ``,
+        `CONSTRAINTS:`,
+        `1. Apply minimal surgical edits directly inside @${finding.location?.file || 'target file'}.`,
+        `2. Preserve all surrounding interfaces and business contracts.`,
+        `3. Never hardcode credentials. Store secrets exclusively in environment variables.`,
+        `4. If live tokens were committed, rotate them immediately in your secrets manager.`
       ].join('\n');
 
     case 'ClaudeCode':
       return [
-        `Role: Security Engineering Specialist`,
-        `Goal: Resolve security finding ${finding.id} without introducing regressions.`,
-        ``,
-        `## Problem: ${finding.title} (${finding.severity} in ${finding.area})`,
-        `Location: ${locStr}`,
+        `Task: Fix security vulnerability [${finding.id}] ${finding.title}`,
+        `Severity: ${finding.severity} | Area: ${finding.area}`,
+        `File: ${locStr}`,
         snippetStr,
-        `## Explanation`,
-        finding.what,
+        `Problem:`,
+        `${finding.what}`,
         ``,
-        `## Security Impact`,
-        finding.why,
+        `Threat Analysis:`,
+        `${finding.why}`,
         ``,
-        `## Implementation Plan`,
-        finding.recommendedFix,
+        `Action Required:`,
+        `${finding.recommendedFix}`,
         ``,
-        `## Verification`,
-        verifyStr,
-        `Run local test suites (e.g. npm test or linting) to ensure zero regressions after applying changes.`,
+        `Verification Step:`,
+        `${verifyStr}`,
         ``,
-        `## Critical Rules`,
-        `- Follow existing architectural conventions.`,
-        `- Never hardcode secrets. Use environment variables.`,
-        `- If credentials were exposed, immediately mark them for rotation.`
+        `Execution Protocol:`,
+        `- Inspect the exact location before editing.`,
+        `- Implement the minimal fix without unnecessary refactoring.`,
+        `- Run verification commands to prove the patch works with zero regressions.`,
+        `- Never commit secrets or placeholder credentials.`
       ].join('\n');
 
     case 'Copilot':
       return [
-        `// SECURITY FIX: [${finding.id}] ${finding.title} (${finding.severity})`,
-        `// Location: ${locStr}`,
-        `// Issue: ${finding.what}`,
-        `// Fix: ${finding.recommendedFix}`,
+        `// SECURITY FIX: [${finding.id}] ${finding.title} (${finding.severity} - ${finding.area})`,
+        `// File: ${locStr}`,
+        `// Vulnerability: ${finding.what}`,
+        `// Impact: ${finding.why}`,
+        `// Action: ${finding.recommendedFix}`,
         snippetStr,
-        `// Action: Refactor this section to follow secure coding standards.`,
-        `// Ensure: ${verifyStr}`,
-        `// Warning: Never hardcode credentials. Rotate any exposed tokens.`
+        `// Invariant: Do not break existing API signatures.`,
+        `// ${verifyStr}`,
+        `// Note: Rotate any leaked credentials immediately.`
       ].join('\n');
 
     case 'Windsurf':
       return [
-        `[Security Task] Resolve ${finding.id}: ${finding.title}`,
-        ``,
-        `Context:`,
-        `- Severity: ${finding.severity}`,
-        `- Area: ${finding.area}`,
-        `- File: ${locStr}`,
+        `[ShipSafe Cascade Task] Fix ${finding.id}: ${finding.title}`,
+        `Location: #${locStr}`,
+        `Severity: ${finding.severity} | Area: ${finding.area}`,
         snippetStr,
-        `Problem Description:`,
+        `Issue Analysis:`,
         `${finding.what}`,
-        `Risk: ${finding.why}`,
         ``,
-        `Fix Instructions:`,
+        `Exploitation Impact:`,
+        `${finding.why}`,
+        ``,
+        `Required Modification:`,
         `${finding.recommendedFix}`,
         ``,
         `Verification:`,
         `${verifyStr}`,
         ``,
-        `Rules: Apply targeted patch to the workspace without altering unrelated behavior.`
+        `Rules: Apply a localized diff to #${finding.location?.file || 'file'}. Retain backward compatibility.`
       ].join('\n');
 
     case 'Generic':
     default:
       return [
-        `You are a security engineer. Fix the following vulnerability without altering existing application behavior.`,
+        `You are an expert security engineer. Patch the following vulnerability cleanly:`,
         ``,
-        `1. Vulnerability: [${finding.id}] ${finding.title} (${finding.severity} - ${finding.area})`,
+        `1. Vulnerability: [${finding.id}] ${finding.title} (${finding.severity} | ${finding.area})`,
         `2. Location: ${locStr}`,
         snippetStr,
-        `3. What is wrong: ${finding.what}`,
-        `4. Impact: ${finding.why}`,
-        `5. Required Fix: ${finding.recommendedFix}`,
+        `3. Cause: ${finding.what}`,
+        `4. Security Impact: ${finding.why}`,
+        `5. Prescribed Fix: ${finding.recommendedFix}`,
         `6. Verification: ${verifyStr}`,
-        `7. Constraints:`,
-        `   - Do not hardcode any sensitive credentials.`,
-        `   - Maintain existing conventions and behavior.`,
-        `   - If real credentials were leaked, rotate them immediately.`
+        `7. Rules:`,
+        `   - Make targeted edits with zero collateral side effects.`,
+        `   - Never hardcode keys or credentials.`,
+        `   - If real credentials leaked, rotate them immediately.`
       ].join('\n');
   }
 }

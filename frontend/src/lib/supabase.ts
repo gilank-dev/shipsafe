@@ -37,6 +37,20 @@ export async function signUpWithEmail(email: string, password: string): Promise<
   return { user: data.user, session: data.session, error: error ? new Error(error.message) : null }
 }
 
+export async function signInWithOAuth(provider: 'google' | 'github'): Promise<{ data: { provider: string; url: string | null } | null; error: Error | null }> {
+  if (!isSupabaseConfigured) {
+    return { data: null, error: new Error('Supabase credentials are not configured in environment.') }
+  }
+  const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+    },
+  })
+  return { data, error: error ? new Error(error.message) : null }
+}
+
 export async function signOut(): Promise<{ error: Error | null }> {
   if (!isSupabaseConfigured) {
     return { error: null }

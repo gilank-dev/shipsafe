@@ -11,7 +11,7 @@ import { toast } from './toast'
 
 export type AuditRequestResult =
   | { started: true }
-  | { started: false; reason: 'no_file' | 'invalid_file' | 'busy' }
+  | { started: false; reason: 'no_file' | 'invalid_file' | 'busy' | 'unauthorized' }
   | { started: false; reason: 'needs_confirmation'; hits: SecretHit[] }
 
 let controller: AbortController | null = null
@@ -71,6 +71,15 @@ export async function requestAudit(): Promise<AuditRequestResult> {
   if (get().audit.status === 'running') return { started: false, reason: 'busy' }
   const { file, description } = get().submission
   if (!file) return { started: false, reason: 'no_file' }
+
+  // Mandatory Authentication Check
+  if (!get().auth.user) {
+    get().setAuthModalOpen(true)
+    const msg = 'Authentication required. Please sign in with GitHub or Google before auditing code.'
+    announce(msg)
+    toast.error(msg)
+    return { started: false, reason: 'unauthorized' }
+  }
 
   const check = await validateZipFile(file)
   if (!check.ok) {
@@ -142,6 +151,7 @@ async function runAudit(): Promise<void> {
       error: null,
     })
     announce(`Audit finished. ${report.findings.length} findings.`)
+    get().setTurnstileToken(null)
 
     if (get().auth.user) {
       void saveAuditToSupabase(report, file.name)

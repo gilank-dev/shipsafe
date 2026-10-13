@@ -182,7 +182,7 @@ Untuk **setiap temuan**, hasilkan **satu prompt mandiri** untuk ditempel ke codi
 
 ## 7. Disclaimer (banner atas, selalu terlihat)
 ```
-⚠️ ShipSafe is an AI-assisted review, not a replacement for automated scanners or a professional pentest. If your ZIP contains real secrets, they are auto-masked for processing — but you should rotate any exposed credentials immediately. Always confirm findings with tools like gitleaks, trufflehog, npm audit / pip-audit / OSV-Scanner, and securityheaders.com.
+⚠️ ShipSafe is an AI-assisted review, not a replacement for automated scanners or a professional pentest. If your ZIP contains real secrets, they are auto-masked for processing, but you should rotate any exposed credentials immediately. Always confirm findings with tools like gitleaks, trufflehog, npm audit / pip-audit / OSV-Scanner, and securityheaders.com.
 ```
 
 ---

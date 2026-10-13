@@ -1,15 +1,26 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AppShell } from './components/shell/AppShell'
 import { ReportArea } from './components/run/ReportArea'
 import { SubmissionPanel } from './components/submission/SubmissionPanel'
 import { AuthModal } from './components/dialogs/AuthModal'
 import { HistoryModal } from './components/dialogs/HistoryModal'
 import { ToastContainer } from './components/ui/Toast'
+import { NotFoundPage } from './components/shell/NotFoundPage'
 import { onAuthStateChange } from './lib/supabase'
 import { useStore } from './state/store'
 
 export default function App() {
   const setAuthUser = useStore((s) => s.setAuthUser)
+  const [currentPath, setCurrentPath] = useState(() => (typeof window !== 'undefined' ? window.location.pathname : '/'))
+
+  // Listen for browser navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   // Listen for Supabase session changes
   useEffect(() => {
@@ -18,7 +29,7 @@ export default function App() {
     })
   }, [setAuthUser])
 
-  // Nothing is saved anywhere, so warn before a reload or close throws away the ZIP choice or the report.
+  // Warn before a reload or close throws away uncommitted work in production
   const hasWork = useStore((s) => s.submission.file !== null || s.audit.report !== null)
   useEffect(() => {
     if (!import.meta.env.PROD || !hasWork) return
@@ -26,6 +37,22 @@ export default function App() {
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
   }, [hasWork])
+
+  // Custom 404 Route handling
+  if (currentPath !== '/' && currentPath !== '') {
+    return (
+      <>
+        <NotFoundPage
+          onGoHome={() => {
+            window.history.pushState({}, '', '/')
+            setCurrentPath('/')
+          }}
+        />
+        <AuthModal />
+        <ToastContainer />
+      </>
+    )
+  }
 
   return (
     <>
