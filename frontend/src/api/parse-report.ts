@@ -74,7 +74,7 @@ function parseThreatMatrix(raw: unknown): ThreatCheck[] | undefined {
       key: str(item.key, 'key') as ThreatKey,
       name: str(item.name, 'name'),
       category: str(item.category, 'category'),
-      status: str(item.status, 'status') as any,
+      status: str(item.status, 'status') as ThreatCheck['status'],
       findingsCount: typeof item.findingsCount === 'number' ? item.findingsCount : 0,
       summary: str(item.summary, 'summary'),
       mitigationTip: typeof item.mitigationTip === 'string' ? item.mitigationTip : '',

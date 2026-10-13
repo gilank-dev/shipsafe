@@ -48,13 +48,13 @@ export function AppShell({ submission, report }: AppShellProps) {
         <DisclaimerBanner />
         <Toolbar ref={toolbarRef} />
       </header>
-      <main className="mx-auto min-h-[100dvh] max-w-[105rem] px-4 py-8 md:px-6 xl:px-10">
-        <div className="layout-grid grid gap-10 lg:grid-cols-[minmax(22rem,27rem)_minmax(0,1fr)] lg:gap-8 xl:gap-10">
+      <main className="mx-auto min-h-[100dvh] w-full max-w-[105rem] px-3 py-6 sm:px-4 md:px-6 md:py-8 xl:px-10 pb-safe overflow-x-hidden">
+        <div className="layout-grid grid grid-cols-1 gap-8 sm:gap-10 lg:grid-cols-[minmax(22rem,27rem)_minmax(0,1fr)] lg:gap-8 xl:gap-10">
           <section
             id="project-submission"
             aria-labelledby="submission-title"
             tabIndex={-1}
-            className="min-w-0 max-w-[48rem] lg:max-w-none lg:border-r lg:border-rule lg:pr-8 xl:pr-10"
+            className="w-full min-w-0 max-w-full lg:max-w-none lg:border-r lg:border-rule lg:pr-8 xl:pr-10"
             data-print="hide"
           >
             <h2 id="submission-title" className="text-title">
@@ -66,7 +66,7 @@ export function AppShell({ submission, report }: AppShellProps) {
             id="audit-report"
             aria-labelledby="report-title"
             tabIndex={-1}
-            className="min-w-0 max-w-[48rem] lg:max-w-none"
+            className="w-full min-w-0 max-w-full lg:max-w-none"
           >
             <h2 id="report-title" className="text-title">
               Audit report

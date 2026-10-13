@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { copyToClipboard } from '../../lib/clipboard'
 import { announce } from '../../state/announcer'
+import { toast } from './Toast'
 import { IconCheck, IconCopy } from './icons'
 
 interface CopyButtonProps {
@@ -19,12 +21,16 @@ export function CopyButton({ text, label, subject, variant = 'secondary' }: Copy
 
   const copy = async () => {
     clearTimeout(timer.current)
-    try {
-      await navigator.clipboard.writeText(text)
+    const success = await copyToClipboard(text)
+    const targetName = subject || label
+    if (success) {
       setState('copied')
-      announce(`Copied ${subject || label}`)
-    } catch {
+      const msg = `Copied ${targetName}`
+      announce(msg)
+      toast.success(msg)
+    } else {
       setState('failed')
+      toast.error('Copy to clipboard failed')
     }
     timer.current = setTimeout(() => setState('idle'), 2000)
   }

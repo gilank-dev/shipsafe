@@ -6,8 +6,8 @@ const FILLED: Record<Severity, number> = { Critical: 4, High: 3, Medium: 2, Low:
 export function SeverityTag({ level }: { level: Severity }) {
   const filled = FILLED[level]
   return (
-    <span className="tag sev" data-level={level}>
-      <svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true" focusable="false">
+    <span className="tag sev font-mono font-bold text-caption tracking-tight" data-level={level}>
+      <svg width="14" height="9" viewBox="0 0 16 10" aria-hidden="true" focusable="false" className="shrink-0">
         {[0, 1, 2, 3].map((i) => (
           <rect
             key={i}
@@ -21,7 +21,7 @@ export function SeverityTag({ level }: { level: Severity }) {
           />
         ))}
       </svg>
-      {level}
+      <span>{level}</span>
     </span>
   )
 }

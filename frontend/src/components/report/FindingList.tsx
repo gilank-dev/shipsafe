@@ -56,7 +56,7 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
 
   return (
     <section className="space-y-4" aria-labelledby="findings-heading">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-rule pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rule pb-3">
         <div>
           <h3 id="findings-heading" className="text-title font-bold">
             Findings ({filtered.length} of {findings.length})
@@ -66,17 +66,17 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            className="btn text-small"
+            className="btn text-small flex-1 sm:flex-initial"
             onClick={() => setAllExpanded(true)}
           >
             Expand all
           </button>
           <button
             type="button"
-            className="btn text-small"
+            className="btn text-small flex-1 sm:flex-initial"
             onClick={() => setAllExpanded(false)}
           >
             Collapse all

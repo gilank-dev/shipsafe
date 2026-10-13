@@ -60,6 +60,12 @@ export function onAuthStateChange(callback: (session: Session | null, user: User
   if (!isSupabaseConfigured) {
     return () => {}
   }
+  void getSession().then((session) => {
+    if (session) {
+      callback(session, session.user)
+    }
+  }).catch(() => {})
+
   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
     callback(session, session?.user ?? null)
   })

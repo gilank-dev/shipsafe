@@ -34,43 +34,76 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
   }
 
   return (
-    <div ref={ref} className="border-b border-ink bg-canvas max-md:sticky max-md:top-0 max-md:z-30" data-print="hide">
-      <div className="mx-auto flex min-h-12 max-w-[105rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 md:px-6 xl:px-10">
-        <div className="flex items-center gap-2.5">
-          <span className="block size-3.5 bg-ink" aria-hidden="true" />
-          <span className="text-h3 leading-none font-extrabold [font-stretch:125%]">ShipSafe</span>
-          <span className="hidden text-small text-ink-3 md:inline">Pre-deployment security gate</span>
-        </div>
-        <p className="min-w-0 flex-1 truncate text-small text-ink-2 md:text-center" data-testid="status-line">
-          {statusLine}
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          {isMockMode && (
-            <span className="tag tag-outline text-ink-2" title="Reports come from the built-in demo engine">
-              Mock responses, no model attached
-            </span>
-          )}
-          <SampleMenu />
-          <ThemeToggle />
-          {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-small text-ink-2" title={user.email}>
-                {user.email ? user.email.split('@')[0] : 'User'}
-              </span>
-              <button type="button" className="btn text-small" onClick={handleSignOut}>
+    <div ref={ref} className="border-b border-ink bg-canvas max-md:sticky max-md:top-0 max-md:z-30 pt-safe" data-print="hide">
+      <div className="mx-auto flex min-h-12 max-w-[105rem] flex-col gap-2.5 px-3 py-2 sm:px-4 md:flex-row md:items-center md:gap-x-4 md:gap-y-2 md:px-6 xl:px-10">
+        <div className="flex w-full items-center justify-between gap-2 md:w-auto">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="block size-3.5 bg-ink" aria-hidden="true" />
+            <span className="text-h3 leading-none font-extrabold [font-stretch:125%]">ShipSafe</span>
+            <span className="hidden text-small text-ink-3 md:inline">Pre-deployment security gate</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 md:hidden">
+            <ThemeToggle />
+            {user ? (
+              <button type="button" className="btn text-small px-2.5 min-h-[44px]" onClick={handleSignOut}>
                 Sign out
               </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="btn text-small"
-              onClick={() => setAuthModalOpen(true)}
-              title="Sign in via Supabase to save audit reports"
-            >
-              Sign in
-            </button>
-          )}
+            ) : (
+              <button
+                type="button"
+                className="btn text-small px-3 min-h-[44px]"
+                onClick={() => setAuthModalOpen(true)}
+                title="Sign in via Supabase to save audit reports"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+        </div>
+
+        <p
+          className="min-w-0 flex-1 truncate text-small text-ink-2 md:text-center text-left"
+          data-testid="status-line"
+        >
+          {statusLine}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-2 max-md:w-full max-md:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            {isMockMode && (
+              <span
+                className="tag tag-outline text-ink-2 max-w-[180px] sm:max-w-none truncate text-caption"
+                title="Reports come from the built-in demo engine"
+              >
+                Mock responses
+              </span>
+            )}
+            <SampleMenu />
+          </div>
+
+          <div className="hidden md:flex md:items-center md:gap-2">
+            <ThemeToggle />
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="text-small text-ink-2 truncate max-w-[150px]" title={user.email}>
+                  {user.email ? user.email.split('@')[0] : 'User'}
+                </span>
+                <button type="button" className="btn text-small" onClick={handleSignOut}>
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn text-small"
+                onClick={() => setAuthModalOpen(true)}
+                title="Sign in via Supabase to save audit reports"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

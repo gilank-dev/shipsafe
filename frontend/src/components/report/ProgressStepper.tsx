@@ -69,7 +69,13 @@ export function ProgressStepper({ stage, uploadPct, onCancel }: ProgressStepperP
                     <span className="font-mono text-small text-ink-2">({uploadPct}%)</span>
                   )}
                   {isCurrent && (
-                    <span className="tag text-small border-ink bg-surface">In progress</span>
+                    <span className="tag text-small border-ink bg-surface flex items-center gap-1.5">
+                      <span className="relative flex size-2 shrink-0 items-center justify-center">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-ink opacity-75 pulse-active" />
+                        <span className="relative inline-flex size-1.5 rounded-full bg-ink" />
+                      </span>
+                      <span>In progress</span>
+                    </span>
                   )}
                 </div>
                 <p className="text-small text-ink-3 mt-0.5">{s.description}</p>

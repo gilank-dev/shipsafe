@@ -48,18 +48,24 @@ export function ProgressStepper() {
                 aria-current={state === 'active' ? 'step' : undefined}
                 className={`border-t-2 pt-2 ${state === 'waiting' ? 'border-rule text-ink-3' : 'border-ink'}`}
               >
-                <span className="flex items-center gap-1.5 font-semibold">
+                <span className="flex items-center gap-2 font-semibold text-ink">
                   {state === 'done' && <IconCheck />}
+                  {state === 'active' && (
+                    <span className="relative flex size-2 shrink-0 items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-ink opacity-75 pulse-active" />
+                      <span className="relative inline-flex size-1.5 rounded-full bg-ink" />
+                    </span>
+                  )}
                   {step.label}
                 </span>
-                <span className="block text-small text-ink-2">
+                <span className="block text-small text-ink-2 font-mono mt-0.5">
                   {state === 'done' ? 'Done' : state === 'active' ? (step.id === 'upload' ? `${uploadPct}%` : 'In progress') : 'Waiting'}
                 </span>
               </li>
             )
           })}
         </ol>
-        <p className="mt-4 text-small text-ink-2" aria-hidden="true">
+        <p className="mt-4 text-small text-ink-2 font-mono tabular-nums" aria-hidden="true">
           Running, {elapsed} s
         </p>
       </div>

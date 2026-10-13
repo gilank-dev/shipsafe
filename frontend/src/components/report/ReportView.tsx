@@ -84,15 +84,15 @@ export function ReportView() {
       {isOutdated && (
         <aside
           role="status"
-          className="flex items-center justify-between gap-3 border border-warn-edge bg-warn-bg px-4 py-3 text-warn-ink text-small font-medium"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-warn-edge bg-warn-bg px-4 py-3 text-warn-ink text-small font-medium"
         >
           <div className="flex items-center gap-2">
-            <IconAlert width={16} height={16} />
+            <IconAlert className="shrink-0" width={16} height={16} />
             <span>Project inputs or ZIP have changed since this report was generated.</span>
           </div>
           <button
             type="button"
-            className="btn text-small bg-canvas"
+            className="btn text-small bg-canvas shrink-0 self-start sm:self-center"
             onClick={() => void requestAudit()}
           >
             Re-run audit
@@ -101,7 +101,7 @@ export function ReportView() {
       )}
 
       {/* Executive Summary */}
-      <section className="border border-rule bg-raised p-6" aria-labelledby="exec-summary-title">
+      <section className="border border-rule bg-raised p-4 sm:p-6" aria-labelledby="exec-summary-title">
         <h3 id="exec-summary-title" className="text-title font-bold text-ink">
           Executive Summary
         </h3>

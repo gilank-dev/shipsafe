@@ -120,7 +120,11 @@ async function runAudit(): Promise<void> {
     if (ctrl.signal.aborted || (isApiError(err) && err.kind === 'aborted')) {
       // Cancel is silent: return to the state before the run.
       get().patchAudit({ status: hadReport ? 'done' : 'idle', stage: null })
+      get().setTurnstileToken(null)
       return
+    }
+    if (isApiError(err) && err.kind === 'captcha_failed') {
+      get().setTurnstileToken(null)
     }
     const view = isApiError(err)
       ? { kind: err.kind, message: err.message, ...(err.retryAfterMs !== undefined ? { retryAfterMs: err.retryAfterMs } : {}) }
@@ -136,6 +140,7 @@ export function cancelAudit(): void {
   controller?.abort()
   if (get().audit.status === 'running') {
     get().patchAudit({ status: get().audit.report ? 'done' : 'idle', stage: null })
+    get().setTurnstileToken(null)
     announce('Audit cancelled')
   }
 }

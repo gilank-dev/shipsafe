@@ -119,10 +119,10 @@ export function AuthModal() {
             />
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <button
               type="button"
-              className="text-small text-ink-2 underline hover:text-ink"
+              className="text-small text-ink-2 underline hover:text-ink text-left"
               onClick={() => {
                 setError(null)
                 setSuccessMsg(null)
@@ -131,14 +131,14 @@ export function AuthModal() {
             >
               {mode === 'signin' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={loading}>
               {loading ? 'Please wait...' : mode === 'signin' ? 'Sign in' : 'Create account'}
             </button>
           </div>
         </form>
 
         <div className="border-t border-rule pt-3 text-right">
-          <button type="button" className="btn" onClick={handleClose}>
+          <button type="button" className="btn w-full sm:w-auto" onClick={handleClose}>
             Continue as Guest
           </button>
         </div>

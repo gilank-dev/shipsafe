@@ -19,9 +19,9 @@ export function PromptModal({ finding, onClose }: PromptModalProps) {
       onClose={onClose}
       wide
       footer={
-        <div className="flex items-center gap-3">
-          <CopyButton text={finding.remediationPrompt} label="Copy prompt" />
-          <button type="button" className="btn" onClick={onClose}>
+        <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+          <CopyButton text={finding.remediationPrompt} label="Copy prompt" subject={`${finding.id} prompt`} />
+          <button type="button" className="btn min-h-[44px] min-w-[44px] sm:min-h-0" onClick={onClose}>
             Close
           </button>
         </div>
@@ -44,7 +44,7 @@ export function PromptModal({ finding, onClose }: PromptModalProps) {
           <pre
             id="prompt-display"
             tabIndex={0}
-            className="max-h-96 overflow-auto border border-rule-strong bg-raised p-4 font-mono text-small whitespace-pre-wrap leading-relaxed select-all"
+            className="max-h-60 sm:max-h-96 overflow-y-auto overflow-x-auto border border-rule-strong bg-raised p-3 sm:p-4 font-mono text-small whitespace-pre-wrap break-words leading-relaxed select-all"
           >
             {finding.remediationPrompt}
           </pre>

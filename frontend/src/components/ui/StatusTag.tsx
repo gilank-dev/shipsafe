@@ -12,9 +12,9 @@ export function StatusTag({ status }: { status: string }) {
   const label = toStatusLabel(status)
   const Glyph = GLYPH[label]
   return (
-    <span className="tag status" data-status={label}>
-      <Glyph />
-      {label}
+    <span className="tag status font-mono font-bold text-caption tracking-tight" data-status={label}>
+      <Glyph width={12} height={12} className="shrink-0" />
+      <span>{label}</span>
     </span>
   )
 }

@@ -32,7 +32,7 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
       className="border border-rule bg-raised transition-colors"
       data-finding-id={finding.id}
     >
-      <header className="p-4 flex flex-wrap items-start justify-between gap-3 border-b border-rule">
+      <header className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-rule">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1.5">
             <span className="font-mono text-small font-bold text-ink">{finding.id}</span>
@@ -44,27 +44,29 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
               </span>
             )}
           </div>
-          <h4 className="text-body font-bold text-ink leading-snug">
+          <h4 className="text-body font-bold text-ink leading-snug break-words">
             {finding.title}
           </h4>
-          <p className="mt-1 font-mono text-small text-ink-2 truncate">
+          <p className="mt-1 font-mono text-small text-ink-2 truncate" title={locationText}>
             {locationText}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <CopyButton text={finding.remediationPrompt} label="Copy prompt" />
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-rule/50">
+          <div className="flex flex-wrap items-center gap-2">
+            <CopyButton text={finding.remediationPrompt} label="Copy prompt" subject={`${finding.id} prompt`} />
+            <button
+              type="button"
+              className="btn text-small"
+              onClick={() => onViewPrompt(finding)}
+              title="View prompt for coding agent"
+            >
+              View prompt
+            </button>
+          </div>
           <button
             type="button"
-            className="btn text-small"
-            onClick={() => onViewPrompt(finding)}
-            title="View prompt for coding agent"
-          >
-            View prompt
-          </button>
-          <button
-            type="button"
-            className="btn min-w-9 px-2"
+            className="btn min-w-[44px] min-h-[44px] sm:min-w-9 sm:min-h-0 px-2.5"
             aria-expanded={expanded}
             aria-label={expanded ? `Collapse finding ${finding.id}` : `Expand finding ${finding.id}`}
             onClick={handleToggle}
@@ -77,35 +79,35 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
       </header>
 
       {expanded && (
-        <div className="p-4 space-y-4 bg-surface text-small">
+        <div className="p-3 sm:p-4 space-y-4 bg-surface text-small min-w-0 max-w-full">
           {finding.location?.snippet && (
-            <div>
+            <div className="min-w-0 max-w-full">
               <p className="font-semibold text-ink-2 mb-1">Snippet</p>
-              <pre className="p-2.5 bg-raised border border-rule font-mono text-small overflow-x-auto">
+              <pre className="p-2.5 bg-raised border border-rule font-mono text-small overflow-x-auto max-w-full whitespace-pre">
                 <code>{finding.location.snippet}</code>
               </pre>
             </div>
           )}
 
-          <div>
+          <div className="min-w-0">
             <p className="font-semibold text-ink mb-1">What</p>
-            <p className="text-ink-2 leading-relaxed">{finding.what}</p>
+            <p className="text-ink-2 leading-relaxed break-words">{finding.what}</p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p className="font-semibold text-ink mb-1">Why it matters</p>
-            <p className="text-ink-2 leading-relaxed">{finding.why}</p>
+            <p className="text-ink-2 leading-relaxed break-words">{finding.why}</p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p className="font-semibold text-ink mb-1">Recommended fix</p>
-            <p className="text-ink-2 leading-relaxed">{finding.recommendedFix}</p>
+            <p className="text-ink-2 leading-relaxed break-words">{finding.recommendedFix}</p>
           </div>
 
           {finding.verifyWith && (
-            <div>
+            <div className="min-w-0 max-w-full">
               <p className="font-semibold text-ink mb-1">Verify with</p>
-              <pre className="p-2.5 bg-raised border border-rule font-mono text-small overflow-x-auto text-ink">
+              <pre className="p-2.5 bg-raised border border-rule font-mono text-small overflow-x-auto max-w-full whitespace-pre text-ink">
                 <code>{finding.verifyWith}</code>
               </pre>
             </div>

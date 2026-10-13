@@ -70,7 +70,7 @@ export function ContextForm() {
         </div>
         <p
           id={counterId}
-          className={`text-caption tabular-nums ${description.length >= WARN_AT ? 'font-semibold text-partial' : 'text-ink-3'}`}
+          className={`text-caption tabular-nums shrink-0 ${description.length >= WARN_AT ? 'font-semibold text-partial' : 'text-ink-3'}`}
         >
           {description.length.toLocaleString('en-US')} / {MAX_DESCRIPTION_CHARS.toLocaleString('en-US')}
         </p>

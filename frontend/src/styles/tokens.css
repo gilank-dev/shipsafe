@@ -3,15 +3,15 @@
 :root {
   color-scheme: light dark;
 
-  --canvas: light-dark(#eef0ee, #0f1214);
-  --surface: light-dark(#f7f8f6, #161a1d);
-  --raised: light-dark(#ffffff, #1c2125);
-  --ink: light-dark(#14181b, #e8ecea);
-  --ink-2: light-dark(#3e474d, #b7c0bc);
-  --ink-3: light-dark(#566067, #97a19c);
-  --placeholder: light-dark(#5c666d, #8e9893);
-  --rule: light-dark(#c8cdc9, #2c3338);
-  --rule-strong: light-dark(#6f7a74, #7e8984);
+  --canvas: light-dark(#edf0ee, #0d1012);
+  --surface: light-dark(#f7f9f7, #15191c);
+  --raised: light-dark(#ffffff, #1b2024);
+  --ink: light-dark(#13171a, #e9edeb);
+  --ink-2: light-dark(#3a4349, #b5bfbb);
+  --ink-3: light-dark(#545f65, #939e99);
+  --placeholder: light-dark(#5a656b, #89948f);
+  --rule: light-dark(#c9cfcb, #2b3338);
+  --rule-strong: light-dark(#636f69, #7c8883);
 
   --sev-critical-bg: light-dark(#b3261e, #f0675f);
   --sev-critical-fg: light-dark(#ffffff, #14070a);
@@ -28,12 +28,30 @@
   --status-partial: light-dark(#7a5200, #f2b63a);
   --status-fail: light-dark(#b3261e, #f0675f);
 
+  --status-pass-bg: light-dark(#edf7ee, #0e2316);
+  --status-pass-border: light-dark(#9cdbb0, #216637);
+  --status-pass-fg: light-dark(#17703b, #4ade80);
+
+  --status-warn-bg: light-dark(#fef8e7, #29200b);
+  --status-warn-border: light-dark(#f7d387, #755514);
+  --status-warn-fg: light-dark(#7a5200, #fbbf24);
+
+  --status-fail-bg: light-dark(#fdf1f0, #2a1112);
+  --status-fail-border: light-dark(#f7a8a2, #7a2629);
+  --status-fail-fg: light-dark(#b3261e, #f87171);
+
   --warn-bg: light-dark(#fbe9b7, #2a2412);
   --warn-ink: light-dark(#14181b, #f4e9c8);
   --warn-edge: light-dark(#14181b, #f2b63a);
 
   --focus: var(--ink);
   --rail-h: 0px;
+
+  /* Safe area inset variables for mobile notch & home indicator */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 html[data-theme='light'] {
@@ -59,6 +77,15 @@ html[data-theme='dark'] {
   --color-pass: var(--status-pass);
   --color-partial: var(--status-partial);
   --color-fail: var(--status-fail);
+  --color-status-pass-bg: var(--status-pass-bg);
+  --color-status-pass-border: var(--status-pass-border);
+  --color-status-pass-fg: var(--status-pass-fg);
+  --color-status-warn-bg: var(--status-warn-bg);
+  --color-status-warn-border: var(--status-warn-border);
+  --color-status-warn-fg: var(--status-warn-fg);
+  --color-status-fail-bg: var(--status-fail-bg);
+  --color-status-fail-border: var(--status-fail-border);
+  --color-status-fail-fg: var(--status-fail-fg);
   --color-warn-bg: var(--warn-bg);
   --color-warn-ink: var(--warn-ink);
   --color-warn-edge: var(--warn-edge);

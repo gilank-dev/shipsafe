@@ -66,37 +66,53 @@ export function UploadDropzone() {
         />
         <label htmlFor={ZIP_INPUT_ID} className="dropzone" data-dragging={dragging}>
           {file ? (
-            <span className="flex items-center gap-3">
-              <IconFile width={20} height={20} />
-              <span className="min-w-0">
-                <span className="block truncate font-semibold">{file.name}</span>
-                <span className="block text-small text-ink-2">
-                  {formatBytes(file.size)} of {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}
+            <div className="flex items-center justify-between gap-3 w-full min-w-0">
+              <span className="flex items-center gap-3 min-w-0 flex-1">
+                <IconFile className="shrink-0" width={20} height={20} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold text-small sm:text-body" title={file.name}>
+                    {file.name}
+                  </span>
+                  <span className="block text-small text-ink-2">
+                    {formatBytes(file.size)} of {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}
+                  </span>
                 </span>
               </span>
-            </span>
+              <span className="tag text-caption font-semibold shrink-0">Selected</span>
+            </div>
           ) : (
-            <span className="flex items-center gap-3">
-              <IconUpload width={20} height={20} />
-              <span>
-                <span className="block font-semibold">{dragging ? 'Drop the ZIP to select it' : 'Choose a ZIP file'}</span>
-                <span className="block text-small text-ink-2">or drag it here</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+              <span className="flex items-center gap-3">
+                <IconUpload className="shrink-0" width={20} height={20} />
+                <span>
+                  <span className="block font-semibold">
+                    {dragging ? 'Drop the ZIP to select it' : 'Choose a ZIP file'}
+                  </span>
+                  <span className="block text-small text-ink-2">
+                    Tap to browse or drag file here
+                  </span>
+                </span>
               </span>
-            </span>
+              <span className="inline-flex items-center justify-center btn text-small px-3 py-1.5 shrink-0 self-start sm:self-center pointer-events-none">
+                Browse ZIP file
+              </span>
+            </div>
           )}
         </label>
       </div>
       {file && (
         <button
           type="button"
-          className="btn btn-quiet mt-1"
+          className="btn btn-quiet mt-2 max-w-full text-left"
           onClick={() => {
             setFile(null, null)
             announce('ZIP removed')
             focusZipInput()
           }}
         >
-          Remove {file.name}
+          <span className="truncate block max-w-full">
+            Remove <span className="font-semibold">{file.name}</span>
+          </span>
         </button>
       )}
       {fileError && (

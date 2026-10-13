@@ -5,6 +5,7 @@ import type { Finding } from '../../domain/types'
 import { announce } from '../../state/announcer'
 import { useStore } from '../../state/store'
 import { CopyButton } from '../ui/CopyButton'
+import { toast } from '../ui/Toast'
 import { IconDownload } from '../ui/icons'
 
 interface ExportBarProps {
@@ -21,10 +22,17 @@ export function ExportBar({ findings }: ExportBarProps) {
   const filename = promptFilename(agentTarget)
 
   const handleDownload = () => {
-    downloadFile(allPromptsMarkdown, filename)
-    setDownloaded(true)
-    announce(`Downloaded ${filename}`)
-    setTimeout(() => setDownloaded(false), 2000)
+    const success = downloadFile(allPromptsMarkdown, filename)
+    if (success) {
+      setDownloaded(true)
+      const msg = `Downloaded ${filename}`
+      announce(msg)
+      toast.success(msg)
+      setTimeout(() => setDownloaded(false), 2000)
+    } else {
+      announce('Failed to download remediation file')
+      toast.error('Failed to download remediation file')
+    }
   }
 
   return (
@@ -43,7 +51,7 @@ export function ExportBar({ findings }: ExportBarProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <CopyButton text={allPromptsMarkdown} label="Copy all prompts" />
+          <CopyButton text={allPromptsMarkdown} label="Copy all prompts" subject="all remediation prompts" />
           <button
             type="button"
             className="btn"

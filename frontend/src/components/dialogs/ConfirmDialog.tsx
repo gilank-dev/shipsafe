@@ -18,14 +18,14 @@ export function ConfirmDialog({ title, children, confirmLabel, cancelLabel, onCo
       onClose={onCancel}
       hideCloseButton
       footer={
-        <>
-          <button type="button" className="btn" data-autofocus onClick={onCancel}>
+        <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+          <button type="button" className="btn min-h-[44px] sm:min-h-0 flex-1 sm:flex-initial" data-autofocus onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button type="button" className="btn btn-primary" onClick={onConfirm}>
+          <button type="button" className="btn btn-primary min-h-[44px] sm:min-h-0 flex-1 sm:flex-initial" onClick={onConfirm}>
             {confirmLabel}
           </button>
-        </>
+        </div>
       }
     >
       <div className="text-body">{children}</div>
