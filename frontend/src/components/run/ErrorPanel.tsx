@@ -26,6 +26,10 @@ export function errorCopy(error: AuditErrorView, secondsLeft?: number): string {
       return `This archive was rejected: ${error.message}. ShipSafe does not extract archives with unsafe paths or extreme compression.`
     case 'captcha_failed':
       return error.message || 'Cloudflare CAPTCHA verification failed or expired. Complete the security check and retry.'
+    case 'invalid_repo_url':
+      return error.message || 'The GitHub repository URL is invalid. Use owner/repo or https://github.com/owner/repo.'
+    case 'repo_not_found':
+      return error.message || 'The GitHub repository was not found or is private. Make sure the repository is public and spelled correctly.'
     case 'server':
       return 'The audit service failed on its side. Retry in a moment.'
     case 'bad_response':

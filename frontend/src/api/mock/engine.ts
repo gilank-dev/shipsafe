@@ -188,4 +188,11 @@ async function formatPrompts(
   )
 }
 
-export const mockApi: ShipSafeApi = { audit, formatPrompts }
+async function importRepo(repoUrl: string): Promise<File> {
+  const sample = await (await import('./sample-zips')).buildSample('ledgerline')
+  const name = repoUrl.split('/').pop()?.replace('.git', '') || 'github-project'
+  return new File([await sample.file.arrayBuffer()], `${name}.zip`, { type: 'application/zip' })
+}
+
+export const mockApi: ShipSafeApi = { audit, formatPrompts, importRepo }
+

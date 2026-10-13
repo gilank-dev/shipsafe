@@ -19,6 +19,11 @@ function createApi(): ShipSafeApi {
       audit: async (req: AuditRequest, opts: AuditOptions): Promise<AuditResult> => (await loadMock()).audit(req, opts),
       formatPrompts: async (id: string, target: AgentTarget, opts: { signal: AbortSignal }) =>
         (await loadMock()).formatPrompts(id, target, opts),
+      importRepo: async (repoUrl: string): Promise<File> => {
+        const sample = await (await import('./mock/sample-zips')).buildSample('ledgerline')
+        const name = repoUrl.split('/').pop()?.replace('.git', '') || 'github-project'
+        return new File([await sample.file.arrayBuffer()], `${name}.zip`, { type: 'application/zip' })
+      },
     }
   }
 
@@ -43,6 +48,19 @@ function createApi(): ShipSafeApi {
         if (isApiError(err) && (err.kind === 'network' || err.kind === 'server')) {
           console.warn('[ShipSafe] Backend VPS unreachable, falling back to mock prompts:', err)
           return (await loadMock()).formatPrompts(id, target, opts)
+        }
+        throw err
+      }
+    },
+    async importRepo(repoUrl: string, opts?: { signal?: AbortSignal }): Promise<File> {
+      try {
+        return await http.importRepo(repoUrl, opts)
+      } catch (err) {
+        if (isApiError(err) && (err.kind === 'network' || err.kind === 'server')) {
+          console.warn('[ShipSafe] Backend VPS unreachable, falling back to mock repo sample:', err)
+          const sample = await (await import('./mock/sample-zips')).buildSample('ledgerline')
+          const name = repoUrl.split('/').pop()?.replace('.git', '') || 'github-project'
+          return new File([await sample.file.arrayBuffer()], `${name}.zip`, { type: 'application/zip' })
         }
         throw err
       }

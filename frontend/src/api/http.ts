@@ -18,8 +18,18 @@ export function mapHttpError(status: number, body: unknown, retryAfterHeader?: s
       ? detail.retryAfterSeconds
       : Number.parseInt(retryAfterHeader ?? '', 10)
   switch (status) {
+    case 400:
+      if (detail?.code === 'invalid_repo_url') {
+        return new ApiError('invalid_repo_url', message || 'Format URL GitHub tidak valid. Gunakan owner/repo atau https://github.com/owner/repo.')
+      }
+      return new ApiError('bad_response', message || 'Permintaan tidak valid.')
     case 403:
       return new ApiError('captcha_failed', message || 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.')
+    case 404:
+      if (detail?.code === 'repo_not_found') {
+        return new ApiError('repo_not_found', message || 'Repositori GitHub tidak ditemukan atau bersifat privat. Pastikan repositori bersifat publik.')
+      }
+      return new ApiError('bad_response', message || 'Sumber daya tidak ditemukan.')
     case 413:
       return new ApiError('too_large', message || 'The server rejected this ZIP as too large.')
     case 415:
@@ -159,5 +169,31 @@ export function createHttpApi(base: string): ShipSafeApi {
       return Object.fromEntries(entries) as Record<string, string>
     },
 
+    async importRepo(repoUrl: string, opts?: { signal?: AbortSignal }): Promise<File> {
+      let res: Response
+      try {
+        res = await fetch(`${cleanBase}/import-repo`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repoUrl }),
+          signal: opts?.signal,
+        })
+      } catch (err) {
+        if (opts?.signal?.aborted) throw new ApiError('aborted', 'Cancelled.')
+        throw new ApiError('network', err instanceof Error ? err.message : 'Network error')
+      }
+
+      if (!res.ok) {
+        const body = parseJson(await res.text())
+        throw mapHttpError(res.status, body)
+      }
+
+      const blob = await res.blob()
+      const owner = res.headers.get('x-repo-owner') || 'github'
+      const repo = res.headers.get('x-repo-name') || 'repo'
+      const fileName = `${owner}-${repo}.zip`
+      return new File([blob], fileName, { type: 'application/zip' })
+    },
   }
 }
+

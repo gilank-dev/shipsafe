@@ -35,6 +35,30 @@ export async function selectFile(input: File | File[] | FileList): Promise<boole
   return true
 }
 
+export async function importGitHubRepo(repoUrl: string): Promise<boolean> {
+  const trimmed = repoUrl.trim()
+  if (!trimmed) {
+    const msg = 'Please enter a valid GitHub repository URL or owner/repo format.'
+    announce(msg)
+    throw new Error(msg)
+  }
+
+  try {
+    announce(`Importing repository ${trimmed} from GitHub...`)
+    const file = await api.importRepo(trimmed)
+    const success = await selectFile(file)
+    if (success) {
+      toast.success(`Imported ${file.name} from GitHub`)
+    }
+    return success
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to import repository from GitHub.'
+    announce(message)
+    toast.error(message)
+    throw err
+  }
+}
+
 export function acknowledgeHits(hits: readonly SecretHit[]): void {
   hits.forEach((h) => acknowledged.add(hitKey(h)))
 }

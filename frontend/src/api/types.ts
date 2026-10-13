@@ -15,4 +15,6 @@ export interface ShipSafeApi {
   audit(req: AuditRequest, opts: AuditOptions): Promise<AuditResult>
   /** Returns finding id -> prompt formatted for the target agent. */
   formatPrompts(reportId: string, target: AgentTarget, opts: { signal: AbortSignal }): Promise<Record<string, string>>
+  /** Imports a GitHub repository and returns a validated File object. */
+  importRepo(repoUrl: string, opts?: { signal?: AbortSignal }): Promise<File>
 }

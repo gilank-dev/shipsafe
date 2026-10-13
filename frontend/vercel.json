@@ -5,8 +5,24 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "http://213.163.197.214:23010/api/$1"
+      "source": "/api/audit",
+      "destination": "http://213.163.197.214:23010/api/audit"
+    },
+    {
+      "source": "/api/audit/:path*",
+      "destination": "http://213.163.197.214:23010/api/audit/:path*"
+    },
+    {
+      "source": "/api/health",
+      "destination": "http://213.163.197.214:23010/api/health"
+    },
+    {
+      "source": "/api/queue",
+      "destination": "http://213.163.197.214:23010/api/queue"
+    },
+    {
+      "source": "/api/ai/:path*",
+      "destination": "http://213.163.197.214:23010/api/ai/:path*"
     },
     {
       "source": "/(.*)",

@@ -93,6 +93,8 @@ export type ApiErrorKind =
   | 'not_zip'
   | 'unsafe_archive'
   | 'captcha_failed'
+  | 'invalid_repo_url'
+  | 'repo_not_found'
   | 'server'
   | 'bad_response'
   | 'aborted'
@@ -106,6 +108,7 @@ export interface ProjectContext {
 
 export interface AuditRequest {
   file: File
+  repoUrl?: string
   context: ProjectContext
   agentTarget: AgentTarget
   turnstileToken?: string

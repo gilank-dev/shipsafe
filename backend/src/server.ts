@@ -12,6 +12,7 @@ import { generateRemediationPrompt } from './engine/prompts';
 import { enrichReportWithAi, getAiConfig, callAiCompletion } from './engine/ai-client';
 import { globalAuditQueue } from './engine/queue';
 import { supabaseAuthGuard, AuthRequest } from './security/auth-guard';
+import { parseGitHubRepo, fetchGitHubRepoZip } from './security/repo-importer';
 import { AgentTarget, AuditReport, Finding } from './types';
 
 dotenv.config();
@@ -49,6 +50,7 @@ app.use(
     },
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Disposition', 'X-File-Name', 'X-Repo-Owner', 'X-Repo-Name', 'X-Repo-Size'],
   })
 );
 
@@ -98,6 +100,61 @@ app.get('/api/ai/health', async (_req: Request, res: Response) => {
   });
 });
 
+// 1.3 Import GitHub Repository Endpoint
+app.post('/api/import-repo', supabaseAuthGuard, async (req: AuthRequest, res: Response) => {
+  const repoUrl = req.body?.repoUrl;
+  if (!repoUrl || typeof repoUrl !== 'string') {
+    res.status(400).json({
+      error: {
+        code: 'invalid_repo_url',
+        message: 'Mohon masukkan URL GitHub atau format owner/repo yang valid.'
+      }
+    });
+    return;
+  }
+
+  const parsed = parseGitHubRepo(repoUrl);
+  if (!parsed) {
+    res.status(400).json({
+      error: {
+        code: 'invalid_repo_url',
+        message: 'Format URL GitHub tidak valid. Contoh yang didukung: "owner/repo" atau "https://github.com/owner/repo".'
+      }
+    });
+    return;
+  }
+
+  try {
+    const fetched = await fetchGitHubRepoZip(parsed.owner, parsed.repo, { ref: parsed.ref });
+    if (req.query.format === 'json') {
+      res.json({
+        success: true,
+        fileName: fetched.fileName,
+        owner: fetched.owner,
+        repo: fetched.repo,
+        size: fetched.size,
+      });
+      return;
+    }
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${fetched.fileName}"`);
+    res.setHeader('X-File-Name', fetched.fileName);
+    res.setHeader('X-Repo-Owner', fetched.owner);
+    res.setHeader('X-Repo-Name', fetched.repo);
+    res.setHeader('X-Repo-Size', fetched.size.toString());
+    res.setHeader('Content-Length', fetched.buffer.length.toString());
+    res.send(fetched.buffer);
+  } catch (err: any) {
+    res.status(err.statusCode || 500).json({
+      error: {
+        code: err.code || 'import_failed',
+        message: err.message || 'Gagal mengimpor repositori GitHub.'
+      }
+    });
+  }
+});
+
 // 2. Audit Endpoint with Concurrency Limiter (Max 3 concurrent users + FIFO Queue)
 app.post('/api/audit', supabaseAuthGuard, upload.single('file'), async (req: AuthRequest, res: Response, next: NextFunction) => {
   const turnstileToken = req.body?.turnstileToken;
@@ -114,11 +171,42 @@ app.post('/api/audit', supabaseAuthGuard, upload.single('file'), async (req: Aut
     return;
   }
 
-  if (!req.file) {
+  let fileBuffer: Buffer;
+  let fileName: string;
+
+  if (req.file) {
+    fileBuffer = req.file.buffer;
+    fileName = req.file.originalname || 'archive.zip';
+  } else if (req.body?.repoUrl && typeof req.body.repoUrl === 'string') {
+    const parsed = parseGitHubRepo(req.body.repoUrl);
+    if (!parsed) {
+      res.status(400).json({
+        error: {
+          code: 'invalid_repo_url',
+          message: 'Format URL GitHub tidak valid. Contoh yang didukung: "owner/repo" atau "https://github.com/owner/repo".'
+        }
+      });
+      return;
+    }
+
+    try {
+      const fetched = await fetchGitHubRepoZip(parsed.owner, parsed.repo, { ref: parsed.ref });
+      fileBuffer = fetched.buffer;
+      fileName = fetched.fileName;
+    } catch (err: any) {
+      res.status(err.statusCode || 500).json({
+        error: {
+          code: err.code || 'import_failed',
+          message: err.message || 'Gagal mengunduh repositori GitHub untuk diaudit.'
+        }
+      });
+      return;
+    }
+  } else {
     res.status(400).json({
       error: {
         code: 'no_file',
-        message: 'No ZIP archive uploaded. Please provide a file with field name "file".'
+        message: 'No ZIP archive uploaded or GitHub repository URL provided. Please provide a file or repoUrl.'
       }
     });
     return;
@@ -136,9 +224,6 @@ app.post('/api/audit', supabaseAuthGuard, upload.single('file'), async (req: Aut
   } else if (rawContext && typeof rawContext === 'object') {
     contextObj = rawContext;
   }
-
-  const fileName = req.file.originalname || 'archive.zip';
-  const fileBuffer = req.file.buffer;
 
   try {
     // Acquire slot in queue (Max 3 workers concurrently)

@@ -119,3 +119,12 @@ export const IconKey = (p: IconProps) => (
     <path d="M8.5 8h5m-2 0v2m-2-2v2" />
   </Svg>
 )
+export const IconGit = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="4.5" cy="4.5" r="2" />
+    <circle cx="4.5" cy="11.5" r="2" />
+    <circle cx="11.5" cy="7.5" r="2" />
+    <path d="M4.5 6.5v3M4.5 8h4.5a2.5 2.5 0 0 0 2.5-2.5v0" />
+  </Svg>
+)
+
