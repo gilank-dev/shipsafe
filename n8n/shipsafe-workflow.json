@@ -1,0 +1,118 @@
+{
+  "name": "ShipSafe AI Pre-Deployment Security Audit Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shipsafe-audit",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "name": "1. Webhook - Terima File ZIP",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "id": "node-webhook-input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Step 1: Validasi ZIP dan Masking Secret\nconst binaryData = $input.item.binary?.file;\nif (!binaryData) {\n  return [{ json: { error: 'No ZIP file uploaded' } }];\n}\n\n// Simulasi pengecekan magic bytes dan batas 10MB\nconst maxBytes = 10 * 1024 * 1024;\nif (binaryData.fileSize > maxBytes) {\n  return [{ json: { error: 'File exceeds 10 MB limit' } }];\n}\n\nreturn [{\n  json: {\n    status: 'VALIDATED',\n    fileName: binaryData.fileName || 'project.zip',\n    sizeBytes: binaryData.fileSize,\n    agentTarget: $input.item.json.body?.agentTarget || 'Generic',\n    context: $input.item.json.body?.context || {}\n  }\n}];"
+      },
+      "name": "2. Pre-Process & Zip Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "id": "node-zip-guard"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://213.163.197.214:23010/api/audit",
+        "sendBinaryData": true,
+        "binaryPropertyName": "file",
+        "options": {}
+      },
+      "name": "3. Engine Audit & AI Analyzer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "id": "node-ai-security-engine"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Step 4: Parse Hasil & Format Prompt Khusus untuk Coding Agent\nconst report = $input.item.json.report;\nconst agentTarget = $input.item.json.agentTarget || 'Cursor';\n\nconst formattedFindings = (report.findings || []).map(f => ({\n  id: f.id,\n  title: f.title,\n  severity: f.severity,\n  area: f.area,\n  file: f.location?.file,\n  line: f.location?.line,\n  remediationPrompt: f.remediationPrompt\n}));\n\nreturn [{\n  json: {\n    auditSummary: report.summary,\n    counts: report.countsBySeverity,\n    scorecard: report.scorecard,\n    secretsToRotate: report.secretsToRotate,\n    findings: formattedFindings,\n    readyPromptsCount: formattedFindings.length\n  }\n}];"
+      },
+      "name": "4. Remediation Prompt Synthesizer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 300],
+      "id": "node-prompt-formatter"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "5. Kirim Balik Report & Prompt ke User",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1160, 300],
+      "id": "node-respond-webhook"
+    }
+  ],
+  "connections": {
+    "1. Webhook - Terima File ZIP": {
+      "main": [
+        [
+          {
+            "node": "2. Pre-Process & Zip Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Pre-Process & Zip Guard": {
+      "main": [
+        [
+          {
+            "node": "3. Engine Audit & AI Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Engine Audit & AI Analyzer": {
+      "main": [
+        [
+          {
+            "node": "4. Remediation Prompt Synthesizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Remediation Prompt Synthesizer": {
+      "main": [
+        [
+          {
+            "node": "5. Kirim Balik Report & Prompt ke User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

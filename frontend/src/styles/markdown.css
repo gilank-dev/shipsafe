@@ -1,0 +1,101 @@
+/* Report prose. Prose is capped at 72ch; tables and code are exempt and scroll inside their own regions. */
+.md {
+  font-size: var(--text-body);
+  line-height: 1.55;
+}
+.md > * + * {
+  margin-top: 0.75rem;
+}
+.md p,
+.md ul,
+.md ol,
+.md blockquote {
+  max-width: 72ch;
+}
+.md h3 {
+  font-size: var(--text-h3);
+  line-height: 1.25;
+  margin-top: 1.5rem;
+}
+.md h4,
+.md h5,
+.md h6 {
+  font-size: var(--text-title);
+  line-height: 1.25;
+  margin-top: 1.25rem;
+}
+.md ul {
+  list-style: square;
+  padding-left: 1.25rem;
+}
+.md ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+.md li + li {
+  margin-top: 0.25rem;
+}
+.md a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+.md blockquote {
+  border-left: 2px solid var(--ink);
+  padding-left: 0.875rem;
+  color: var(--ink-2);
+}
+.md hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+.md :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-chip);
+  padding: 0.0625rem 0.3125rem;
+  overflow-wrap: anywhere;
+}
+.md-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--rule-strong);
+}
+.md table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-small);
+}
+.md th,
+.md td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.md th {
+  background: var(--surface);
+  border-bottom: 2px solid var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.md th[scope='row'] {
+  background: transparent;
+  border-bottom: 1px solid var(--rule);
+  white-space: normal;
+}
+.md-code {
+  position: relative;
+  border: 1px solid var(--rule-strong);
+  background: var(--raised);
+  border-radius: var(--radius-control);
+}
+.md-code pre {
+  overflow-x: auto;
+  padding: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  line-height: 1.6;
+}

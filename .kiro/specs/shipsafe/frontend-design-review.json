@@ -1,0 +1,190 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": "F-01",
+      "severity": "HIGH",
+      "title": "Teks widget EXACT tidak ada di repo; shipsafe-spec.md saat ini adalah v3 tanpa 13 widget dan bertentangan dengan desain",
+      "location": "frontend-design.md: paragraf pembuka, Direktif butir 4, B7 validator, A9 AC2; shipsafe-spec.md seluruh berkas",
+      "problem": "shipsafe-spec.md (v3, diubah 21:02 setelah requirements.md) tidak memuat Section 3/4 widget, Section 10 QA, heading Widget N, maupun teks Disclaimer, placeholder, dan prompt. Grep Secrets Audit / Release Security Officer / Fix-It Checklist di spec = 0. Spec v3 juga menghapus Verdict dan chatbot RSO dan bertentangan dengan KT-1/KT-2/KT-5. Validator B7 tidak bisa parse spec ini.",
+      "fix": "Pulihkan spec yang memuat 13 widget sebagai .kiro/specs/shipsafe/widgets-source.md (atau lampirkan 13 teks verbatim di desain), ubah target validator B7 ke berkas itu, tulis urutan prioritas (KT > requirements.md > widgets-source.md > spec v3), dan tambah tabel bagian spec v3 yang digantikan KT. Konfirmasi ke user spec mana yang berlaku."
+    },
+    {
+      "id": "F-02",
+      "severity": "HIGH",
+      "title": "Proyek frontend/ (Vite, spec v3) sudah ada dan bertentangan dengan desain Next.js; desain tidak menyebutnya",
+      "location": "frontend-design.md B1, B2, B3, B27 M0; workspace frontend/ (DESIGN.md, package.json, src/, node_modules)",
+      "problem": "frontend/ berisi Vite 7.3.7, TypeScript 5.9.3, Vitest 4.1.11, Archivo/Plex Mono, DESIGN.md 'approved-for-implementation' single-screen tanpa landing, dan src yang sudah di-scaffold (sample-zips, agents, parse-report). Desain menetapkan Next 16.4.0, TS 6.0.3, Geist, landing, wizard. M0 akan bertabrakan atau menduplikasi.",
+      "fix": "Tambah bagian 'Hubungan dengan frontend/' di B3: putuskan menggantikan atau menyesuaikan, pindahkan frontend/ ke archive/ (setelah konfirmasi user), tandai frontend/DESIGN.md SUPERSEDED, dan tetapkan path aplikasi baru (apps/web | web | root) yang dipakai semua path B3."
+    },
+    {
+      "id": "F-03",
+      "severity": "MEDIUM",
+      "title": "Fitur KT-1..KT-8 tidak punya requirement atau acceptance criteria terlacak",
+      "location": "requirements.md (R1-R16 saja); frontend-design.md A5, A9, B20-B23",
+      "problem": "Auth GitHub, privasi, wizard upload, job/kuota, perbaikan otomatis, revert, re-scan, unduh/purge, sign-off pasca purge tidak punya EARS requirement maupun AC bernomor. AC1-AC48 hanya mencakup widget/mode manual.",
+      "fix": "Tambah R17-R24 (auth mock, persetujuan privasi, batas upload KT-5, job dan kuota, perbaikan otomatis, revert dan re-scan, unduh dan retensi, sign-off pasca purge) dan petakan ke AC49 dst di A9."
+    },
+    {
+      "id": "F-04",
+      "severity": "MEDIUM",
+      "title": "R8.2/AC21 meminta audit hilang berurutan; B9 menjalankannya paralel tanpa amandemen",
+      "location": "requirements.md R8.2; frontend-design.md A9 AC21, B9 perencana, tabel Amandemen Bagian A",
+      "problem": "Requirement dan AC21 menyebut urutan Secrets, Dependency, HTTP. B9 memakai satu layer paralel dan menyebutnya interpretasi, tanpa persetujuan user dan tanpa baris amandemen.",
+      "fix": "Jadikan layer sekuensial untuk mode run/regenerate (paralel hanya untuk mode full), atau tambah baris Amandemen R8.2/AC21 'DIUBAH, menunggu persetujuan user' dan ubah kata 'berurutan' di AC21."
+    },
+    {
+      "id": "F-05",
+      "severity": "MEDIUM",
+      "title": "promptDigest dan templateVersion tidak terdefinisi dan ambigu terhadap envelope acak",
+      "location": "frontend-design.md B13 (GenerateRequest, Payload layer butir 2), DK-4",
+      "problem": "Tidak jelas teks mana yang di-hash (dengan/tanpa penanda UNTRUSTED acak), algoritma templateVersion, dan tindakan saat mismatch. Dua implementasi akan menghasilkan 422 palsu.",
+      "fix": "Definisikan digest = sha256Hex(utf8(resolvePrompt(template,titles,getValue).text)) tanpa render/pembungkus di klien dan server, templateVersion = sha256Hex(utf8(template)).slice(0,16) per widget, mismatch = 422 DIGEST_MISMATCH (kelas invalid_request, recoverable), envelope ditambahkan setelah verifikasi."
+    },
+    {
+      "id": "F-06",
+      "severity": "MEDIUM",
+      "title": "Klaim 'endpoint bukan proxy LLM bebas' lemah untuk scope manual dan job pasca purge",
+      "location": "frontend-design.md DK-4, DK-5, B13 (inputs, persona.inputs, messages), B21 T4",
+      "problem": "inputs dan messages adalah teks bebas dari klien; pada RSO pasca purge klien mengirim Verdict/Fix-It sehingga system prompt dikendalikan klien. Envelope acak tidak mengubah hal ini dan batas kepercayaan tidak dinyatakan.",
+      "fix": "Scope job sebelum purge: server mengabaikan inputs klien dan membaca dari penyimpanan job. Scope manual dan pasca purge: inputs tak tepercaya, terapkan envelope, batas ukuran, rate limit dan kuota token per user. Ganti klaim DK-4 dengan 'dibatasi oleh template, ukuran, kuota, dan rate limit'."
+    },
+    {
+      "id": "F-07",
+      "severity": "MEDIUM",
+      "title": "Kontrak LlmClient belum lengkap: tipe hasil/error, finishReason, scope job",
+      "location": "frontend-design.md B13 (LlmClient, NDJSON, tabel error), B9 runner scope job",
+      "problem": "GenerateResult, ChatResult, LlmError tidak didefinisikan; finishReason non-stop (length/content_filter) tidak punya aturan sehingga audit terpotong tampil lengkap; GenerateRequest.scope memuat job padahal orkestrasi job via JobsClient; body error non-2xx tidak didefinisikan.",
+      "fix": "Definisikan union LlmEvent, GenerateResult/ChatResult, class LlmError(kind, retryable, requestId, retryAfterSec); aturan done.finishReason !== 'stop' menjadi invalid_response dan draft dibuang; hapus scope job dari GenerateRequest; definisikan body error { code, message, retryAfterSec? } divalidasi Zod dengan fallback ke status HTTP."
+    },
+    {
+      "id": "F-08",
+      "severity": "MEDIUM",
+      "title": "Pesan pemicu tersembunyi RSO tidak didefinisikan sebagai bagian riwayat",
+      "location": "frontend-design.md D12, B20 Sign-off RSO ('Begin'), A9 AC34/AC35, B13 ChatRequest.messages",
+      "problem": "'Begin' hanya literal di B20, tanpa lokasi config dan tanpa aturan apakah tetap dikirim di giliran berikutnya. Jika dibuang, riwayat diawali pesan assistant yang ditolak banyak API chat dan melanggar R11.7. Pemicu bukan teks UI sehingga tidak boleh di strings.ts.",
+      "fix": "Tambah RSO_OPENER_TRIGGER di config/app.ts, ChatMessage.hidden?: boolean; hidden tidak dirender tetapi selalu ada di messages; reset menghapusnya bersama riwayat."
+    },
+    {
+      "id": "F-09",
+      "severity": "MEDIUM",
+      "title": "Parse Confidence, scorecard, dan reason unreadable pada VerdictHero tidak ditentukan",
+      "location": "frontend-design.md B11 (VerdictHero, VerdictParse.reason), A9 AC26-AC28",
+      "problem": "countBlockers punya algoritma, tetapi Confidence, scorecard 0-10, dan klasifikasi empat nilai reason tidak punya aturan; format output Widget 11 tidak tersedia (F-01), sehingga implementer menebak.",
+      "fix": "Setelah F-01, tetapkan regex Confidence dari OUTPUT FORMAT prompt W11, syarat header tabel scorecard (selain itu disembunyikan), dan aturan reason: tanpa 'VERDICT' = no-line, >=2 nilai valid = multiple-values, nilai di luar tiga = unknown-value, sisanya wrong-format."
+    },
+    {
+      "id": "F-10",
+      "severity": "MEDIUM",
+      "title": "Emoji 🚦 rusak (mojibake) di X5 dan AC26, bertentangan dengan B11",
+      "location": "frontend-design.md baris 116 (X5) dan baris 230 (AC26)",
+      "problem": "Tertulis '# ðŸš¦ VERDICT: ...'. AC26 adalah kriteria uji untuk format verdict; tes yang diturunkan dari sini mencocokkan karakter salah.",
+      "fix": "Ganti dengan '# 🚦 VERDICT: <GO|CONDITIONAL GO|NO-GO>' (U+1F6A6) dan tambah pemeriksaan mojibake (deteksi 'ðŸ') di verify:widgets untuk desain dan src/config/prompts."
+    },
+    {
+      "id": "F-11",
+      "severity": "MEDIUM",
+      "title": "Cakupan pemindai secret sempit untuk klaim DK-3; filter placeholder substring bisa dibypass",
+      "location": "frontend-design.md DK-3, B14 langkah 4, B17 (tabel pola, isPlaceholder)",
+      "problem": "Hanya 9 pola berprefiks; tidak ada pola .env KEY=VALUE, password=\"...\", atau entropi tinggi tanpa prefiks. DK-3 mengklaim secret tidak pernah meninggalkan perangkat. isPlaceholder memakai substring (example, dummy, changeme, xxxx) sehingga secret yang memuat kata itu lolos.",
+      "fix": "Tambah pola env-assignment dan generic-assignment (minEntropy 3.5), buat isPlaceholder mencocokkan nilai utuh (anchor) kecuali REDACTED dan deretan satu karakter >= 8, dan ubah DK-3 menjadi 'mengurangi, tidak menjamin; terbatas pada jenis yang dikenali'."
+    },
+    {
+      "id": "F-12",
+      "severity": "MEDIUM",
+      "title": "Sampel secret palsu bentrok dengan verify-bundle-secrets dan push protection GitHub, atau tidak memicu dialog",
+      "location": "frontend-design.md B3 config/samples.ts, B17, B21 verify-bundle-secrets, A9 AC10, B20 'Isi contoh'",
+      "problem": "Contoh rentan harus cocok dengan pola agar dialog tampil; literal utuh masuk bundel sehingga verify-bundle gagal dan nanti diblokir push protection. Jika disamarkan dengan placeholder, isPlaceholder membuatnya tidak terdeteksi.",
+      "fix": "Rakit string sampel saat runtime dari potongan (mis. ['sk','_live_','SHIPSAFE','DEMO','0123456789abcdef'].join('')), tambah tes bahwa scanSecrets pada sampel menghasilkan >= 1 hit sedangkan scan literal sumber samples.ts menghasilkan 0 hit."
+    },
+    {
+      "id": "F-13",
+      "severity": "MEDIUM",
+      "title": "API async fflate membuat Worker dari Blob URL dan diblokir CSP worker-src 'self'",
+      "location": "frontend-design.md B2 (fflate 0.8.3), B14 'Web Worker dan CSP' dan 'Mode folder', B21 CSP",
+      "problem": "Terverifikasi: fflate@0.8.3 esm/browser.js memakai new Worker(URL.createObjectURL(new Blob(...))) untuk fungsi async. Dipanggil di worker sendiri atau thread utama, worker bersarang diblokir CSP tanpa blob:, dan B14 melarang fallback ke thread utama. Upload folder dan redaksi-repack gagal di produksi.",
+      "fix": "Wajibkan API sinkron fflate (zipSync, unzipSync, strToU8, Zip/ZipDeflate, Unzip/UnzipInflate) di zip.worker.ts dan larang zip, unzip, compress, decompress, AsyncZipDeflate, AsyncUnzipInflate lewat no-restricted-syntax ESLint."
+    },
+    {
+      "id": "F-14",
+      "severity": "MEDIUM",
+      "title": "Ikon Phosphor di Server Component harus diimpor dari /ssr; aturan tidak ada di desain",
+      "location": "frontend-design.md B2 (ikon), B3 (Server Component), B11, B16, B26 AS-11",
+      "problem": "Terverifikasi: README @phosphor-icons/react@2.1.10 mewajibkan impor dari submodul /ssr di lingkungan tanpa Context (Next.js Server Component); paket mengekspor ./ssr. Landing, privasi, batasan, dan layout adalah Server Component tetapi tidak ada aturan impor, sehingga build bisa error.",
+      "fix": "Tetapkan: Server Component impor dari '@phosphor-icons/react/ssr', Client Component dari '@phosphor-icons/react'; buat pembungkus Icon per konteks agar weight konsisten dan muat satu ikon di layout Server Component pada uji build M0."
+    },
+    {
+      "id": "F-15",
+      "severity": "MEDIUM",
+      "title": "Banner disclaimer sticky: offset sticky, Focus Not Obscured, dan pengukuran tinggi tanpa atribut style tidak ditentukan",
+      "location": "frontend-design.md tabel Amandemen (R1.3), B20 halaman job (sidebar sticky), B24 Fokus, B18 z-index, B21 larangan style, R-UX-1",
+      "problem": "Teks disclaimer panjang dan tidak boleh dipotong; mitigasi hanya untuk tinggi viewport < 520 px. Tidak ada scroll-padding-top (WCAG 2.2 SC 2.4.11), tidak ada cara menentukan tinggi banner untuk sidebar sticky di bawahnya, padahal CSP melarang atribut style.",
+      "fix": "Definisikan token --banner-h per breakpoint, html { scroll-padding-top: calc(var(--banner-h) + 1rem) } dan .sticky-below-banner { top: calc(var(--banner-h) + 1rem) }; bila perlu ukur lewat ResizeObserver + documentElement.style.setProperty (CSSOM diizinkan CSP); tetapkan anggaran banner maksimum 30% tinggi viewport pada 390x844 dan uji tab di 320/390/1440 px."
+    },
+    {
+      "id": "F-16",
+      "severity": "NIT",
+      "title": "Implementasi urlTransform tidak dituliskan",
+      "location": "frontend-design.md B10 baris Link, B2 butir 10",
+      "problem": "Aturan skema dinyatakan tetapi cara mengurai tidak; menimpa defaultUrlTransform adalah titik rawan XSS.",
+      "fix": "Tulis safeUrlTransform: try { const u = new URL(value); return ['https:','http:','mailto:'].includes(u.protocol) ? u.href : '' } catch { return '' }, dan tambah tes 'JaVa\\tScRiPt:' dan '//evil.com'."
+    },
+    {
+      "id": "F-17",
+      "severity": "NIT",
+      "title": "CSP mode http dan dev: host storage, asal URL unduhan, upgrade-insecure-requests",
+      "location": "frontend-design.md B21 header 'nilai final', B13 UploadClient dan tiket unduh",
+      "problem": "connect-src mode http hanya 'host storage unggahan' tanpa nilai, asal URL unduhan tidak disebut, dan upgrade-insecure-requests dapat merusak aset pada next start di http://localhost (Safari) padahal verify-headers berjalan terhadapnya.",
+      "fix": "Tandai nilai mode http 'ditetapkan di fase backend' dan pasang upgrade-insecure-requests hanya bila NODE_ENV === 'production' dan host bukan localhost."
+    },
+    {
+      "id": "F-18",
+      "severity": "NIT",
+      "title": "Pola OPENROUTER di verify-bundle-secrets ambigu terhadap huruf besar-kecil",
+      "location": "frontend-design.md B21 Hardening kode dan repo",
+      "problem": "Teks privasi di strings.ts menyebut 'OpenRouter'; pencarian tak peka huruf akan menggagalkan build oleh teks sah.",
+      "fix": "Gunakan pola eksak peka huruf: OPENROUTER_API_KEY, sk-or-v1-, GITHUB_CLIENT_SECRET."
+    },
+    {
+      "id": "F-19",
+      "severity": "NIT",
+      "title": "Nilai yang ditetapkan requirement ditandai 'belum final'; angka debounce tidak konsisten",
+      "location": "frontend-design.md B6 (MAX_FIELD_CHARS, COMMIT_DEBOUNCE_MS), A3 D2; requirements.md R3.2, R3.5",
+      "problem": "R3.5 menetapkan 50.000 karakter tetapi B6 menandai belum final; D2 menyebut debounce 500 ms sedangkan B6 400 ms (R3.2 batas 500 ms).",
+      "fix": "Tandai MAX_FIELD_CHARS 'terkunci (R3.5)' dan tulis di D2 'debounce 400 ms (batas R3.2: 500 ms)'."
+    },
+    {
+      "id": "F-20",
+      "severity": "NIT",
+      "title": "eslint-plugin-react tidak dipin dan belum ada .gitattributes",
+      "location": "frontend-design.md B2 devDependencies, B21 aturan react/no-danger dan react/forbid-dom-props, B7 (LF)",
+      "problem": "Config mengimpor eslint-plugin-react langsung padahal hanya dependency transitif eslint-config-next@16.4.0 (^7.37.0). Dev di Windows dan prompt wajib LF tanpa .gitattributes.",
+      "fix": "Pin eslint-plugin-react eksplisit di devDependencies; tambah .gitattributes dengan '* text=auto eol=lf' dan 'src/config/prompts/** text eol=lf' di M0."
+    },
+    {
+      "id": "F-21",
+      "severity": "NIT",
+      "title": "Jejak penggunaan Context7 per pustaka tidak tercatat",
+      "location": "frontend-design.md B2 Metode",
+      "problem": "Hanya react-markdown yang menyebut ID Context7; Next, Tailwind, Zustand disebut dokumentasi resmi langsung, padahal user meminta baca Context7.",
+      "fix": "Tambah kolom Sumber di tabel B2 berisi ID pustaka Context7 (mis. /vercel/next.js) dan topik yang ditanyakan."
+    },
+    {
+      "id": "F-22",
+      "severity": "NIT",
+      "title": "Regex parser verdict memakai \\s yang lebih longgar dari toleransi yang dinyatakan",
+      "location": "frontend-design.md B11 Parser",
+      "problem": "Toleransi dinyatakan hanya spasi atau tab, tetapi \\s juga mencocokkan NBSP dan spasi Unicode lain.",
+      "fix": "Pakai /^[ \\t]*#[ \\t]+🚦\\uFE0F?[ \\t]+VERDICT[ \\t]*:[ \\t]*(GO|CONDITIONAL GO|NO-GO)[ \\t]*\\r?$/ setelah BOM dibuang."
+    },
+    {
+      "id": "F-23",
+      "severity": "NIT",
+      "title": "AuthGate di klien menyebabkan kedipan konten dan CLS pada halaman SSR",
+      "location": "frontend-design.md B4 paragraf setelah tabel route",
+      "problem": "Halaman (app) dirender dinamis di server tetapi sesi mock hanya terbaca di klien (sessionStorage); tanpa skeleton tetap, konten terlihat lalu berpindah.",
+      "fix": "Render skeleton ukuran tetap dengan aria-busy='true' sampai sesi terbaca; pada mode http jaga lewat proxy.ts berbasis cookie."
+    }
+  ],
+  "reviewDoc": "c:\\Users\\HYPE AMD\\files\\PROJECT\\PERSONAL\\KIRO TEST\\.kiro\\specs\\shipsafe\\frontend-design-review.json.md"
+}

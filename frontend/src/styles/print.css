@@ -1,0 +1,15 @@
+/* Print only the report: hide the submission panel and interactive chrome. */
+@media print {
+  [data-print='hide'],
+  .skip-link {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .layout-grid {
+    display: block !important;
+  }
+}

@@ -1,0 +1,86 @@
+/* Design tokens. Values come from DESIGN.md section 5.1 and are contrast-checked by src/test/contrast.test.ts.
+   Each token is light-dark(light, dark). Chroma means state: severity, status and the warning band only. */
+:root {
+  color-scheme: light dark;
+
+  --canvas: light-dark(#eef0ee, #0f1214);
+  --surface: light-dark(#f7f8f6, #161a1d);
+  --raised: light-dark(#ffffff, #1c2125);
+  --ink: light-dark(#14181b, #e8ecea);
+  --ink-2: light-dark(#3e474d, #b7c0bc);
+  --ink-3: light-dark(#566067, #97a19c);
+  --placeholder: light-dark(#5c666d, #8e9893);
+  --rule: light-dark(#c8cdc9, #2c3338);
+  --rule-strong: light-dark(#6f7a74, #7e8984);
+
+  --sev-critical-bg: light-dark(#b3261e, #f0675f);
+  --sev-critical-fg: light-dark(#ffffff, #14070a);
+  --sev-high-bg: light-dark(#b34700, #f28a3c);
+  --sev-high-fg: light-dark(#ffffff, #1a0c02);
+  --sev-medium-bg: light-dark(#f2d93d, #f2d93d);
+  --sev-medium-fg: light-dark(#14181b, #14181b);
+  --sev-low-bg: light-dark(#1d5fbf, #6fa3f2);
+  --sev-low-fg: light-dark(#ffffff, #06101f);
+  --sev-info-bg: light-dark(#5a6369, #a5afaa);
+  --sev-info-fg: light-dark(#ffffff, #0f1214);
+
+  --status-pass: light-dark(#17703b, #3db36b);
+  --status-partial: light-dark(#7a5200, #f2b63a);
+  --status-fail: light-dark(#b3261e, #f0675f);
+
+  --warn-bg: light-dark(#fbe9b7, #2a2412);
+  --warn-ink: light-dark(#14181b, #f4e9c8);
+  --warn-edge: light-dark(#14181b, #f2b63a);
+
+  --focus: var(--ink);
+  --rail-h: 0px;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Tailwind v4: clear the default palette, expose only our tokens. */
+@theme inline {
+  --color-*: initial;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-placeholder: var(--placeholder);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-pass: var(--status-pass);
+  --color-partial: var(--status-partial);
+  --color-fail: var(--status-fail);
+  --color-warn-bg: var(--warn-bg);
+  --color-warn-ink: var(--warn-ink);
+  --color-warn-edge: var(--warn-edge);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-sans: 'Archivo Variable', system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.45;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+  --text-title: 1.0625rem;
+  --text-title--line-height: 1.25;
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.25;
+
+  --radius-*: initial;
+  --radius-chip: 2px;
+  --radius-control: 4px;
+  --shadow-*: initial;
+}
