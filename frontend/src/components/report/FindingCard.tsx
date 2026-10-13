@@ -29,35 +29,38 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
 
   return (
     <article
-      className="border border-rule bg-raised transition-colors"
+      className="border border-rule bg-raised transition-all hover:border-rule-strong rounded-[var(--radius-control)] overflow-hidden"
       data-finding-id={finding.id}
     >
-      <header className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-rule">
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+      <header className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-rule/70 bg-surface/40 hover:bg-surface/80 transition-colors">
+        <div className="flex-1 min-w-0 cursor-pointer select-none" onClick={handleToggle}>
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <span className="font-mono text-small font-bold text-ink">{finding.id}</span>
             <SeverityTag level={finding.severity} />
-            <span className="tag tag-outline text-ink-2">{finding.area}</span>
+            <span className="tag tag-outline text-ink-2 text-caption">{finding.area}</span>
             {finding.confidence && (
-              <span className="tag tag-outline text-ink-3 text-small">
+              <span className="tag tag-outline text-ink-3 text-caption hidden sm:inline-flex">
                 {finding.confidence}
               </span>
             )}
+            <span
+              className="inline-flex items-center gap-1 font-mono text-caption text-ink-3 bg-canvas/60 px-1.5 py-0.5 rounded-[var(--radius-chip)] border border-rule/50 truncate max-w-[280px]"
+              title={locationText}
+            >
+              {locationText}
+            </span>
           </div>
           <h4 className="text-body font-bold text-ink leading-snug break-words">
             {finding.title}
           </h4>
-          <p className="mt-1 font-mono text-small text-ink-2 truncate" title={locationText}>
-            {locationText}
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-rule/50">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <CopyButton text={finding.remediationPrompt} label="Copy prompt" subject={`${finding.id} prompt`} />
             <button
               type="button"
-              className="btn text-small"
+              className="btn text-small py-1 px-2.5"
               onClick={() => onViewPrompt(finding)}
               title="View prompt for coding agent"
             >
@@ -66,7 +69,7 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
           </div>
           <button
             type="button"
-            className="btn min-w-[44px] min-h-[44px] sm:min-w-9 sm:min-h-0 px-2.5"
+            className="btn min-w-[44px] min-h-[44px] sm:min-w-8 sm:min-h-0 sm:py-1 px-2.5"
             aria-expanded={expanded}
             aria-label={expanded ? `Collapse finding ${finding.id}` : `Expand finding ${finding.id}`}
             onClick={handleToggle}
@@ -79,35 +82,39 @@ export function FindingCard({ finding, isExpanded: controlledExpanded, onToggle,
       </header>
 
       {expanded && (
-        <div className="p-3 sm:p-4 space-y-4 bg-surface text-small min-w-0 max-w-full">
+        <div className="p-3.5 sm:p-4 space-y-3.5 bg-surface/70 text-small min-w-0 max-w-full animate-fadeIn">
           {finding.location?.snippet && (
-            <div className="min-w-0 max-w-full">
-              <p className="font-semibold text-ink-2 mb-1">Snippet</p>
-              <pre className="p-2.5 bg-raised border border-rule font-mono text-small overflow-x-auto max-w-full whitespace-pre">
+            <div className="min-w-0 max-w-full border border-rule rounded-[var(--radius-control)] bg-canvas/60 overflow-hidden">
+              <div className="px-3 py-1 bg-surface border-b border-rule flex items-center justify-between text-caption font-mono text-ink-3">
+                <span>Code Reference ({locationText})</span>
+              </div>
+              <pre className="p-3 bg-raised font-mono text-small overflow-x-auto max-w-full whitespace-pre">
                 <code>{finding.location.snippet}</code>
               </pre>
             </div>
           )}
 
-          <div className="min-w-0">
-            <p className="font-semibold text-ink mb-1">What</p>
-            <p className="text-ink-2 leading-relaxed break-words">{finding.what}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-3 rounded-[var(--radius-control)] border border-rule bg-raised">
+              <p className="font-bold text-ink mb-1 text-caption uppercase tracking-wider text-ink-2">What happened</p>
+              <p className="text-ink-2 leading-relaxed break-words">{finding.what}</p>
+            </div>
+
+            <div className="p-3 rounded-[var(--radius-control)] border border-rule bg-raised">
+              <p className="font-bold text-ink mb-1 text-caption uppercase tracking-wider text-ink-2">Why it matters</p>
+              <p className="text-ink-2 leading-relaxed break-words">{finding.why}</p>
+            </div>
           </div>
 
-          <div className="min-w-0">
-            <p className="font-semibold text-ink mb-1">Why it matters</p>
-            <p className="text-ink-2 leading-relaxed break-words">{finding.why}</p>
-          </div>
-
-          <div className="min-w-0">
-            <p className="font-semibold text-ink mb-1">Recommended fix</p>
-            <p className="text-ink-2 leading-relaxed break-words">{finding.recommendedFix}</p>
+          <div className="p-3.5 rounded-[var(--radius-control)] border border-status-pass-border bg-status-pass-bg/20">
+            <p className="font-bold text-status-pass-fg mb-1 text-caption uppercase tracking-wider">Recommended Fix</p>
+            <p className="text-ink leading-relaxed break-words">{finding.recommendedFix}</p>
           </div>
 
           {finding.verifyWith && (
             <div className="min-w-0 max-w-full">
-              <p className="font-semibold text-ink mb-1">Verify with</p>
-              <pre className="p-2.5 bg-raised border border-rule font-mono text-small overflow-x-auto max-w-full whitespace-pre text-ink">
+              <p className="font-bold text-ink-2 mb-1 text-caption uppercase tracking-wider">Verify with</p>
+              <pre className="p-2.5 bg-raised border border-rule font-mono text-small overflow-x-auto max-w-full whitespace-pre text-ink rounded-[var(--radius-control)]">
                 <code>{finding.verifyWith}</code>
               </pre>
             </div>

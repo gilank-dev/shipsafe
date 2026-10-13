@@ -118,6 +118,7 @@ const THREAT_ICONS: Record<ThreatKey, React.ComponentType> = {
 
 export const ThreatMatrixView: React.FC<ThreatMatrixViewProps> = ({ threats }) => {
   const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({})
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Vulnerable' | 'Warning' | 'Secure'>('All')
 
   if (!threats || threats.length === 0) {
     return null
@@ -127,40 +128,74 @@ export const ThreatMatrixView: React.FC<ThreatMatrixViewProps> = ({ threats }) =
   const warningCount = threats.filter((t) => t.status === 'Warning').length
   const secureCount = threats.filter((t) => t.status === 'Secure').length
 
+  const filteredThreats = threats.filter((t) => {
+    if (statusFilter === 'All') return true
+    return t.status === statusFilter
+  })
+
   const toggleMitigation = (key: string) => {
     setExpandedKeys((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
   return (
-    <section aria-labelledby="threat-matrix-heading" className="space-y-4">
+    <section aria-labelledby="threat-matrix-heading" className="space-y-3.5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rule pb-3">
         <div>
           <h3 id="threat-matrix-heading" className="text-title font-bold text-ink">
             10-Threat Security Vector Matrix
           </h3>
           <p className="text-small text-ink-2 mt-0.5">
-            Systematic inspection across ten web threat vectors: SQLi, XSS, DDoS, Brute Force, Shell, MitM, Phishing, Defacement, LFI/RFI, and Zero-Day.
+            Systematic inspection across ten web threat vectors. Click status chips to filter.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-caption font-mono font-semibold">
-          <span className="inline-flex items-center gap-1 border border-status-pass-border bg-status-pass-bg px-2 py-0.5 text-status-pass-fg rounded-[var(--radius-chip)]">
+        <div className="flex flex-wrap items-center gap-1.5 text-caption font-mono font-semibold">
+          <button
+            type="button"
+            onClick={() => setStatusFilter('All')}
+            className={`filter-chip py-0.5 px-2 text-caption ${statusFilter === 'All' ? 'aria-pressed:true' : ''}`}
+            aria-pressed={statusFilter === 'All'}
+          >
+            All ({threats.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setStatusFilter('Secure')}
+            className={`inline-flex items-center gap-1 border border-status-pass-border bg-status-pass-bg px-2 py-0.5 text-status-pass-fg rounded-[var(--radius-chip)] transition-all ${
+              statusFilter === 'Secure' ? 'ring-2 ring-ink' : 'opacity-85 hover:opacity-100'
+            }`}
+            aria-pressed={statusFilter === 'Secure'}
+          >
             ● {secureCount} Secure
-          </span>
+          </button>
           {warningCount > 0 && (
-            <span className="inline-flex items-center gap-1 border border-status-warn-border bg-status-warn-bg px-2 py-0.5 text-status-warn-fg rounded-[var(--radius-chip)]">
+            <button
+              type="button"
+              onClick={() => setStatusFilter('Warning')}
+              className={`inline-flex items-center gap-1 border border-status-warn-border bg-status-warn-bg px-2 py-0.5 text-status-warn-fg rounded-[var(--radius-chip)] transition-all ${
+                statusFilter === 'Warning' ? 'ring-2 ring-ink' : 'opacity-85 hover:opacity-100'
+              }`}
+              aria-pressed={statusFilter === 'Warning'}
+            >
               ▲ {warningCount} Warning
-            </span>
+            </button>
           )}
           {vulnerableCount > 0 && (
-            <span className="inline-flex items-center gap-1 border border-status-fail-border bg-status-fail-bg px-2 py-0.5 text-status-fail-fg rounded-[var(--radius-chip)]">
+            <button
+              type="button"
+              onClick={() => setStatusFilter('Vulnerable')}
+              className={`inline-flex items-center gap-1 border border-status-fail-border bg-status-fail-bg px-2 py-0.5 text-status-fail-fg rounded-[var(--radius-chip)] transition-all ${
+                statusFilter === 'Vulnerable' ? 'ring-2 ring-ink' : 'opacity-85 hover:opacity-100'
+              }`}
+              aria-pressed={statusFilter === 'Vulnerable'}
+            >
               ✖ {vulnerableCount} Vulnerable
-            </span>
+            </button>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-        {threats.map((threat) => {
+        {filteredThreats.map((threat) => {
           const isVulnerable = threat.status === 'Vulnerable'
           const isWarning = threat.status === 'Warning'
           const isExpanded = Boolean(expandedKeys[threat.key])

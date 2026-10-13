@@ -102,3 +102,20 @@ export const IconDownload = (p: IconProps) => (
     <path d="M8 2.5V11M4.5 7.5L8 11l3.5-3.5M2.5 13.5h11" />
   </Svg>
 )
+export const IconSearch = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="7" cy="7" r="4.5" />
+    <path d="M10.5 10.5L14 14" />
+  </Svg>
+)
+export const IconShield = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M8 2l5 2v4c0 3.5-2.5 6-5 7-2.5-1-5-3.5-5-7V4l5-2z" />
+  </Svg>
+)
+export const IconKey = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="5.5" cy="8" r="3" />
+    <path d="M8.5 8h5m-2 0v2m-2-2v2" />
+  </Svg>
+)
