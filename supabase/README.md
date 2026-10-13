@@ -1,4 +1,4 @@
-# 🛡️ ShipSafe — Supabase Database & Security Guide
+# 🛡️ ShipSafe - Supabase Database & Security Guide
 
 Dokumen ini berisi panduan lengkap implementasi database PostgreSQL, Row Level Security (RLS), autentikasi Supabase, dan konfigurasi environment variable untuk **ShipSafe** (Frontend, Backend VPS, dan AI Gateway).
 

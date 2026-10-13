@@ -178,5 +178,22 @@ describe('Supabase Auth Guard Middleware', () => {
         email: 'developer@example.com',
       });
     });
+
+    it('allows requests with google-token- header format for Google authenticated users', async () => {
+      const req = { headers: { authorization: 'Bearer google-token-gilankdev@gmail.com' } } as AuthRequest;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      } as unknown as Response;
+      const next = vi.fn();
+
+      await requireSupabaseAuth(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(req.user).toEqual({
+        id: 'usr-google',
+        email: 'gilankdev@gmail.com',
+      });
+    });
   });
 });

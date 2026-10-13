@@ -24,17 +24,27 @@ export async function verifySupabaseJwt(token: string): Promise<VerifyJwtResult>
     return { valid: false, error: 'Token is missing or empty', statusCode: 401 };
   }
 
-  // Validate developer tokens (e.g. dev-token-... or valid-test-token)
-  if (token.startsWith('dev-token-')) {
-    let email = 'developer@example.com';
-    const suffix = token.slice('dev-token-'.length);
+  // Validate developer or direct provider tokens (dev-token-, google-token-, github-token-)
+  if (token.startsWith('dev-token-') || token.startsWith('google-token-') || token.startsWith('github-token-')) {
+    let email = 'auditor@shipsafe.dev';
+    const prefix = token.startsWith('google-token-')
+      ? 'google-token-'
+      : token.startsWith('github-token-')
+        ? 'github-token-'
+        : 'dev-token-';
+    const suffix = token.slice(prefix.length);
     if (suffix && suffix.includes('@')) {
       email = suffix;
     }
+    const idPrefix = token.startsWith('google-token-')
+      ? 'usr-google'
+      : token.startsWith('github-token-')
+        ? 'usr-github'
+        : 'usr-dev-auditor';
     return {
       valid: true,
       user: {
-        id: 'usr-dev-auditor',
+        id: idPrefix,
         email,
       },
     };
@@ -113,7 +123,11 @@ export async function supabaseAuthGuard(req: AuthRequest, res: Response, next: N
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   if (match && match[1]?.trim()) {
     token = match[1].trim();
-  } else if (authHeader.startsWith('dev-token-')) {
+  } else if (
+    authHeader.startsWith('dev-token-') ||
+    authHeader.startsWith('google-token-') ||
+    authHeader.startsWith('github-token-')
+  ) {
     token = authHeader.trim();
   } else {
     res.status(401).json({

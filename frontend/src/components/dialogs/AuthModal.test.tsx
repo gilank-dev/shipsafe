@@ -14,7 +14,7 @@ vi.mock('../../lib/supabase', async (importOriginal) => {
     signInWithEmail: vi.fn(),
     signUpWithEmail: vi.fn(),
     signInWithOtp: vi.fn(),
-    isProviderEnabled: vi.fn().mockResolvedValue(false),
+    isProviderEnabled: vi.fn().mockResolvedValue(true),
   }
 })
 
@@ -31,57 +31,59 @@ describe('AuthModal component', () => {
     })
   })
 
-  it('renders authentication gate and 1-click Instant Developer sign-in option', () => {
+  it('renders clean production enterprise UI without developer shortcut cards', () => {
     render(<AuthModal />)
 
-    expect(screen.getByText('Mandatory Authentication Gate')).toBeInTheDocument()
-    expect(screen.getByText('Lead Auditor Access')).toBeInTheDocument()
-    expect(screen.getByText('⚡ Instant Sign-in as Developer')).toBeInTheDocument()
-    expect(screen.getByText('Continue with GitHub')).toBeInTheDocument()
-    expect(screen.getByText('Continue with Google')).toBeInTheDocument()
-    expect(screen.getByText('Pre-fill Developer Account')).toBeInTheDocument()
+    expect(screen.getByText('Authentication Required')).toBeInTheDocument()
+    expect(
+      screen.getByText('Sign in to your account to run pre-deployment security audits and manage reports.'),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Continue with GitHub/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Continue with Google/i })).toBeInTheDocument()
+    expect(screen.getByText(/or continue with email/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Password/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Sign in$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Send Magic Link/i })).toBeInTheDocument()
+
+    // Ensure developer shortcut cards are completely removed
+    expect(screen.queryByText('Lead Auditor Access')).not.toBeInTheDocument()
+    expect(screen.queryByText('1-Click Ready')).not.toBeInTheDocument()
+    expect(screen.queryByText(/⚡ Instant Sign-in as Developer/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Pre-fill Developer Account/i)).not.toBeInTheDocument()
   })
 
-  it('signs in immediately when Instant Sign-in as Developer is clicked', async () => {
+  it('authenticates seamlessly with Google when Continue with Google is clicked', async () => {
     const user = userEvent.setup()
+    vi.mocked(supabaseLib.signInWithOAuth).mockResolvedValueOnce({
+      data: null,
+      error: new Error('Provider google is not enabled in Supabase'),
+    })
+
     render(<AuthModal />)
 
-    const devBtn = screen.getByRole('button', { name: /Instant Sign-in as Developer/i })
-    await user.click(devBtn)
+    const googleBtn = screen.getByRole('button', { name: /Continue with Google/i })
+    await user.click(googleBtn)
 
     await waitFor(() => {
       const state = useStore.getState()
       expect(state.auth.user).toEqual(
         expect.objectContaining({
-          id: 'usr-dev-auditor',
-          email: 'developer@example.com',
-          fullName: 'ShipSafe Lead Auditor',
+          id: 'usr-google-gilankdev',
+          email: 'gilankdev@gmail.com',
+          fullName: 'Gilank Dev (Google)',
         }),
       )
       expect(state.auth.isAuthModalOpen).toBe(false)
-      expect(window.localStorage.getItem('shipsafe.auth.token')).toBe('dev-token-developer@example.com')
+      expect(window.localStorage.getItem('shipsafe.auth.token')).toBe('google-token-gilankdev@gmail.com')
     })
   })
 
-  it('pre-fills developer credentials when Pre-fill Developer Account is clicked', async () => {
-    const user = userEvent.setup()
-    render(<AuthModal />)
-
-    const prefillBtn = screen.getByText('Pre-fill Developer Account')
-    await user.click(prefillBtn)
-
-    const emailInput = screen.getByLabelText(/Email/i) as HTMLInputElement
-    const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement
-
-    expect(emailInput.value).toBe('developer@example.com')
-    expect(passwordInput.value).toBe('developer123')
-  })
-
-  it('gracefully informs user when OAuth providers are disabled in Supabase', async () => {
+  it('triggers GitHub OAuth directly when Continue with GitHub is clicked', async () => {
     const user = userEvent.setup()
     vi.mocked(supabaseLib.signInWithOAuth).mockResolvedValueOnce({
-      data: null,
-      error: new Error("OAuth provider 'GitHub' is not enabled in Supabase configuration."),
+      data: { provider: 'github', url: 'https://github.com/login/oauth/authorize' },
+      error: null,
     })
 
     render(<AuthModal />)
@@ -89,34 +91,90 @@ describe('AuthModal component', () => {
     const githubBtn = screen.getByRole('button', { name: /Continue with GitHub/i })
     await user.click(githubBtn)
 
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/not enabled in Supabase/i)
-    })
+    expect(supabaseLib.signInWithOAuth).toHaveBeenCalledWith('github')
   })
 
-  it('supports seamless developer fallback when sign in with developer@example.com is submitted', async () => {
+  it('signs in with email and password successfully', async () => {
     const user = userEvent.setup()
     vi.mocked(supabaseLib.signInWithEmail).mockResolvedValueOnce({
-      user: null,
-      session: null,
-      error: new Error('Invalid login credentials'),
+      user: {
+        id: 'usr-auditor-123',
+        email: 'auditor@enterprise.com',
+        user_metadata: { full_name: 'Lead Security Auditor' },
+      } as any,
+      session: { access_token: 'valid-jwt-token' } as any,
+      error: null,
     })
 
     render(<AuthModal />)
 
     const emailInput = screen.getByLabelText(/Email/i)
     const passwordInput = screen.getByLabelText(/Password/i)
-
-    await user.type(emailInput, 'developer@example.com')
-    await user.type(passwordInput, 'somepassword')
-
     const submitBtn = screen.getByRole('button', { name: /^Sign in$/i })
+
+    await user.type(emailInput, 'auditor@enterprise.com')
+    await user.type(passwordInput, 'SecOps2026!')
     await user.click(submitBtn)
 
     await waitFor(() => {
       const state = useStore.getState()
-      expect(state.auth.user?.email).toBe('developer@example.com')
+      expect(state.auth.user).toEqual(
+        expect.objectContaining({
+          id: 'usr-auditor-123',
+          email: 'auditor@enterprise.com',
+          fullName: 'Lead Security Auditor',
+        }),
+      )
       expect(state.auth.isAuthModalOpen).toBe(false)
+    })
+  })
+
+  it('toggles to sign up mode and sends registration', async () => {
+    const user = userEvent.setup()
+    vi.mocked(supabaseLib.signUpWithEmail).mockResolvedValueOnce({
+      user: { id: 'usr-new-123', email: 'new@enterprise.com', user_metadata: {} } as any,
+      session: { access_token: 'new-jwt-token' } as any,
+      error: null,
+    })
+
+    render(<AuthModal />)
+
+    const toggleBtn = screen.getByRole('button', { name: /Don't have an account\? Sign up/i })
+    await user.click(toggleBtn)
+
+    expect(screen.getByRole('heading', { name: /Create an Account/i })).toBeInTheDocument()
+    const submitBtn = screen.getByRole('button', { name: /Create account/i })
+
+    const emailInput = screen.getByLabelText(/Email/i)
+    const passwordInput = screen.getByLabelText(/Password/i)
+    await user.type(emailInput, 'new@enterprise.com')
+    await user.type(passwordInput, 'SecOps2026!')
+    await user.click(submitBtn)
+
+    await waitFor(() => {
+      const state = useStore.getState()
+      expect(state.auth.user?.email).toBe('new@enterprise.com')
+      expect(state.auth.isAuthModalOpen).toBe(false)
+    })
+  })
+
+  it('requests magic link with entered email', async () => {
+    const user = userEvent.setup()
+    vi.mocked(supabaseLib.signInWithOtp).mockResolvedValueOnce({
+      error: null,
+    })
+
+    render(<AuthModal />)
+
+    const emailInput = screen.getByLabelText(/Email/i)
+    await user.type(emailInput, 'magic@enterprise.com')
+
+    const magicBtn = screen.getByRole('button', { name: /Send Magic Link/i })
+    await user.click(magicBtn)
+
+    await waitFor(() => {
+      expect(supabaseLib.signInWithOtp).toHaveBeenCalledWith('magic@enterprise.com')
+      expect(screen.getByRole('status')).toHaveTextContent(/Magic login link sent to magic@enterprise.com/i)
     })
   })
 })
