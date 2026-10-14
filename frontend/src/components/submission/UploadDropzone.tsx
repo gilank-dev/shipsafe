@@ -84,62 +84,70 @@ export function UploadDropzone() {
 
   return (
     <div className="rule-top mt-6 pt-4">
-      {/* Top Source Mode Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-        <div>
-          <h3 className="text-title font-bold">Project Source</h3>
-          <p id={helpId} className="mt-0.5 text-small text-ink-2">
-            Upload your codebase ZIP archive or import a public repository from GitHub (up to {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}).
-          </p>
+      {/* Header: Title and Description */}
+      <div className="mb-3.5">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-title font-bold text-ink">Project Source</h3>
+          <span className="text-caption font-mono text-ink-3">max {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}</span>
         </div>
+        <p id={helpId} className="mt-1 text-small text-ink-2 leading-relaxed">
+          Upload your codebase ZIP archive or import a public repository from GitHub (up to {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}).
+        </p>
+      </div>
 
-        <div className="inline-flex p-1 border border-rule bg-surface shrink-0 self-start sm:self-center" role="tablist" aria-label="Project source selection">
-          <button
-            type="button"
-            role="tab"
-            id="tab-upload-zip"
-            aria-selected={sourceMode === 'zip'}
-            aria-controls="panel-upload-zip"
-            className={`px-3 py-1.5 text-small font-semibold transition-colors flex items-center gap-1.5 ${
-              sourceMode === 'zip'
-                ? 'bg-raised text-ink border border-rule-strong shadow-xs'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-            onClick={() => setSourceMode('zip')}
-          >
-            <IconUpload width={14} height={14} />
-            <span>Upload ZIP</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="tab-import-repo"
-            aria-selected={sourceMode === 'repo'}
-            aria-controls="panel-import-repo"
-            className={`px-3 py-1.5 text-small font-semibold transition-colors flex items-center gap-1.5 ${
-              sourceMode === 'repo'
-                ? 'bg-raised text-ink border border-rule-strong shadow-xs'
-                : 'text-ink-2 hover:text-ink'
-            }`}
-            onClick={() => setSourceMode('repo')}
-          >
-            <IconGit width={14} height={14} />
-            <span>Import GitHub Repo</span>
-          </button>
-        </div>
+      {/* Segmented Control / Tab Switcher: Full width, balanced 50/50, never wraps or collides */}
+      <div
+        className="grid grid-cols-2 p-1 border border-rule bg-surface rounded-[var(--radius-control)] gap-1 w-full mb-3"
+        role="tablist"
+        aria-label="Project source selection"
+      >
+        <button
+          type="button"
+          role="tab"
+          id="tab-upload-zip"
+          aria-selected={sourceMode === 'zip'}
+          aria-controls="panel-upload-zip"
+          className={`flex items-center justify-center gap-2 py-2 px-3 text-small font-semibold rounded-[var(--radius-chip)] transition-all cursor-pointer ${
+            sourceMode === 'zip'
+              ? 'bg-canvas text-ink font-bold shadow-xs border border-rule/70'
+              : 'text-ink-2 hover:text-ink hover:bg-canvas/50 border border-transparent'
+          }`}
+          onClick={() => setSourceMode('zip')}
+        >
+          <IconUpload width={14} height={14} />
+          <span>Upload ZIP</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-import-repo"
+          aria-selected={sourceMode === 'repo'}
+          aria-controls="panel-import-repo"
+          className={`flex items-center justify-center gap-2 py-2 px-3 text-small font-semibold rounded-[var(--radius-chip)] transition-all cursor-pointer ${
+            sourceMode === 'repo'
+              ? 'bg-canvas text-ink font-bold shadow-xs border border-rule/70'
+              : 'text-ink-2 hover:text-ink hover:bg-canvas/50 border border-transparent'
+          }`}
+          onClick={() => setSourceMode('repo')}
+        >
+          <IconGit width={14} height={14} />
+          <span>Import GitHub Repo</span>
+        </button>
       </div>
 
       {/* Selected File Card (Shared between ZIP and Imported Repo) */}
       {file ? (
-        <div className="mt-3">
-          <div className="p-3 sm:p-4 border-2 border-rule-strong bg-raised flex items-center justify-between gap-3 w-full min-w-0">
+        <div className="mt-2">
+          <div className="p-3.5 sm:p-4 border-2 border-rule-strong bg-raised rounded-[var(--radius-control)] flex items-center justify-between gap-3 w-full min-w-0">
             <span className="flex items-center gap-3 min-w-0 flex-1">
-              <IconFile className="shrink-0 text-ink" width={22} height={22} />
+              <span className="size-9 rounded-md bg-surface border border-rule flex items-center justify-center shrink-0 text-ink">
+                <IconFile width={20} height={20} />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-bold text-body font-mono text-ink" title={file.name}>
                   {file.name}
                 </span>
-                <span className="block text-small text-ink-2">
+                <span className="block text-small text-ink-2 truncate">
                   {formatBytes(file.size)} of {formatBytes(MAX_ZIP_BYTES).replace('.0', '')} (Ready for audit)
                 </span>
               </span>
@@ -150,7 +158,7 @@ export function UploadDropzone() {
               </span>
               <button
                 type="button"
-                className="btn btn-quiet text-small px-2.5 py-1 text-fail hover:bg-status-fail-bg"
+                className="btn btn-quiet text-small px-2.5 py-1 text-fail hover:bg-status-fail-bg cursor-pointer"
                 onClick={() => {
                   setFile(null, null)
                   announce('File removed')
@@ -170,7 +178,7 @@ export function UploadDropzone() {
           id="panel-upload-zip"
           role="tabpanel"
           aria-labelledby="tab-upload-zip"
-          className="mt-2"
+          className="mt-1"
           onDragOver={(e) => {
             e.preventDefault()
             setDragging(true)
@@ -182,7 +190,8 @@ export function UploadDropzone() {
             id={ZIP_INPUT_ID}
             type="file"
             accept=".zip,application/zip,application/x-zip-compressed"
-            className="dropzone-input visually-hidden"
+            className="dropzone-input sr-only opacity-0 pointer-events-none absolute -z-10"
+            tabIndex={-1}
             aria-describedby={`${helpId}${fileError ? ` ${errorId}` : ''}`}
             aria-invalid={fileError ? true : undefined}
             onChange={async (e) => {
@@ -200,22 +209,30 @@ export function UploadDropzone() {
           <label
             htmlFor={user ? ZIP_INPUT_ID : undefined}
             onClick={handleDropzoneClick}
-            className="dropzone cursor-pointer"
+            className={`dropzone cursor-pointer block p-4 sm:p-5 border-2 border-dashed rounded-[var(--radius-control)] transition-all select-none ${
+              dragging
+                ? 'border-ink bg-surface shadow-xs'
+                : 'border-rule-strong bg-raised hover:border-ink hover:bg-surface'
+            }`}
             data-dragging={dragging}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
-              <span className="flex items-center gap-3">
-                <IconUpload className="shrink-0" width={20} height={20} />
-                <span>
-                  <span className="block font-semibold">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 w-full">
+              <span className="flex items-center gap-3.5 min-w-0 flex-1">
+                <span className={`size-10 rounded-lg border flex items-center justify-center shrink-0 transition-colors ${
+                  dragging ? 'bg-ink text-canvas border-ink' : 'bg-surface text-ink border-rule-strong'
+                }`}>
+                  <IconUpload width={20} height={20} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-bold text-body text-ink leading-tight">
                     {dragging ? 'Drop the ZIP to select it' : 'Choose a ZIP file'}
                   </span>
-                  <span className="block text-small text-ink-2">
+                  <span className="block text-small text-ink-2 mt-0.5 truncate">
                     Tap to browse or drag file here
                   </span>
                 </span>
               </span>
-              <span className="inline-flex items-center justify-center btn text-small px-3 py-1.5 shrink-0 self-start sm:self-center pointer-events-none">
+              <span className="inline-flex items-center justify-center btn text-small px-3.5 py-1.5 shrink-0 self-start sm:self-center pointer-events-none font-semibold text-ink bg-surface border border-rule-strong shadow-xs">
                 Browse ZIP file
               </span>
             </div>
@@ -223,18 +240,18 @@ export function UploadDropzone() {
         </div>
       ) : (
         /* GitHub Repo Import Input Panel */
-        <div id="panel-import-repo" role="tabpanel" aria-labelledby="tab-import-repo" className="mt-2 border border-rule bg-surface p-4 space-y-3">
+        <div id="panel-import-repo" role="tabpanel" aria-labelledby="tab-import-repo" className="mt-1 border border-rule bg-surface p-4 rounded-[var(--radius-control)] space-y-3">
           <div>
-            <label htmlFor="repo-input" className="block text-small font-semibold text-ink">
+            <label htmlFor="repo-input" className="block text-small font-bold text-ink">
               GitHub Repository (URL or owner/repo)
             </label>
-            <p className="text-small text-ink-2 mt-0.5">
+            <p className="text-small text-ink-2 mt-0.5 leading-relaxed">
               Enter any public repository. ShipSafe downloads the default branch archive and prepares it for static rules and AI audit.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
+            <div className="relative flex-1 min-w-0">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-ink-2">
                 <IconGit width={16} height={16} />
               </div>
@@ -260,7 +277,7 @@ export function UploadDropzone() {
             </div>
             <button
               type="button"
-              className="btn btn-primary text-small px-4 shrink-0 flex items-center justify-center gap-2"
+              className="btn btn-primary text-small px-4 py-2 shrink-0 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               onClick={() => void handleImportRepo()}
               disabled={isImporting || !repoInput.trim()}
             >
@@ -285,10 +302,10 @@ export function UploadDropzone() {
           )}
 
           <div className="pt-1 flex flex-wrap items-center gap-1.5 text-small text-ink-2">
-            <span className="font-semibold text-ink">Quick try:</span>
+            <span className="font-semibold text-ink text-xs uppercase tracking-wider">Quick try:</span>
             <button
               type="button"
-              className="btn btn-quiet text-small font-mono py-1 px-2 border border-rule hover:border-ink"
+              className="btn btn-quiet text-small font-mono py-1 px-2 border border-rule hover:border-ink bg-canvas cursor-pointer"
               onClick={() => {
                 setRepoInput('gilank-dev/shipsafe')
                 void handleImportRepo('gilank-dev/shipsafe')
@@ -299,7 +316,7 @@ export function UploadDropzone() {
             </button>
             <button
               type="button"
-              className="btn btn-quiet text-small font-mono py-1 px-2 border border-rule hover:border-ink"
+              className="btn btn-quiet text-small font-mono py-1 px-2 border border-rule hover:border-ink bg-canvas cursor-pointer"
               onClick={() => {
                 setRepoInput('expressjs/express')
                 void handleImportRepo('expressjs/express')
@@ -313,7 +330,7 @@ export function UploadDropzone() {
       )}
 
       {fileError && (
-        <p id={errorId} role="alert" className="mt-2 border-l-2 border-fail pl-3 text-small text-fail">
+        <p id={errorId} role="alert" className="mt-2.5 border-l-2 border-fail pl-3 text-small text-fail">
           {fileError}
         </p>
       )}
