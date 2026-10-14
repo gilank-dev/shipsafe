@@ -1,16 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { verifyTurnstileToken, CLOUDFLARE_SITEVERIFY_URL, DEFAULT_TEST_SECRET_KEY } from './turnstile';
+import {
+  verifyTurnstileToken,
+  CLOUDFLARE_SITEVERIFY_URL,
+  DEFAULT_TEST_SECRET_KEY,
+  clearUsedTokensForTesting,
+} from './turnstile';
 
 describe('Cloudflare Turnstile Verification', () => {
   const originalEnv = { ...process.env };
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    clearUsedTokensForTesting();
     vi.restoreAllMocks();
   });
 
   afterEach(() => {
     process.env = originalEnv;
+    clearUsedTokensForTesting();
     vi.restoreAllMocks();
   });
 
@@ -68,8 +75,28 @@ describe('Cloudflare Turnstile Verification', () => {
     expect(bodyString).toContain('remoteip=192.168.1.1');
   });
 
-  it('uses DEFAULT_TEST_SECRET_KEY when CLOUDFLARE_TURNSTILE_SECRET_KEY is not set', async () => {
+  it('uses TURNSTILE_SECRET with priority over CLOUDFLARE_TURNSTILE_SECRET_KEY', async () => {
     delete process.env.TURNSTILE_ENABLED;
+    process.env.TURNSTILE_SECRET = 'priority-secret-key';
+    process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY = 'secondary-secret-key';
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true
+      })
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const result = await verifyTurnstileToken('priority-token-test');
+    expect(result.success).toBe(true);
+    const bodyString = mockFetch.mock.calls[0][1].body.toString();
+    expect(bodyString).toContain('secret=priority-secret-key');
+  });
+
+  it('uses DEFAULT_TEST_SECRET_KEY when neither secret is set in test env', async () => {
+    delete process.env.TURNSTILE_ENABLED;
+    delete process.env.TURNSTILE_SECRET;
     delete process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY;
 
     const mockFetch = vi.fn().mockResolvedValue({
@@ -84,6 +111,94 @@ describe('Cloudflare Turnstile Verification', () => {
     expect(result.success).toBe(true);
     const bodyString = mockFetch.mock.calls[0][1].body.toString();
     expect(bodyString).toContain(`secret=${DEFAULT_TEST_SECRET_KEY}`);
+  });
+
+  it('prevents replay attacks by rejecting a previously verified token', async () => {
+    delete process.env.TURNSTILE_ENABLED;
+    process.env.TURNSTILE_SECRET = 'secret-replay';
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true
+      })
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const firstRun = await verifyTurnstileToken('single-use-token');
+    expect(firstRun.success).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    // Second run with identical token must fail immediately without contacting API
+    const secondRun = await verifyTurnstileToken('single-use-token');
+    expect(secondRun.success).toBe(false);
+    expect(secondRun.error).toContain('replay attack detected');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('validates expected action when returned by Cloudflare', async () => {
+    delete process.env.TURNSTILE_ENABLED;
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        action: 'audit'
+      })
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const passResult = await verifyTurnstileToken('action-token', { expectedAction: 'audit' });
+    expect(passResult.success).toBe(true);
+    expect(passResult.action).toBe('audit');
+
+    // Mismatched action test
+    const mockMismatchFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        action: 'login'
+      })
+    });
+    vi.stubGlobal('fetch', mockMismatchFetch);
+
+    const failResult = await verifyTurnstileToken('mismatch-token', { expectedAction: 'audit' });
+    expect(failResult.success).toBe(false);
+    expect(failResult.error).toContain('action mismatch');
+  });
+
+  it('validates allowed hostnames when configured', async () => {
+    delete process.env.TURNSTILE_ENABLED;
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        hostname: 'ship-safe.lankdev.my.id'
+      })
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const passResult = await verifyTurnstileToken('host-token', {
+      allowedHostnames: ['ship-safe.lankdev.my.id', 'localhost']
+    });
+    expect(passResult.success).toBe(true);
+
+    // Rejected hostname test
+    const mockRejectFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        hostname: 'malicious-domain.com'
+      })
+    });
+    vi.stubGlobal('fetch', mockRejectFetch);
+
+    const failResult = await verifyTurnstileToken('bad-host-token', {
+      allowedHostnames: ['ship-safe.lankdev.my.id']
+    });
+    expect(failResult.success).toBe(false);
+    expect(failResult.error).toContain('hostname rejected');
   });
 
   it('handles Cloudflare verification failure with error codes', async () => {
@@ -124,7 +239,7 @@ describe('Cloudflare Turnstile Verification', () => {
     const mockFetch = vi.fn().mockRejectedValue(new Error('Network connection timeout'));
     vi.stubGlobal('fetch', mockFetch);
 
-    const result = await verifyTurnstileToken('some-token');
+    const result = await verifyTurnstileToken('timeout-token');
     expect(result.success).toBe(false);
     expect(result.error).toBe('Network connection timeout');
   });

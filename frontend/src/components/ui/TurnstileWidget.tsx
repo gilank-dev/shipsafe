@@ -10,6 +10,8 @@ declare global {
         container: HTMLElement | string,
         options: {
           sitekey: string
+          action?: string
+          cdata?: string
           callback?: (token: string) => void
           'error-callback'?: (errorCode?: string) => void
           'expired-callback'?: () => void
@@ -68,6 +70,8 @@ function loadTurnstileScript(forceReload = false): Promise<void> {
 
 export interface TurnstileWidgetProps {
   sitekey?: string
+  action?: string
+  cdata?: string
   onSuccess?: (token: string) => void
   onError?: (error?: string) => void
   onExpire?: () => void
@@ -76,6 +80,8 @@ export interface TurnstileWidgetProps {
 
 export function TurnstileWidget({
   sitekey: propSitekey,
+  action = 'audit',
+  cdata,
   onSuccess,
   onError,
   onExpire,
@@ -140,6 +146,8 @@ export function TurnstileWidget({
         try {
           const id = window.turnstile.render(containerRef.current, {
             sitekey,
+            action,
+            cdata,
             theme: theme === 'dark' ? 'dark' : 'light',
             appearance: isInvisibleDummy ? 'interaction-only' : 'always',
             size: 'normal',
@@ -192,7 +200,7 @@ export function TurnstileWidget({
         widgetIdRef.current = null
       }
     }
-  }, [enabled, sitekey, theme, reloadKey, setTurnstileToken, onSuccess, onError, onExpire])
+  }, [enabled, sitekey, action, cdata, theme, reloadKey, setTurnstileToken, onSuccess, onError, onExpire])
 
   const handleRetry = () => {
     setLoadError(null)

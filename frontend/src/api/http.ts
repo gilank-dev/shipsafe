@@ -137,6 +137,7 @@ export function createHttpApi(base: string): ShipSafeApi {
         form.append('agentTarget', req.agentTarget)
         if (req.turnstileToken) {
           form.append('turnstileToken', req.turnstileToken)
+          form.append('cf-turnstile-response', req.turnstileToken)
         }
         opts.onStage('upload', 0)
         xhr.send(form)

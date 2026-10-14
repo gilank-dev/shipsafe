@@ -235,10 +235,16 @@ app.post('/api/import-repo', requireSupabaseAuth, async (req: AuthRequest, res: 
 
 // 2. Audit Endpoint with Mandatory Auth & Concurrency Limiter (Max 3 concurrent users + FIFO Queue)
 app.post('/api/audit', requireSupabaseAuth, upload.single('file'), async (req: AuthRequest, res: Response, next: NextFunction) => {
-  const turnstileToken = req.body?.turnstileToken;
+  const turnstileToken =
+    req.body?.['cf-turnstile-response'] ||
+    req.body?.turnstileToken ||
+    (typeof req.headers['cf-turnstile-response'] === 'string' ? req.headers['cf-turnstile-response'] : undefined);
   const clientIp = (req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string | undefined;
 
-  const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp);
+  const turnstileResult = await verifyTurnstileToken(turnstileToken, {
+    clientIp,
+    expectedAction: 'audit'
+  });
   if (!turnstileResult.success) {
     res.status(403).json({
       error: {
