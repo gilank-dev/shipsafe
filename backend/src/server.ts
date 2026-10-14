@@ -28,7 +28,9 @@ const defaultAllowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
   'http://localhost:3000',
+  'https://shipsafe-pi.vercel.app',
   'https://shipsafe-lankdev.vercel.app',
+  'https://shipsafe.lankdev.my.id',
   'https://nusa-bench.vercel.app',
 ];
 const allowedOrigins = rawCorsOrigin
@@ -42,7 +44,8 @@ app.use(
       if (!origin) return callback(null, true);
       if (
         allowedOrigins.includes(origin) ||
-        /^https:\/\/.*\.vercel\.app$/.test(origin)
+        /^https:\/\/.*\.vercel\.app$/.test(origin) ||
+        /^https:\/\/.*\.lankdev\.my\.id$/.test(origin)
       ) {
         return callback(null, true);
       }
