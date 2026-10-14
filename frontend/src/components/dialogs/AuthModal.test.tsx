@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { AuthModal } from './AuthModal'
 import { useStore } from '../../state/store'
 import * as supabaseLib from '../../lib/supabase'
+import * as clerkReact from '@clerk/react'
 
 vi.mock('../../lib/supabase', async (importOriginal) => {
   const actual = await importOriginal<typeof supabaseLib>()
@@ -19,6 +20,8 @@ vi.mock('../../lib/supabase', async (importOriginal) => {
 })
 
 describe('AuthModal component', () => {
+  const authenticateWithRedirectMock = vi.fn().mockResolvedValue({})
+
   beforeEach(() => {
     vi.clearAllMocks()
     window.localStorage.clear()
@@ -29,6 +32,13 @@ describe('AuthModal component', () => {
         isHistoryModalOpen: false,
       },
     })
+
+    vi.spyOn(clerkReact, 'useSignIn').mockReturnValue({
+      isLoaded: true,
+      signIn: {
+        authenticateWithRedirect: authenticateWithRedirectMock,
+      } as unknown as clerkReact.SignInResource,
+    } as unknown as ReturnType<typeof clerkReact.useSignIn>)
   })
 
   it('renders clean production enterprise UI without developer shortcut cards', () => {
@@ -53,45 +63,34 @@ describe('AuthModal component', () => {
     expect(screen.queryByText(/Pre-fill Developer Account/i)).not.toBeInTheDocument()
   })
 
-  it('authenticates seamlessly with Google when Continue with Google is clicked', async () => {
+  it('triggers Google OAuth via Clerk when Continue with Google is clicked', async () => {
     const user = userEvent.setup()
-    vi.mocked(supabaseLib.signInWithOAuth).mockResolvedValueOnce({
-      data: null,
-      error: new Error('Provider google is not enabled in Supabase'),
-    })
-
     render(<AuthModal />)
 
     const googleBtn = screen.getByRole('button', { name: /Continue with Google/i })
     await user.click(googleBtn)
 
-    await waitFor(() => {
-      const state = useStore.getState()
-      expect(state.auth.user).toEqual(
-        expect.objectContaining({
-          id: 'usr-google-gilankdev',
-          email: 'gilankdev@gmail.com',
-          fullName: 'Gilank Dev (Google)',
-        }),
-      )
-      expect(state.auth.isAuthModalOpen).toBe(false)
-      expect(window.localStorage.getItem('shipsafe.auth.token')).toBe('google-token-gilankdev@gmail.com')
-    })
+    expect(authenticateWithRedirectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        strategy: 'oauth_google',
+        redirectUrl: expect.stringContaining('/sso-callback'),
+      }),
+    )
   })
 
-  it('triggers GitHub OAuth directly when Continue with GitHub is clicked', async () => {
+  it('triggers GitHub OAuth via Clerk when Continue with GitHub is clicked', async () => {
     const user = userEvent.setup()
-    vi.mocked(supabaseLib.signInWithOAuth).mockResolvedValueOnce({
-      data: { provider: 'github', url: 'https://github.com/login/oauth/authorize' },
-      error: null,
-    })
-
     render(<AuthModal />)
 
     const githubBtn = screen.getByRole('button', { name: /Continue with GitHub/i })
     await user.click(githubBtn)
 
-    expect(supabaseLib.signInWithOAuth).toHaveBeenCalledWith('github')
+    expect(authenticateWithRedirectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        strategy: 'oauth_github',
+        redirectUrl: expect.stringContaining('/sso-callback'),
+      }),
+    )
   })
 
   it('signs in with email and password successfully', async () => {

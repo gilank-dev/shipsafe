@@ -17,12 +17,17 @@ vi.mock('@clerk/react', () => {
       signOut: vi.fn(),
     }),
     useSignIn: () => ({
-      isLoaded: false,
-      signIn: null,
+      isLoaded: true,
+      signIn: {
+        authenticateWithRedirect: vi.fn().mockResolvedValue({}),
+        create: vi.fn().mockResolvedValue({}),
+      },
     }),
     useSignUp: () => ({
-      isLoaded: false,
-      signUp: null,
+      isLoaded: true,
+      signUp: {
+        create: vi.fn().mockResolvedValue({}),
+      },
     }),
     AuthenticateWithRedirectCallback: () => null,
     HandleSSOCallback: () => null,

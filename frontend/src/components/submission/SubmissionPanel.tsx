@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useSignIn, useClerk } from '@clerk/react'
 import { AgentSelector } from './AgentSelector'
 import { ContextForm } from './ContextForm'
 import { RunAuditButton } from './RunAuditButton'
@@ -5,25 +7,37 @@ import { UploadDropzone } from './UploadDropzone'
 import { TurnstileWidget } from '../ui/TurnstileWidget'
 import { useStore } from '../../state/store'
 import { IconLock, IconGitHub, IconGoogle } from '../ui/icons'
-import { loginWithGitHub, loginWithGoogle } from '../../lib/supabase'
 
 export function SubmissionPanel() {
   const user = useStore((s) => s.auth.user)
-  const setAuthUser = useStore((s) => s.setAuthUser)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
+  const { isLoaded: isSignInLoaded, signIn } = useSignIn()
+  const clerk = useClerk()
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | null>(null)
 
-  const handleGoogleSignIn = async () => {
-    const res = await loginWithGoogle()
-    if (res.user) {
-      setAuthUser(res.user)
-    }
-  }
+  const handleOAuth = async (provider: 'google' | 'github') => {
+    setOauthLoading(provider)
+    const strategy = provider === 'google' ? 'oauth_google' : 'oauth_github'
 
-  const handleGitHubSignIn = async () => {
-    const res = await loginWithGitHub()
-    if (res.user) {
-      setAuthUser(res.user)
+    if (isSignInLoaded && signIn) {
+      try {
+        await signIn.authenticateWithRedirect({
+          strategy,
+          redirectUrl: `${window.location.origin}/sso-callback`,
+          redirectUrlComplete: window.location.origin,
+        })
+        return
+      } catch (err) {
+        console.error(`[ShipSafe] Clerk ${provider} OAuth error:`, err)
+      }
     }
+
+    if (clerk?.openSignIn) {
+      clerk.openSignIn()
+    } else {
+      setAuthModalOpen(true)
+    }
+    setOauthLoading(null)
   }
 
   return (
@@ -41,18 +55,20 @@ export function SubmissionPanel() {
             <button
               type="button"
               className="btn btn-outline flex items-center justify-center gap-2 py-2 text-small font-semibold hover:border-ink cursor-pointer"
-              onClick={() => void handleGitHubSignIn()}
+              disabled={oauthLoading !== null}
+              onClick={() => void handleOAuth('github')}
             >
               <IconGitHub width={16} height={16} />
-              <span>Sign in with GitHub</span>
+              <span>{oauthLoading === 'github' ? 'Connecting to GitHub...' : 'Sign in with GitHub'}</span>
             </button>
             <button
               type="button"
               className="btn btn-outline flex items-center justify-center gap-2 py-2 text-small font-semibold hover:border-ink cursor-pointer"
-              onClick={() => void handleGoogleSignIn()}
+              disabled={oauthLoading !== null}
+              onClick={() => void handleOAuth('google')}
             >
               <IconGoogle width={16} height={16} />
-              <span>Sign in with Google</span>
+              <span>{oauthLoading === 'google' ? 'Connecting to Google...' : 'Sign in with Google'}</span>
             </button>
           </div>
           <button

@@ -121,7 +121,13 @@ export async function loginWithGitHub(): Promise<{ success: boolean; user: DevUs
         provider: 'github',
         options: { redirectTo },
       })
-      if (!error && data?.url && !data.url.includes('HR%20SaaS')) {
+      if (
+        !error &&
+        data?.url &&
+        !data.url.includes('HR%20SaaS') &&
+        !data.url.includes('HR+SaaS') &&
+        !data.url.includes('client_id=HR')
+      ) {
         window.location.href = data.url
         return { success: true, user: null as unknown as DevUserProfile }
       }
@@ -311,6 +317,17 @@ export async function signInWithOAuth(provider: 'google' | 'github'): Promise<{ 
       redirectTo,
     },
   })
+  if (
+    data?.url &&
+    (data.url.includes('HR%20SaaS') || data.url.includes('HR+SaaS') || data.url.includes('client_id=HR'))
+  ) {
+    return {
+      data: null,
+      error: new Error(
+        "Supabase OAuth client_id is invalid ('HR SaaS'). Please use Clerk authentication for GitHub and Google.",
+      ),
+    }
+  }
   return { data, error: error ? new Error(error.message) : null }
 }
 

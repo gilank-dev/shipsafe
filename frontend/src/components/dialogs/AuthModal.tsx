@@ -1,15 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useSignIn } from '@clerk/react'
+import { useSignIn, useClerk } from '@clerk/react'
 import {
   isSupabaseConfigured,
   signInWithEmail,
   signUpWithEmail,
-  signInWithOAuth,
   signInWithOtp,
   isProviderEnabled,
-  saveDevSession,
-  loginWithGoogle,
-  loginWithGitHub,
 } from '../../lib/supabase'
 import { announce } from '../../state/announcer'
 import { useStore, type UserProfile } from '../../state/store'
@@ -23,6 +19,7 @@ export function AuthModal() {
   const setAuthUser = useStore((s) => s.setAuthUser)
 
   const { isLoaded: isClerkLoaded, signIn: clerkSignIn } = useSignIn()
+  const clerk = useClerk()
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState(() => {
@@ -91,46 +88,21 @@ export function AuthModal() {
           })
           return
         } catch (clerkErr) {
-          console.warn('[ShipSafe] Clerk OAuth redirect error, falling back:', clerkErr)
+          console.warn('[ShipSafe] Clerk OAuth redirect error, falling back to modal:', clerkErr)
         }
       }
 
-      if (provider === 'google') {
-        const res = await loginWithGoogle()
-        if (res.user) {
-          setAuthUser(res.user)
-          announce(`Signed in with Google (${res.user.email})`)
-          toast.info(`Signed in with Google: ${res.user.email}`)
-          setOauthLoading(null)
-          handleClose()
-          return
-        }
-      } else {
-        const res = await signInWithOAuth('github')
-        if (res.error) {
-          const ghRes = await loginWithGitHub()
-          if (ghRes.user) {
-            setAuthUser(ghRes.user)
-            announce(`Signed in with GitHub (${ghRes.user.email})`)
-            toast.info(`Signed in with GitHub: ${ghRes.user.fullName || ghRes.user.email}`)
-            setOauthLoading(null)
-            handleClose()
-            return
-          }
-        }
+      // If in-page redirect did not succeed or Clerk client still initializing, open Clerk modal
+      if (clerk?.openSignIn) {
+        clerk.openSignIn()
+        setOauthLoading(null)
+        handleClose()
+        return
       }
+
+      setOauthLoading(null)
+      setError(`Unable to connect to ${providerName} sign-in service. Please try again.`)
     } catch {
-      if (provider === 'github') {
-        const ghRes = await loginWithGitHub()
-        if (ghRes.user) {
-          setAuthUser(ghRes.user)
-          announce(`Signed in with GitHub (${ghRes.user.email})`)
-          toast.info(`Signed in with GitHub: ${ghRes.user.fullName || ghRes.user.email}`)
-          setOauthLoading(null)
-          handleClose()
-          return
-        }
-      }
       setOauthLoading(null)
       setError('Sign in failed')
     }
