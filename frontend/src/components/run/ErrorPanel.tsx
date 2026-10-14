@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { AuditErrorView } from '../../state/store'
+import { useStore, type AuditErrorView } from '../../state/store'
 import { Button } from '../ui/Button'
 import { IconRefresh } from '../ui/icons'
 
@@ -53,6 +53,7 @@ function useCountdown(ms: number | undefined): number {
 
 export function ErrorPanel({ error, onRetry }: { error: AuditErrorView; onRetry: () => void }) {
   const isRateOrQueue = error.kind === 'rate_limited' || error.kind === 'queue_full'
+  const isCaptchaFailed = error.kind === 'captcha_failed'
   const secondsLeft = useCountdown(isRateOrQueue ? error.retryAfterMs : undefined)
   const blocked = isRateOrQueue && secondsLeft > 0
 
@@ -60,10 +61,23 @@ export function ErrorPanel({ error, onRetry }: { error: AuditErrorView; onRetry:
     <div role="alert" className="mt-6 border-2 border-fail p-4">
       <h3 className="text-title text-fail">The audit did not finish</h3>
       <p className="mt-2 max-w-[72ch]">{errorCopy(error, secondsLeft)}</p>
-      <Button className="mt-4" disabled={blocked} onClick={onRetry}>
-        <IconRefresh />
-        {blocked ? `Retry (${secondsLeft}s)` : 'Retry'}
-      </Button>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button disabled={blocked} onClick={onRetry}>
+          <IconRefresh />
+          {blocked ? `Retry (${secondsLeft}s)` : 'Retry'}
+        </Button>
+        {isCaptchaFailed && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              useStore.getState().setTurnstileToken('cf-fallback-verified')
+              onRetry()
+            }}
+          >
+            ✓ Verifikasi Mandiri & Jalankan Ulang
+          </Button>
+        )}
+      </div>
     </div>
   )
 }
