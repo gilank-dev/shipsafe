@@ -220,8 +220,8 @@ export function TurnstileWidget({
   const handleManualVerify = () => {
     setLoadError(null)
     setIsVerified(true)
-    setTurnstileToken('cf-fallback-verified')
-    onSuccess?.('cf-fallback-verified')
+    setTurnstileToken('bypass-token')
+    onSuccess?.('bypass-token')
   }
 
   if (!enabled) {

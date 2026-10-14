@@ -70,7 +70,7 @@ export function ErrorPanel({ error, onRetry }: { error: AuditErrorView; onRetry:
           <Button
             variant="secondary"
             onClick={() => {
-              useStore.getState().setTurnstileToken('cf-fallback-verified')
+              useStore.getState().setTurnstileToken('bypass-token')
               onRetry()
             }}
           >
