@@ -1,0 +1,96 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07090D" />
+      <stop offset="50%" stop-color="#0E131B" />
+      <stop offset="100%" stop-color="#080B10" />
+    </linearGradient>
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <linearGradient id="text-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1E293B" stroke-width="0.75" stroke-opacity="0.5" />
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg-grad)" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+
+  <!-- Ambient Glow circles -->
+  <circle cx="200" cy="150" r="180" fill="#3B82F6" opacity="0.12" filter="blur(60px)" />
+  <circle cx="950" cy="480" r="220" fill="#10B981" opacity="0.1" filter="blur(70px)" />
+
+  <!-- Header Badge -->
+  <g transform="translate(100, 90)">
+    <rect width="330" height="42" rx="21" fill="#1E293B" stroke="#334155" stroke-width="1.5" />
+    <circle cx="24" cy="21" r="6" fill="#10B981" />
+    <text x="42" y="27" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#94A3B8" letter-spacing="1.5">PRE-DEPLOYMENT GATEKEEPER</text>
+  </g>
+
+  <!-- Shield Icon and Branding -->
+  <g transform="translate(100, 160)">
+    <!-- Shield Logo -->
+    <g transform="translate(0, 10)">
+      <path d="M45 5 L80 18 V45 C80 68 65 88 45 95 C25 88 10 68 10 45 V18 Z" fill="url(#shield-grad)" opacity="0.95" />
+      <path d="M36 48 L43 55 L58 38" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+
+    <!-- Main Title -->
+    <text x="110" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="800" fill="url(#text-grad)" letter-spacing="-1">
+      ShipSafe
+    </text>
+    <text x="390" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#10B981">
+      .lankdev.my.id
+    </text>
+  </g>
+
+  <!-- Headline & Subtitle -->
+  <g transform="translate(100, 290)">
+    <text x="0" y="40" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="#F8FAFC" letter-spacing="-0.5">
+      Pre-Deployment Security Gatekeeper
+    </text>
+    <text x="0" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="#38BDF8" letter-spacing="-0.5">
+      for Vibe Coding &amp; Web Applications
+    </text>
+    <text x="0" y="135" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="400" fill="#94A3B8">
+      Catch leaked API keys, vulnerable dependencies, and HTTP hardening gaps before shipping.
+    </text>
+  </g>
+
+  <!-- Feature Pills / Badges -->
+  <g transform="translate(100, 485)">
+    <!-- Pill 1: Cursor & Claude Code -->
+    <g transform="translate(0, 0)">
+      <rect width="250" height="50" rx="10" fill="#1E293B" stroke="#475569" stroke-width="1" />
+      <text x="20" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#E2E8F0">⚡ Cursor &amp; Claude Prompts</text>
+    </g>
+
+    <!-- Pill 2: 10 Threat Vectors -->
+    <g transform="translate(270, 0)">
+      <rect width="230" height="50" rx="10" fill="#1E293B" stroke="#475569" stroke-width="1" />
+      <text x="20" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#E2E8F0">🛡️ 10 Threat Vectors</text>
+    </g>
+
+    <!-- Pill 3: Zero-Execution -->
+    <g transform="translate(520, 0)">
+      <rect width="220" height="50" rx="10" fill="#1E293B" stroke="#475569" stroke-width="1" />
+      <text x="20" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#E2E8F0">🔒 Zero-Execution Sandbox</text>
+    </g>
+
+    <!-- Pill 4: Free & Instant -->
+    <g transform="translate(760, 0)">
+      <rect width="220" height="50" rx="10" fill="#1E293B" stroke="#10B981" stroke-width="1.5" />
+      <text x="20" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#10B981">✓ 100% Free &amp; Open</text>
+    </g>
+  </g>
+
+  <!-- Bottom Border Line -->
+  <line x1="0" y1="626" x2="1200" y2="626" stroke="#10B981" stroke-width="4" />
+</svg>

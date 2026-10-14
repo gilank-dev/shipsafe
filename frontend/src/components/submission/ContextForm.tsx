@@ -27,7 +27,7 @@ export function ContextForm() {
   const firstHit = hits[0]
 
   return (
-    <fieldset className="rule-top mt-5 min-w-0 pt-3">
+    <fieldset className="rule-top mt-4 min-w-0 pt-3">
       <legend className="float-left w-full text-title font-bold [font-stretch:112%]">Project context (optional)</legend>
       <p className="clear-both mt-1 text-small text-ink-2">
         Context helps the review judge severity. Do not paste secrets or code here.

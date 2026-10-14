@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useUser, useAuth, AuthenticateWithRedirectCallback } from '@clerk/react'
+import { useUser, useAuth, AuthenticateWithRedirectCallback } from '@clerk/clerk-react'
 import { AppShell } from './components/shell/AppShell'
 import { ReportArea } from './components/run/ReportArea'
 import { SubmissionPanel } from './components/submission/SubmissionPanel'
@@ -9,6 +9,7 @@ import { ToastContainer } from './components/ui/Toast'
 import { NotFoundPage } from './components/shell/NotFoundPage'
 import { onAuthStateChange } from './lib/supabase'
 import { useStore } from './state/store'
+import { Analytics } from '@vercel/analytics/react'
 
 export default function App() {
   const setAuthUser = useStore((s) => s.setAuthUser)
@@ -117,6 +118,7 @@ export default function App() {
         />
         <AuthModal />
         <ToastContainer />
+        <Analytics />
       </>
     )
   }
@@ -127,6 +129,7 @@ export default function App() {
       <AuthModal />
       <HistoryModal />
       <ToastContainer />
+      <Analytics />
     </>
   )
 }

@@ -20,7 +20,7 @@ export function RunAuditButton() {
 
   if (!user) {
     return (
-      <div className="rule-top mt-8 pt-4">
+      <div className="rule-top mt-4 pt-3">
         <Button
           variant="primary"
           className="w-full sm:w-auto"
@@ -49,7 +49,7 @@ export function RunAuditButton() {
   }
 
   return (
-    <div className="rule-top mt-8 pt-4">
+    <div className="rule-top mt-4 pt-3">
       <Button
         variant="primary"
         className="w-full sm:w-auto"

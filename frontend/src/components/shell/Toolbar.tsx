@@ -44,7 +44,7 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
   }
 
   return (
-    <div ref={ref} className="border-b border-ink bg-canvas max-md:sticky max-md:top-0 max-md:z-30 pt-safe" data-print="hide">
+    <div ref={ref} className="bg-canvas" data-print="hide">
       <div className="mx-auto flex min-h-12 max-w-[105rem] flex-col gap-2.5 px-3 py-2 sm:px-4 md:flex-row md:items-center md:gap-x-4 md:gap-y-2 md:px-6 xl:px-10">
         <div className="flex w-full items-center justify-between gap-2 md:w-auto">
           <div className="flex items-center gap-2.5 shrink-0">

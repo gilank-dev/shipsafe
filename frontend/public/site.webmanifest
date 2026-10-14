@@ -1,0 +1,17 @@
+{
+  "name": "ShipSafe: Pre-Deployment Security Gatekeeper",
+  "short_name": "ShipSafe",
+  "description": "Pre-deployment security gatekeeper for vibe coding and modern web applications.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0d12",
+  "theme_color": "#0a0d12",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["developer", "security", "utilities"]
+}

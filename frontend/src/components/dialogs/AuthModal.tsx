@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useSignIn, useClerk } from '@clerk/react'
+import { useSignIn, useClerk } from '@clerk/clerk-react'
 import {
   isSupabaseConfigured,
   signInWithEmail,

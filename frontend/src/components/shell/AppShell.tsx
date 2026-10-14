@@ -43,37 +43,32 @@ export function AppShell({ submission, report }: AppShellProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Keep --rail-h equal to the sticky area's height so focused controls are never hidden behind it (WCAG 2.4.11).
+  // Keep --rail-h equal to the sticky header height so sticky elements and scroll-padding match perfectly (WCAG 2.4.11).
   useEffect(() => {
     const header = headerRef.current
-    const toolbar = toolbarRef.current
-    if (!header || !toolbar) return
-    const wide = window.matchMedia?.('(min-width: 768px)')
+    if (!header) return
     const apply = () => {
-      const height = wide?.matches ? header.offsetHeight : toolbar.offsetHeight
+      const height = header.offsetHeight
       document.documentElement.style.setProperty('--rail-h', `${height}px`)
     }
     apply()
     const observer = new ResizeObserver(apply)
     observer.observe(header)
-    observer.observe(toolbar)
-    wide?.addEventListener?.('change', apply)
     return () => {
       observer.disconnect()
-      wide?.removeEventListener?.('change', apply)
     }
   }, [])
 
   return (
     <>
       <SkipLinks />
-      <header ref={headerRef} className="z-30 md:sticky md:top-0 max-md:contents">
-        <h1 className="visually-hidden">ShipSafe</h1>
+      <header ref={headerRef} className="sticky top-0 z-30 w-full border-b border-rule bg-canvas shadow-xs">
+        <h1 className="visually-hidden">ShipSafe: Pre-Deployment Security Gatekeeper for Vibe Coding &amp; Web Applications</h1>
         <DisclaimerBanner />
         <Toolbar ref={toolbarRef} />
       </header>
 
-      <main className="mx-auto min-h-[100dvh] w-full max-w-[105rem] px-3 py-4 sm:px-4 md:px-6 md:py-6 xl:px-10 pb-safe overflow-x-hidden">
+      <main className="mx-auto min-h-[100dvh] w-full max-w-[105rem] px-3 py-3 sm:px-4 md:px-6 md:py-4 xl:px-10 pb-safe">
         {/* Mobile View Switcher (< lg) to eliminate massive vertical scroll */}
         <div className="lg:hidden mb-4 border-b border-rule pb-2" role="tablist" aria-label="Mobile workspace view">
           <div className="grid grid-cols-2 gap-1.5 p-1 bg-surface border border-rule rounded-[var(--radius-control)]">
@@ -124,12 +119,12 @@ export function AppShell({ submission, report }: AppShellProps) {
             id="project-submission"
             aria-labelledby="submission-title"
             tabIndex={-1}
-            className={`w-full min-w-0 max-w-full lg:max-w-none lg:border-r lg:border-rule lg:pr-8 xl:pr-10 lg:sticky lg:top-[calc(var(--rail-h)+1rem)] lg:max-h-[calc(100vh-var(--rail-h)-2rem)] lg:overflow-y-auto custom-scrollbar ${
+            className={`w-full min-w-0 max-w-full lg:max-w-none lg:border-r lg:border-rule lg:pr-8 xl:pr-10 lg:sticky lg:top-[calc(var(--rail-h)+0.75rem)] lg:max-h-[calc(100dvh-var(--rail-h)-1.5rem)] lg:overflow-y-auto custom-scrollbar ${
               activeMobileTab === 'submission' ? 'block' : 'hidden lg:block'
             }`}
             data-print="hide"
           >
-            <h2 id="submission-title" className="text-title">
+            <h2 id="submission-title" className="sr-only">
               Project submission
             </h2>
             {submission}
@@ -143,7 +138,7 @@ export function AppShell({ submission, report }: AppShellProps) {
               activeMobileTab === 'report' ? 'block' : 'hidden lg:block'
             }`}
           >
-            <h2 id="report-title" className="text-title">
+            <h2 id="report-title" className="sr-only">
               Audit report
             </h2>
             {report}

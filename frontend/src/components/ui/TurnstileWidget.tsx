@@ -94,12 +94,6 @@ export function TurnstileWidget({
   const sitekey = propSitekey || getTurnstileSiteKey()
   const isDev = !import.meta.env.PROD
   const isInvisibleDummy = sitekey === '1x00000000000000000000AA'
-  const isTestKey =
-    sitekey === '1x00000000000000000000AA' ||
-    sitekey === '1x00000000000000000000BB' ||
-    sitekey.startsWith('1x') ||
-    sitekey.startsWith('2x') ||
-    sitekey.startsWith('3x')
 
   // Synchronize with external store token resets (resetAll, cancelAudit, captcha_failed)
   useEffect(() => {

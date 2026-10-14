@@ -83,7 +83,7 @@ export function UploadDropzone() {
   }
 
   return (
-    <div className="rule-top mt-6 pt-4">
+    <div className="space-y-3">
       {/* Header: Title and Description */}
       <div className="mb-3.5">
         <div className="flex items-center justify-between gap-2">
@@ -91,7 +91,7 @@ export function UploadDropzone() {
           <span className="text-caption font-mono text-ink-3">max {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}</span>
         </div>
         <p id={helpId} className="mt-1 text-small text-ink-2 leading-relaxed">
-          Upload your codebase ZIP archive or import a public repository from GitHub (up to {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}).
+          Upload your vibe-coded codebase ZIP archive or import a public repository from GitHub (up to {formatBytes(MAX_ZIP_BYTES).replace('.0', '')}) for pre-deployment security analysis.
         </p>
       </div>
 

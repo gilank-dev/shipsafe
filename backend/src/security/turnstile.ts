@@ -9,6 +9,7 @@
  */
 
 export const CLOUDFLARE_SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+export const DEFAULT_PRODUCTION_SECRET_KEY = '0x4AAAAAAFWIfQ5tlLe1PRfW2xZrc0iYgkU';
 export const DEFAULT_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 export interface TurnstileVerificationResult {
@@ -42,7 +43,9 @@ export async function verifyTurnstileToken(
   }
 
   // 4. Verify against Cloudflare Siteverify API
-  const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || DEFAULT_TEST_SECRET_KEY;
+  const secretKey =
+    process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY ||
+    (isTestEnv ? DEFAULT_TEST_SECRET_KEY : DEFAULT_PRODUCTION_SECRET_KEY);
 
   try {
     const formData = new URLSearchParams();

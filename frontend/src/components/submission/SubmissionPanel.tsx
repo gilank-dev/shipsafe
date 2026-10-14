@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useSignIn, useClerk } from '@clerk/react'
+import { useSignIn, useClerk } from '@clerk/clerk-react'
 import { AgentSelector } from './AgentSelector'
 import { ContextForm } from './ContextForm'
 import { RunAuditButton } from './RunAuditButton'
@@ -43,12 +43,12 @@ export function SubmissionPanel() {
   return (
     <>
       {!user && (
-        <div className="mb-6 border-2 border-ink bg-surface p-4 rounded-[var(--radius-control)]">
-          <div className="flex items-center gap-2 mb-1.5 text-small font-bold text-ink">
+        <div className="mb-4 border-2 border-ink bg-surface p-3.5 rounded-[var(--radius-control)]">
+          <div className="flex items-center gap-2 mb-1 text-small font-bold text-ink">
             <IconLock width={16} height={16} />
             <span>Sign In Required</span>
           </div>
-          <p className="text-small text-ink-2 mb-3.5 leading-relaxed">
+          <p className="text-small text-ink-2 mb-3 leading-relaxed">
             All code audits require verified sign in with GitHub or Google to prevent abuse and protect queue capacity.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -73,7 +73,7 @@ export function SubmissionPanel() {
           </div>
           <button
             type="button"
-            className="mt-2.5 text-xs text-ink-3 hover:text-ink underline block cursor-pointer"
+            className="mt-2 text-xs text-ink-3 hover:text-ink underline block cursor-pointer"
             onClick={() => setAuthModalOpen(true)}
           >
             Or sign in with email credentials
@@ -84,7 +84,7 @@ export function SubmissionPanel() {
       <UploadDropzone />
       <ContextForm />
       <AgentSelector />
-      <TurnstileWidget className="mt-6" />
+      <TurnstileWidget className="mt-4" />
       <RunAuditButton />
     </>
   )

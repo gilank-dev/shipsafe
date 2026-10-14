@@ -219,41 +219,41 @@ export const ThreatMatrixView: React.FC<ThreatMatrixViewProps> = ({ threats }) =
               key={threat.key}
               className={`rounded-[var(--radius-control)] border border-rule bg-raised p-3.5 space-y-2.5 text-small ${cardAccentBorder} hover:border-rule-strong hover:bg-surface/60 transition-colors flex flex-col justify-between`}
             >
-              <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-2.5">
                 <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                    <span
-                      className={`flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-chip)] border mt-0.5 ${
-                        isVulnerable
-                          ? 'border-status-fail-border text-status-fail-fg bg-status-fail-bg'
-                          : isWarning
-                            ? 'border-status-warn-border text-status-warn-fg bg-status-warn-bg'
-                            : 'border-status-pass-border text-status-pass-fg bg-status-pass-bg'
-                      }`}
-                      aria-hidden="true"
-                    >
-                      <IconComponent />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-ink leading-tight flex items-center gap-1.5 break-words">
-                        {threat.name}
-                      </h4>
-                      <p className="text-caption text-ink-3 font-mono mt-0.5 truncate">
-                        {threat.category}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                    {threat.findingsCount > 0 && (
-                      <span className="font-mono text-caption px-1.5 py-0.5 rounded-[var(--radius-chip)] border border-rule bg-surface text-ink-2">
-                        {threat.findingsCount} {threat.findingsCount === 1 ? 'finding' : 'findings'}
-                      </span>
-                    )}
-                    <span className={`inline-flex items-center rounded-[var(--radius-chip)] border px-2 py-0.5 text-caption font-bold font-mono ${statusBadgeClass}`}>
-                      {threat.status}
-                    </span>
+                  <span
+                    className={`flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-chip)] border mt-0.5 ${
+                      isVulnerable
+                        ? 'border-status-fail-border text-status-fail-fg bg-status-fail-bg'
+                        : isWarning
+                          ? 'border-status-warn-border text-status-warn-fg bg-status-warn-bg'
+                          : 'border-status-pass-border text-status-pass-fg bg-status-pass-bg'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    <IconComponent />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-ink leading-tight flex items-center gap-1.5 break-words">
+                      {threat.name}
+                    </h4>
+                    <p className="text-caption text-ink-3 font-mono mt-0.5 truncate">
+                      {threat.category}
+                    </p>
                   </div>
                 </div>
+
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 shrink-0">
+                  {threat.findingsCount > 0 && (
+                    <span className="font-mono text-caption px-1.5 py-0.5 rounded-[var(--radius-chip)] border border-rule bg-surface text-ink-2 whitespace-nowrap">
+                      {threat.findingsCount} {threat.findingsCount === 1 ? 'finding' : 'findings'}
+                    </span>
+                  )}
+                  <span className={`inline-flex items-center rounded-[var(--radius-chip)] border px-2 py-0.5 text-caption font-bold font-mono whitespace-nowrap ${statusBadgeClass}`}>
+                    {threat.status}
+                  </span>
+                </div>
+              </div>
 
               <p className="text-small text-ink-2 leading-relaxed">
                 {threat.summary}

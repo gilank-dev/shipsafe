@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SubmissionPanel } from './SubmissionPanel'
 import { useStore } from '../../state/store'
-import * as clerkReact from '@clerk/react'
+import * as clerkReact from '@clerk/clerk-react'
 
 describe('SubmissionPanel Clerk OAuth integration', () => {
   const authenticateWithRedirectMock = vi.fn().mockResolvedValue({})
@@ -22,7 +22,7 @@ describe('SubmissionPanel Clerk OAuth integration', () => {
       isLoaded: true,
       signIn: {
         authenticateWithRedirect: authenticateWithRedirectMock,
-      } as unknown as clerkReact.SignInResource,
+      } as unknown as NonNullable<ReturnType<typeof clerkReact.useSignIn>['signIn']>,
     } as unknown as ReturnType<typeof clerkReact.useSignIn>)
   })
 

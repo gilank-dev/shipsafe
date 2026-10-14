@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://ship-safe.lankdev.my.id/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ship-safe.lankdev.my.id/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://ship-safe.lankdev.my.id/" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://ship-safe.lankdev.my.id/" />
+  </url>
+  <url>
+    <loc>https://shipsafe-pi.vercel.app/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

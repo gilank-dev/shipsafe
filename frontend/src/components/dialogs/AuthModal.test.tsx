@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { AuthModal } from './AuthModal'
 import { useStore } from '../../state/store'
 import * as supabaseLib from '../../lib/supabase'
-import * as clerkReact from '@clerk/react'
+import * as clerkReact from '@clerk/clerk-react'
 
 vi.mock('../../lib/supabase', async (importOriginal) => {
   const actual = await importOriginal<typeof supabaseLib>()
@@ -37,7 +37,7 @@ describe('AuthModal component', () => {
       isLoaded: true,
       signIn: {
         authenticateWithRedirect: authenticateWithRedirectMock,
-      } as unknown as clerkReact.SignInResource,
+      } as unknown as NonNullable<ReturnType<typeof clerkReact.useSignIn>['signIn']>,
     } as unknown as ReturnType<typeof clerkReact.useSignIn>)
   })
 
