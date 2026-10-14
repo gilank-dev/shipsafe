@@ -220,9 +220,9 @@ export const ThreatMatrixView: React.FC<ThreatMatrixViewProps> = ({ threats }) =
               className={`rounded-[var(--radius-control)] border border-rule bg-raised p-3.5 flex flex-col justify-between text-small ${cardAccentBorder} hover:border-rule-strong hover:bg-surface/60 transition-all shadow-xs`}
             >
               <div className="space-y-2.5">
-                {/* Top Meta Row: Category + Icon on left, Status & Finding badges on right */}
-                <div className="flex items-center justify-between gap-1.5 border-b border-rule/50 pb-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
+                {/* Top Meta Row: Icon + Category on left, Status badge on right */}
+                <div className="flex items-center justify-between gap-1.5 border-b border-rule/50 pb-2 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     <span
                       className={`flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-chip)] border ${
                         isVulnerable
@@ -243,25 +243,25 @@ export const ThreatMatrixView: React.FC<ThreatMatrixViewProps> = ({ threats }) =
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    {threat.findingsCount > 0 && (
-                      <span className="font-mono text-[11px] px-1.5 py-0.5 rounded-[var(--radius-chip)] border border-rule bg-surface text-ink-2 whitespace-nowrap">
-                        {threat.findingsCount} {threat.findingsCount === 1 ? 'finding' : 'findings'}
-                      </span>
-                    )}
-                    <span
-                      className={`inline-flex items-center rounded-[var(--radius-chip)] border px-1.5 py-0.5 text-[11px] font-bold font-mono whitespace-nowrap ${statusBadgeClass}`}
-                    >
-                      {threat.status}
-                    </span>
-                  </div>
+                  <span
+                    className={`inline-flex items-center rounded-[var(--radius-chip)] border px-1.5 py-0.5 text-[11px] font-bold font-mono shrink-0 whitespace-nowrap ${statusBadgeClass}`}
+                  >
+                    {threat.status}
+                  </span>
                 </div>
 
-                {/* Threat Name: Full-width dedicated row, never overlaps with badges */}
-                <div className="min-w-0">
+                {/* Threat Name & Findings Badge: Dedicated space, never collides with icon or status */}
+                <div className="min-w-0 space-y-1">
                   <h4 className="font-bold text-ink text-body leading-snug break-words">
                     {threat.name}
                   </h4>
+                  {threat.findingsCount > 0 && (
+                    <div>
+                      <span className="inline-flex items-center font-mono text-[11px] px-1.5 py-0.5 rounded-[var(--radius-chip)] border border-rule bg-surface text-ink-2 whitespace-nowrap">
+                        {threat.findingsCount} {threat.findingsCount === 1 ? 'finding' : 'findings'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Threat Summary */}

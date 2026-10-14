@@ -138,34 +138,39 @@ export function UploadDropzone() {
       {/* Selected File Card (Shared between ZIP and Imported Repo) */}
       {file ? (
         <div className="mt-2">
-          <div className="p-3.5 sm:p-4 border-2 border-rule-strong bg-raised rounded-[var(--radius-control)] flex items-center justify-between gap-3 w-full min-w-0">
-            <span className="flex items-center gap-3 min-w-0 flex-1">
-              <span className="size-9 rounded-md bg-surface border border-rule flex items-center justify-center shrink-0 text-ink">
-                <IconFile width={20} height={20} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-bold text-body font-mono text-ink" title={file.name}>
-                  {file.name}
+          <div className="p-3.5 sm:p-4 border-2 border-rule-strong bg-raised rounded-[var(--radius-control)] w-full min-w-0 space-y-2.5">
+            {/* Top Row: File Icon + File Info on left, Ready badge on right */}
+            <div className="flex items-start justify-between gap-2.5 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <span className="size-9 rounded-md bg-surface border border-rule flex items-center justify-center shrink-0 text-ink">
+                  <IconFile width={20} height={20} />
                 </span>
-                <span className="block text-small text-ink-2 truncate">
-                  {formatBytes(file.size)} of {formatBytes(MAX_ZIP_BYTES).replace('.0', '')} (Ready for audit)
-                </span>
-              </span>
-            </span>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="tag text-caption font-bold bg-status-pass-bg text-status-pass-fg border border-status-pass-border">
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate font-bold text-body font-mono text-ink" title={file.name}>
+                    {file.name}
+                  </span>
+                  <span className="block text-small text-ink-2 truncate">
+                    {formatBytes(file.size)} of {formatBytes(MAX_ZIP_BYTES).replace('.0', '')} (Ready for audit)
+                  </span>
+                </div>
+              </div>
+              <span className="tag text-caption font-bold bg-status-pass-bg text-status-pass-fg border border-status-pass-border shrink-0">
                 Ready
               </span>
+            </div>
+
+            {/* Bottom Row: Remove button taking full available width cleanly */}
+            <div className="flex items-center justify-end border-t border-rule/50 pt-2 min-w-0">
               <button
                 type="button"
-                className="btn btn-quiet text-small px-2.5 py-1 text-fail hover:bg-status-fail-bg cursor-pointer"
+                className="btn btn-quiet text-small px-2.5 py-1 text-fail hover:bg-status-fail-bg cursor-pointer max-w-full"
                 onClick={() => {
                   setFile(null, null)
                   announce('File removed')
                   if (sourceMode === 'zip') focusZipInput()
                 }}
               >
-                <span className="truncate block max-w-full">
+                <span className="truncate block">
                   Remove <span className="font-semibold">{file.name}</span>
                 </span>
               </button>
