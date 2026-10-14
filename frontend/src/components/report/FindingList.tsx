@@ -179,7 +179,7 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
       </div>
 
       {/* Filter and Search controls */}
-      <div className="space-y-2 border border-rule bg-surface p-3 rounded-[var(--radius-control)] text-small">
+      <div className="space-y-2.5 border border-rule bg-surface/60 p-3 sm:p-3.5 rounded-[var(--radius-control)] text-small shadow-xs">
         {/* Search input */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-ink-3">
@@ -193,7 +193,7 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
               setCurrentPage(1)
             }}
             placeholder="Search findings by ID, title, file, snippet, or description..."
-            className="control pl-9 pr-9 py-1.5 text-small"
+            className="control pl-9 pr-9 py-2 text-small w-full bg-raised"
             aria-label="Search findings"
           />
           {searchQuery && (
@@ -203,7 +203,7 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
                 setSearchQuery('')
                 setCurrentPage(1)
               }}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink-3 hover:text-ink transition-colors"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink-3 hover:text-ink transition-colors cursor-pointer"
               aria-label="Clear search query"
             >
               <IconClose />
@@ -212,8 +212,8 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
         </div>
 
         {/* Severity chips */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="font-semibold text-ink-2 text-caption mr-1 uppercase tracking-wider">Severity:</span>
+        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          <span className="font-semibold text-ink-2 text-caption mr-1 uppercase tracking-wider font-mono">Severity:</span>
           {SEVERITIES.map((s) => {
             const isChecked = selectedSeverities.has(s)
             const count = severityCounts[s] ?? 0
@@ -221,12 +221,14 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
               <button
                 key={s}
                 type="button"
-                className="filter-chip text-caption py-0.5 px-2"
+                className={`filter-chip text-caption py-0.5 px-2 rounded-[var(--radius-chip)] transition-all cursor-pointer ${
+                  isChecked ? 'border-ink bg-ink text-canvas font-bold shadow-xs' : ''
+                }`}
                 aria-pressed={isChecked}
                 onClick={() => toggleSeverity(s)}
               >
                 <span>{s}</span>
-                <span className={`font-mono text-caption ml-0.5 ${isChecked ? 'opacity-90' : 'text-ink-3'}`}>
+                <span className={`font-mono text-caption ml-1 ${isChecked ? 'opacity-90' : 'text-ink-3'}`}>
                   ({count})
                 </span>
               </button>
@@ -235,8 +237,8 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
         </div>
 
         {/* Area chips */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-rule/50">
-          <span className="font-semibold text-ink-2 text-caption mr-1 uppercase tracking-wider">Area:</span>
+        <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-rule/50">
+          <span className="font-semibold text-ink-2 text-caption mr-1 uppercase tracking-wider font-mono">Area:</span>
           {AREAS.map((a) => {
             const isChecked = selectedAreas.has(a.id)
             const count = areaCounts[a.id] ?? 0
@@ -244,12 +246,14 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
               <button
                 key={a.id}
                 type="button"
-                className="filter-chip text-caption py-0.5 px-2"
+                className={`filter-chip text-caption py-0.5 px-2 rounded-[var(--radius-chip)] transition-all cursor-pointer ${
+                  isChecked ? 'border-ink bg-ink text-canvas font-bold shadow-xs' : ''
+                }`}
                 aria-pressed={isChecked}
                 onClick={() => toggleArea(a.id)}
               >
                 <span>{a.label}</span>
-                <span className={`font-mono text-caption ml-0.5 ${isChecked ? 'opacity-90' : 'text-ink-3'}`}>
+                <span className={`font-mono text-caption ml-1 ${isChecked ? 'opacity-90' : 'text-ink-3'}`}>
                   ({count})
                 </span>
               </button>
@@ -259,7 +263,7 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
           {hasFilters && (
             <button
               type="button"
-              className="btn btn-quiet text-small ml-auto py-0.5"
+              className="btn btn-quiet text-small ml-auto py-0.5 px-2 text-status-fail hover:bg-status-fail-bg/30 font-semibold cursor-pointer"
               onClick={clearFilters}
             >
               Reset filters
@@ -279,7 +283,7 @@ export function FindingList({ findings, onViewPrompt }: FindingListProps) {
         </div>
       ) : (
         <>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {pagedFindings.map((finding) => (
               <FindingCard
                 key={finding.id}

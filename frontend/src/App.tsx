@@ -17,6 +17,9 @@ export default function App() {
 
   // Listen for browser navigation
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      ;(window as unknown as { __STORE__: typeof useStore }).__STORE__ = useStore
+    }
     const handlePopState = () => {
       setCurrentPath(window.location.pathname)
     }

@@ -36,8 +36,12 @@ export function ExportBar({ findings }: ExportBarProps) {
   }
 
   return (
-    <div className="border border-rule bg-raised p-4" role="region" aria-label="Export remediation prompts">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div
+      className="border border-rule bg-surface/70 p-3.5 sm:p-4 rounded-[var(--radius-control)] shadow-xs"
+      role="region"
+      aria-label="Export remediation prompts"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <h4 className="text-body font-bold text-ink">Remediation Prompts</h4>
