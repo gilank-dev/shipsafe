@@ -109,5 +109,6 @@ html[data-theme='dark'] {
   --radius-*: initial;
   --radius-chip: 2px;
   --radius-control: 4px;
+  --radius-panel: 4px;
   --shadow-*: initial;
 }

@@ -110,6 +110,15 @@
     color: var(--ink-3);
     border-color: var(--rule-strong);
   }
+  .btn-outline {
+    background: transparent;
+    border-color: var(--rule-strong);
+    color: var(--ink);
+  }
+  .btn-outline:hover:not([aria-disabled='true']) {
+    background: transparent;
+    border-color: var(--ink);
+  }
   .btn-quiet {
     border-color: transparent;
     background: transparent;
