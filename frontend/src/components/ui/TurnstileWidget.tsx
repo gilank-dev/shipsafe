@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getTurnstileSiteKey, isTurnstileEnabled } from '../../config/turnstile'
 import { useStore } from '../../state/store'
-import { IconRefresh } from './icons'
+import { IconRefresh, IconCloudflare } from './icons'
 
 declare global {
   interface Window {
@@ -227,22 +227,25 @@ export function TurnstileWidget({
 
   return (
     <div className={`turnstile-container my-3 ${className}`.trim()} data-testid="turnstile-widget">
-      <div className="mb-1.5 text-xs font-mono uppercase tracking-wider text-ink-2">
-        Security Verification
+      <div className="flex items-center gap-1.5 mb-2 text-xs font-mono uppercase tracking-wider text-ink-2">
+        <IconCloudflare width={16} height={16} />
+        <span>Cloudflare Turnstile Verification</span>
       </div>
+
       <div className="w-full max-w-full overflow-hidden flex justify-center">
         <div
           ref={containerRef}
           className={isInvisibleDummy ? 'h-0 overflow-hidden' : 'min-h-[65px] flex items-center justify-center'}
         />
       </div>
+
       {loadError && (
         <div className="mt-2 space-y-2 border border-status-fail bg-surface p-2.5 text-small text-status-fail" role="alert">
           <p>{loadError}</p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <button
               type="button"
-              className="btn btn-quiet text-xs flex items-center gap-1"
+              className="btn btn-quiet text-xs flex items-center gap-1 cursor-pointer"
               onClick={handleRetry}
             >
               <IconRefresh />
@@ -251,7 +254,7 @@ export function TurnstileWidget({
             {isDev && (
               <button
                 type="button"
-                className="btn text-xs text-ink-2 hover:text-ink"
+                className="btn text-xs text-ink-2 hover:text-ink cursor-pointer"
                 onClick={handleDevBypass}
               >
                 Bypass CAPTCHA (Development Mode)
@@ -260,14 +263,24 @@ export function TurnstileWidget({
           </div>
         </div>
       )}
+
       {isVerified && (
-        <div className="mt-1 flex items-center gap-2 py-1.5 px-3 border border-rule bg-surface text-xs font-mono text-ink">
-          <span className="size-2 rounded-full bg-status-pass" aria-hidden="true" />
-          <span className="text-ink-2">Cloudflare Turnstile:</span>
-          <span className="font-semibold text-status-pass">Human Verified</span>
+        <div className="mt-1 flex items-center justify-between gap-3 py-2 px-3 border border-rule bg-surface rounded-[var(--radius-control)]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <IconCloudflare width={20} height={20} className="shrink-0" />
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-mono">
+              <span className="text-ink-2">Cloudflare Turnstile:</span>
+              <span className="font-semibold text-status-pass flex items-center gap-1">
+                <span className="size-1.5 rounded-full bg-status-pass" aria-hidden="true" />
+                Human Verified
+              </span>
+            </div>
+          </div>
+          <span className="text-[11px] font-mono text-ink-3 shrink-0">Edge Protected</span>
           <span className="sr-only">Verified by Cloudflare Turnstile</span>
         </div>
       )}
     </div>
   )
 }
+
