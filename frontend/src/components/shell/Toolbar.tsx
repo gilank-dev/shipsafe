@@ -1,5 +1,5 @@
 import type { Ref } from 'react'
-import { useClerk } from '@clerk/react'
+import { useClerk } from '@clerk/clerk-react'
 import { isMockMode } from '../../api/client'
 import { signOut } from '../../lib/supabase'
 import { announce } from '../../state/announcer'

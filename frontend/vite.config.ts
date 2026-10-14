@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 // (spec Requirement 9.3). The same set ships as public/_headers for static hosts.
 const securityHeaders = {
   'Content-Security-Policy':
-    "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://213.163.197.214:23010 https://*.supabase.co wss://*.supabase.co; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com https://img.clerk.com https://*.clerk.accounts.dev https://ship-safe.lankdev.my.id; font-src 'self'; connect-src 'self' http://213.163.197.214:23010 https://*.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://*.clerk.com https://vitals.vercel-insights.com; frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
