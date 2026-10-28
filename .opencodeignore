@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+
+# Build and output artifacts
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+target/
+
+# Version control and caches
+.git/
+.turbo/
+.cache/
+
+# Large binaries, databases and media
+*.exe
+*.zip
+*.tar.*
+*.sqlite
+*.sqlite3
+*.db
+data/*.sqlite
+
+# Logs and temp
+*.log
+tmp/
+temp/
+
+# IDE and tool internals
+.kiro/
+.claude/backups/
+.claude/file-history/
+.claude/shell-snapshots/
