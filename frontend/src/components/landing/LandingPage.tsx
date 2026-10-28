@@ -33,7 +33,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   const clerk = useClerk()
 
   const handleCopyCli = () => {
-    void navigator.clipboard.writeText('npx @shipsafe/cli scan .')
+    void navigator.clipboard.writeText('npx @lankdev/shipsafe-cli scan .')
     setCopiedCli(true)
     setTimeout(() => setCopiedCli(false), 2000)
   }
@@ -92,7 +92,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   "mcpServers": {
     "shipsafe": {
       "command": "npx",
-      "args": ["-y", "@shipsafe/mcp-server"]
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
     }
   }
 }`,
@@ -254,7 +254,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           {/* Quick CLI Copy Strip */}
           <div className="mb-14">
             <div className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-2 font-mono text-xs sm:w-80 shadow-xs">
-              <span className="text-neutral-800 dark:text-neutral-200 truncate">npx @shipsafe/cli scan .</span>
+              <span className="text-neutral-800 dark:text-neutral-200 truncate">npx @lankdev/shipsafe-cli scan .</span>
               <button
                 type="button"
                 onClick={handleCopyCli}
@@ -536,7 +536,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs">
                 <div className="font-mono text-xs text-neutral-400 mb-2">QUICKSTART 01: AUDIT CURRENT DIRECTORY</div>
                 <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
-                  <code className="text-neutral-900 dark:text-neutral-100 font-medium">npx @shipsafe/cli scan .</code>
+                  <code className="text-neutral-900 dark:text-neutral-100 font-medium">npx @lankdev/shipsafe-cli scan .</code>
                   <button
                     type="button"
                     onClick={handleCopyCli}
@@ -773,11 +773,11 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               },
               {
                 q: 'How do I use the ShipSafe Model Context Protocol (MCP) server?',
-                a: 'The ShipSafe MCP server provides an automated bridge for Cursor, Windsurf, and Claude Desktop. By adding @shipsafe/mcp-server to your configuration, your coding agent can execute audit_codebase locally and fix detected vulnerabilities autonomously.',
+                a: 'The ShipSafe MCP server provides an automated bridge for Cursor, Windsurf, and Claude Desktop. By adding @lankdev/shipsafe-mcp to your configuration, your coding agent can execute audit_codebase locally and fix detected vulnerabilities autonomously.',
               },
               {
                 q: 'Can ShipSafe run completely offline in an air-gapped environment?',
-                a: 'Yes. By running the ShipSafe CLI (`npx @shipsafe/cli scan .`) pointed to a local self-hosted instance of our backend engine, all AST analysis runs locally on your workstation or internal CI runner.',
+                a: 'Yes. By running the ShipSafe CLI (`npx @lankdev/shipsafe-cli scan .`) pointed to a local self-hosted instance of our backend engine, all AST analysis runs locally on your workstation or internal CI runner.',
               },
               {
                 q: 'What happens if a false positive is reported?',

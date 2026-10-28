@@ -13,6 +13,7 @@ import { enrichReportWithAi, getAiConfig, callAiCompletion } from './engine/ai-c
 import { globalAuditQueue } from './engine/queue';
 import { clerkAuthGuard, requireClerkAuth, AuthRequest } from './security/auth-guard';
 import { parseGitHubRepo, fetchGitHubRepoZip } from './security/repo-importer';
+import { saveAuditToSupabase } from './security/audit-saver';
 import { AgentTarget, AuditReport, Finding } from './types';
 
 dotenv.config();
@@ -363,9 +364,27 @@ app.post('/api/audit', requireClerkAuth, upload.single('file'), async (req: Auth
       }
     });
 
+    let savedToHistory = false;
+    if (req.user?.id) {
+      try {
+        const saveRes = await saveAuditToSupabase({
+          report: result,
+          projectName: req.file?.originalname || 'codebase.zip',
+          userId: req.user.id,
+        });
+        savedToHistory = saveRes.saved;
+        if (!saveRes.saved) {
+          console.warn('[ShipSafe] Audit persistence notice:', saveRes.error);
+        }
+      } catch (saveErr) {
+        console.warn('[ShipSafe] Audit persistence error:', saveErr);
+      }
+    }
+
     res.json({
       reportId: result.id,
       report: result,
+      savedToHistory,
       queueStats: globalAuditQueue.stats
     });
   } catch (err: any) {

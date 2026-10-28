@@ -562,7 +562,7 @@ EXAMPLES:
         process.exit(0);
     }
     if (values.version) {
-        console.log(`@shipsafe/cli v${PACKAGE_VERSION}`);
+        console.log(`@lankdev/shipsafe-cli v${PACKAGE_VERSION}`);
         process.exit(0);
     }
     const command = positionals[0] || 'scan';

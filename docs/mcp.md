@@ -1,6 +1,6 @@
 # 🤖 ShipSafe Model Context Protocol (MCP) Server Guide
 
-> **Package**: `@shipsafe/mcp-server`  
+> **Package**: `@lankdev/shipsafe-mcp`  
 > **Protocol**: Standard Model Context Protocol (MCP) via stdio JSON-RPC 2.0  
 > **Compatibility**: Cursor, Claude Desktop, Windsurf, OpenCode, Hermes  
 > **Repository**: [github.com/gilank-dev/shipsafe](https://github.com/gilank-dev/shipsafe)

@@ -71,13 +71,13 @@ describe('ShipSafe CLI', () => {
     it('should show version with -v flag', async () => {
       const code = await runCliWithArgs(['-v'])
       expect(code).toBe(0)
-      expect(mockLog).toHaveBeenCalledWith('@shipsafe/cli v1.0.0')
+      expect(mockLog).toHaveBeenCalledWith('@lankdev/shipsafe-cli v1.0.0')
     })
 
     it('should show version with --version flag', async () => {
       const code = await runCliWithArgs(['--version'])
       expect(code).toBe(0)
-      expect(mockLog).toHaveBeenCalledWith('@shipsafe/cli v1.0.0')
+      expect(mockLog).toHaveBeenCalledWith('@lankdev/shipsafe-cli v1.0.0')
     })
 
     it('should error on unknown command', async () => {

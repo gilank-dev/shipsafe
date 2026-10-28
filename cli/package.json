@@ -1,5 +1,5 @@
 {
-  "name": "@shipsafe/cli",
+  "name": "@lankdev/shipsafe-cli",
   "version": "1.0.0",
   "description": "ShipSafe Pre-Deployment Security Gatekeeper CLI for CI/CD and Pre-Commit Hooks",
   "main": "dist/index.js",

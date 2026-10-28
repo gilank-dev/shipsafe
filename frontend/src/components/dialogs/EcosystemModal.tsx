@@ -16,7 +16,7 @@ export function EcosystemModal() {
   if (!isOpen) return null
 
   const handleCopyCli = () => {
-    void navigator.clipboard.writeText('npx @shipsafe/cli scan .')
+    void navigator.clipboard.writeText('npx @lankdev/shipsafe-cli scan .')
     setCopiedCli(true)
     setTimeout(() => setCopiedCli(false), 2000)
   }
@@ -53,7 +53,7 @@ export function EcosystemModal() {
   "mcpServers": {
     "shipsafe": {
       "command": "npx",
-      "args": ["-y", "@shipsafe/mcp-server"]
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
     }
   }
 }`,
@@ -213,7 +213,7 @@ export function EcosystemModal() {
             <div className="border border-rule bg-surface p-3 rounded-sm">
               <div className="font-mono text-[11px] font-bold text-ink-3 uppercase mb-1">AUDIT LOCAL DIRECTORY</div>
               <div className="flex items-center justify-between bg-raised p-2 rounded-xs border border-rule font-mono text-small">
-                <code className="text-ink font-bold">npx @shipsafe/cli scan .</code>
+                <code className="text-ink font-bold">npx @lankdev/shipsafe-cli scan .</code>
                 <button
                   type="button"
                   onClick={handleCopyCli}
