@@ -124,9 +124,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <span className="font-mono text-xs text-neutral-400 dark:text-neutral-500 font-normal">
                 // CUSTOMS DESK
               </span>
-              <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700">
-                v2.4
-              </span>
             </div>
           </div>
 
@@ -218,12 +215,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
       <main className="mx-auto max-w-6xl px-6">
         {/* 2. HERO SECTION */}
-        <section className="pt-16 pb-20 sm:pt-24 sm:pb-28">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-1 font-mono text-[11px] text-neutral-600 dark:text-neutral-400 shadow-xs">
-            <span className="size-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-            <span>MANIFEST #SS-9042 // PRE-SHIPMENT CLEARANCE</span>
-          </div>
-
+        <section className="pt-20 pb-20 sm:pt-28 sm:pb-24">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.06] max-w-4xl text-neutral-900 dark:text-neutral-50 mb-6">
             The Customs Desk for <br className="hidden sm:inline" />
             <span className="text-neutral-400 dark:text-neutral-500 font-normal">Vibe-Coded Web Apps</span>.
@@ -258,7 +250,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
 
           {/* Quick CLI Copy Strip */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-12">
+          <div className="mb-14">
             <div className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-2 font-mono text-xs sm:w-80 shadow-xs">
               <span className="text-neutral-800 dark:text-neutral-200 truncate">npx @shipsafe/cli scan .</span>
               <button
@@ -268,10 +260,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               >
                 {copiedCli ? 'Copied' : 'Copy'}
               </button>
-            </div>
-            <div className="text-xs font-mono text-neutral-500 flex items-center gap-2">
-              <span className="size-1 rounded-full bg-neutral-400" />
-              <span>Zero-install local terminal audit. Evaluates 10 threat vectors in ~1.5s.</span>
             </div>
           </div>
 
@@ -294,10 +282,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   Upload ZIP archive or import GitHub repository for 3-second AST analysis and official customs verdict stamp.
                 </div>
               </div>
-              <div className="mt-6 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-[11px] text-neutral-400 flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                <span>Zero Persistence in RAM</span>
-              </div>
             </button>
 
             <a
@@ -311,10 +295,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-4">
                   <span>PILLAR 02 // MCP</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 text-[11px] font-mono flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    ACTIVE
-                  </span>
                 </div>
                 <div className="font-semibold text-base text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
                   Autonomous Agent Bridge
@@ -322,9 +302,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
                   Connect Cursor, Claude Desktop, Windsurf, and Hermes via standard stdio JSON-RPC 2.0 tools.
                 </div>
-              </div>
-              <div className="mt-6 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-[11px] text-neutral-400">
-                JSON-RPC 2.0 Stdio Protocol
               </div>
             </a>
 
@@ -339,9 +316,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-4">
                   <span>PILLAR 03 // CLI</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] text-neutral-600 dark:text-neutral-400 font-mono bg-neutral-100 dark:bg-neutral-800">
-                    SARIF 2.1.0
-                  </span>
                 </div>
                 <div className="font-semibold text-base text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
                   Pre-Commit Gatekeeper
@@ -349,9 +323,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
                   Audit locally with zero dependencies or install a 1-click git hook that blocks vulnerable commits.
                 </div>
-              </div>
-              <div className="mt-6 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-[11px] text-neutral-400">
-                Pre-Commit Barrier
               </div>
             </a>
           </div>
@@ -402,29 +373,27 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     [00:01.04] AST parsing 42 source files... <span className="text-emerald-600 dark:text-emerald-400 font-medium">OK (0.8s)</span>
                   </div>
                   <div className="text-rose-600 dark:text-rose-400">
-                    [00:01.88] Vector 01: Secrets Scan - [FAIL] Stripe live key exposed in <span className="underline">src/config/stripe.ts:8</span>
+                    [00:01.88] Vector: Secrets Scan - [FAIL] Stripe live key exposed in <span className="underline">src/config/stripe.ts:8</span>
                   </div>
                   <div className="text-rose-600 dark:text-rose-400">
-                    [00:02.12] Vector 09: Broken Access Control - [FAIL] Public endpoint lacks session RLS guard in <span className="underline">app/api/invoices/[id]/route.ts:19</span>
+                    [00:02.12] Vector: Broken Access Control - [FAIL] Public endpoint lacks session RLS guard in <span className="underline">app/api/invoices/[id]/route.ts:19</span>
                   </div>
                   <div className="text-amber-600 dark:text-amber-400">
-                    [00:02.89] Vector 04: Prompt Injection Surface - [WARN] Raw unsanitized query passed into OpenAI prompt in <span className="underline">lib/agent.ts:42</span>
+                    [00:02.89] Vector: Prompt Injection Surface - [WARN] Raw unsanitized query passed into OpenAI prompt in <span className="underline">lib/agent.ts:42</span>
                   </div>
                   <div className="pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <span className="text-neutral-800 dark:text-neutral-200">
-                      MANIFEST STATUS: SHIPMENT QUARANTINED (2 Critical, 1 Warning)
+                      Verdict: 2 critical findings, 1 warning detected
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-[11px] font-medium tracking-wide inline-flex items-center gap-1.5 self-start sm:self-auto">
-                      <span className="size-1.5 rounded-full bg-rose-500" />
-                      NO-GO // VERDICT STAMP
+                    <span className="text-rose-600 dark:text-rose-400 text-xs font-medium">
+                      Action Required
                     </span>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3 bg-neutral-50/70 dark:bg-neutral-900/40 p-4 rounded-lg border border-neutral-100 dark:border-neutral-800">
-                  <div className="flex items-center justify-between text-neutral-500 pb-2 border-b border-neutral-200/60 dark:border-neutral-800">
-                    <span>TAILORED REMEDIATION PROMPT FOR CLAUDE CODE / CURSOR</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">READY TO PASTE</span>
+                  <div className="text-neutral-500 pb-2 border-b border-neutral-200/60 dark:border-neutral-800">
+                    TAILORED REMEDIATION PROMPT FOR CLAUDE CODE / CURSOR
                   </div>
                   <pre className="text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap leading-relaxed">
 {`Fix critical vulnerability F-001 in \`src/config/stripe.ts\` (line 8):
@@ -539,9 +508,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-xs text-neutral-400 flex items-center justify-between">
-                <span>Protocol: JSON-RPC 2.0</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">100% SPEC CONFORMANT</span>
+              <div className="mt-5 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-xs text-neutral-400">
+                Protocol: JSON-RPC 2.0 Stdio
               </div>
             </div>
           </div>
@@ -631,9 +599,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 ✓ Ready for git commit and production deployment.`}
                 </pre>
               </div>
-              <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-neutral-400">
-                <span>GitHub Action: .github/workflows/shipsafe-gatekeeper.yml</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">SARIF READY</span>
+              <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 text-neutral-400">
+                GitHub Action: .github/workflows/shipsafe-gatekeeper.yml
               </div>
             </div>
           </div>
@@ -655,31 +622,26 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-12">
             {[
-              { id: 'V01', name: 'SQL Injection', desc: 'Raw SQL concatenation & template literal injection in ORM/DB' },
-              { id: 'V02', name: 'Cross-Site Scripting (XSS)', desc: 'Unescaped innerHTML, dangerouslySetInnerHTML, document.write' },
-              { id: 'V03', name: 'DDoS & ReDoS', desc: 'Missing rate limiters and vulnerable exponential regex loops' },
-              { id: 'V04', name: 'Brute Force & Timing', desc: 'Plaintext string password compare without timing-safe equality' },
-              { id: 'V05', name: 'Malware & Web Shell', desc: 'Dangerous PHP/Node shell signatures and unvalidated file uploads' },
-              { id: 'V06', name: 'MitM & Broken TLS', desc: 'rejectUnauthorized: false, plaintext credentials, missing secure cookies' },
-              { id: 'V07', name: 'Phishing & Open Redirect', desc: 'Unvalidated redirect parameters and clickjacking missing X-Frame' },
-              { id: 'V08', name: 'Defacement Risks', desc: 'Unauthenticated template or webroot modification vulnerabilities' },
-              { id: 'V09', name: 'LFI / RFI & SSRF', desc: 'Path traversal in fs.readFile and unvalidated fetch(req.query.url)' },
-              { id: 'V10', name: 'Zero-Day Dynamic Exec', desc: 'eval(), new Function(), prototype pollution, execSync calls' },
+              { name: 'SQL Injection', desc: 'Raw SQL concatenation & template literal injection in ORM/DB' },
+              { name: 'Cross-Site Scripting (XSS)', desc: 'Unescaped innerHTML, dangerouslySetInnerHTML, document.write' },
+              { name: 'DDoS & ReDoS', desc: 'Missing rate limiters and vulnerable exponential regex loops' },
+              { name: 'Brute Force & Timing', desc: 'Plaintext string password compare without timing-safe equality' },
+              { name: 'Malware & Web Shell', desc: 'Dangerous PHP/Node shell signatures and unvalidated file uploads' },
+              { name: 'MitM & Broken TLS', desc: 'rejectUnauthorized: false, plaintext credentials, missing secure cookies' },
+              { name: 'Phishing & Open Redirect', desc: 'Unvalidated redirect parameters and clickjacking missing X-Frame' },
+              { name: 'Defacement Risks', desc: 'Unauthenticated template or webroot modification vulnerabilities' },
+              { name: 'LFI / RFI & SSRF', desc: 'Path traversal in fs.readFile and unvalidated fetch(req.query.url)' },
+              { name: 'Zero-Day Dynamic Exec', desc: 'eval(), new Function(), prototype pollution, execSync calls' },
             ].map((v) => (
               <div
-                key={v.id}
+                key={v.name}
                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-4 flex flex-col justify-between transition-colors shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700"
               >
                 <div>
-                  <div className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 mb-2">{v.id}</div>
-                  <div className="font-medium text-sm text-neutral-900 dark:text-neutral-100 mb-1 leading-snug">
+                  <div className="font-medium text-sm text-neutral-900 dark:text-neutral-100 mb-1.5 leading-snug">
                     {v.name}
                   </div>
                   <div className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{v.desc}</div>
-                </div>
-                <div className="mt-4 pt-2.5 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-emerald-500" />
-                  <span>ACTIVE SCANNER</span>
                 </div>
               </div>
             ))}
@@ -687,10 +649,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 shadow-xs">
-              <div className="font-mono text-xs text-emerald-600 dark:text-emerald-400 uppercase mb-2 flex items-center gap-1.5 font-medium">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                <span>ZERO-PERSISTENCE GUARANTEE</span>
-              </div>
               <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
                 Ephemeral Sandbox Processing
               </h3>
@@ -700,10 +658,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             </div>
 
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 shadow-xs">
-              <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 uppercase mb-2 flex items-center gap-1.5 font-medium">
-                <span className="size-1.5 rounded-full bg-neutral-400" />
-                <span>1-CLICK REMEDIATION ENGINE</span>
-              </div>
               <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
                 Multi-Agent Prompt Formatter
               </h3>
@@ -717,12 +671,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         {/* 6. RADICAL TRANSPARENCY & BOUNDARIES */}
         <section id="limitations" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 sm:p-10 shadow-xs">
-            <div className="flex items-center gap-2 font-mono text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">
-              <span className="size-1.5 rounded-full bg-amber-500 inline-block" />
-              <span>WHAT SHIPSAFE DOES NOT DO</span>
-            </div>
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-3 text-neutral-900 dark:text-neutral-100">
-              Radical Transparency &amp; Boundaries
+              What ShipSafe Does Not Do
             </h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl mb-8 leading-relaxed font-normal">
               We believe in honest developer tooling without misleading security marketing. Please note the deliberate engineering boundaries:
@@ -730,7 +680,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-mono text-[11px] text-neutral-400 mb-2">BOUNDARY 01</div>
                 <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
                   10MB Archive Upper Limit
                 </div>
@@ -740,7 +689,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               </div>
 
               <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-mono text-[11px] text-neutral-400 mb-2">BOUNDARY 02</div>
                 <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
                   Purely Static AST Analysis
                 </div>
@@ -750,7 +698,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               </div>
 
               <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-mono text-[11px] text-neutral-400 mb-2">BOUNDARY 03</div>
                 <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
                   Not a Human Pentest Replacement
                 </div>
@@ -766,10 +713,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         <section id="developer-support" className="py-16 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xs">
             <div>
-              <div className="flex items-center gap-2 font-mono text-xs text-emerald-600 dark:text-emerald-400 uppercase mb-2 font-medium">
-                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>DIRECT MAINTAINER ASSISTANCE</span>
-              </div>
               <h3 className="text-xl sm:text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
                 Need Custom Audit Rules or Dedicated Guidance?
               </h3>
@@ -886,10 +829,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 className="hover:text-neutral-800 dark:hover:text-neutral-200 hover:underline"
               >
                 GITHUB REPO
-              </a>
-              <a href="/api/health" className="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                <span>VPS API: ONLINE</span>
               </a>
             </div>
           </div>
