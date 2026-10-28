@@ -76,7 +76,7 @@ Untuk mencegah penyalahgunaan antrean dan serangan DoS terhadap server:
 
 ### 2.3 High-Density Landing Page & Integrasi MCP Server
 1. **Landing Page Resmi (Customs Desk)**: Tersedia di rute `/` dengan estetika *ink-on-ruled-paper*, menyajikan 10 bagian komprehensif: pengenalan, use case (Vibe coder, Indie Hacker, Engineering teams), protokol 3-detik, matriks 10 vektor ancaman, batasan jujur (*radical transparency* batas 10MB & SAST), transparansi harga developer, kontak langsung WhatsApp & Telegram admin, ulasan teknis, FAQ interaktif, serta akses instan ke konsol audit via tombol `Launch Console ->` (`/console`).
-2. **ShipSafe MCP Server (`@shipsafe/mcp-server`)**: Server Model Context Protocol standar berbasis stdio JSON-RPC 2.0 di folder `mcp/` untuk integrasi native dengan Cursor, Claude Desktop, Windsurf, OpenCode, dan Hermes. Menyediakan tools `audit_codebase`, `get_threat_matrix`, `get_remediation_prompt`, dan `verify_fix`. Panduan konfigurasi lengkap tersedia di [`MCP.md`](file:///C:/Users/HYPE%20AMD/files/PROJECT/PERSONAL/ShipSafe/MCP.md).
+2. **ShipSafe MCP Server (`@lankdev/shipsafe-mcp`)**: Server Model Context Protocol standar berbasis stdio JSON-RPC 2.0 di folder `mcp/` untuk integrasi native dengan Cursor, Claude Desktop, Windsurf, OpenCode, dan Hermes. Menyediakan tools `audit_codebase`, `get_threat_matrix`, `get_remediation_prompt`, dan `verify_fix`. Panduan konfigurasi lengkap tersedia di [`MCP.md`](file:///C:/Users/HYPE%20AMD/files/PROJECT/PERSONAL/ShipSafe/MCP.md).
 
 ---
 
@@ -345,7 +345,7 @@ ShipSafe kini hadir dalam 3 bentuk terintegrasi untuk menjamin keamanan di setia
 - Didukung penuh di Claude Desktop, Cursor, Windsurf, OpenCode, dan Hermes Agent.
 
 ### 9.3 ShipSafe CLI Gatekeeper & CI/CD (`cli/`)
-- Paket: `@shipsafe/cli` (tersedia secara lokal dan npm executable).
+- Paket: `@lankdev/shipsafe-cli` (tersedia secara lokal dan npm executable).
 - Penggunaan:
   ```bash
   node cli/dist/index.js scan .

@@ -49,11 +49,11 @@ ShipSafe/
 │   ├── src/
 │   │   └── index.ts       # 4 tools: audit_codebase, get_threat_matrix, get_remediation_prompt, verify_fix
 │   ├── dist/              # Compiled bundle (node dist/index.js)
-│   ├── package.json       # @shipsafe/mcp-server
+│   ├── package.json       # @lankdev/shipsafe-mcp
 │   └── tsconfig.json
 ├── cli/                   # ShipSafe CLI: Terminal Pre-Commit & CI Gatekeeper
 │   ├── src/               # CLI commands, AST scanner runner, ASCII scorecard formatter
-│   ├── package.json       # @shipsafe/cli
+│   ├── package.json       # @lankdev/shipsafe-cli
 │   └── tsconfig.json
 ├── supabase/              # Database & Auth: PostgreSQL + RLS policies
 │   ├── schema.sql         # DDL: audits, findings tables with RLS

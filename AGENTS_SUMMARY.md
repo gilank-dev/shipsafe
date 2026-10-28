@@ -75,7 +75,7 @@
   - `vitest`: 3.0.7 — test runner
 
 ### CLI (`cli/package.json`)
-- **Name**: `@shipsafe/cli`
+- **Name**: `@lankdev/shipsafe-cli`
 - **Version**: 1.0.0
 - **Description**: ShipSafe Pre-Deployment Security Gatekeeper CLI for CI/CD and Pre-Commit Hooks
 - **Bin**: `shipsafe` -> `dist/index.js`
@@ -87,7 +87,7 @@
 - **DevDependencies**: `@types/adm-zip`, `@types/node`, `typescript`, `vitest`
 
 ### MCP Server (`mcp/package.json`)
-- **Name**: `@shipsafe/mcp-server`
+- **Name**: `@lankdev/shipsafe-mcp`
 - **Version**: 1.0.0
 - **Description**: ShipSafe Model Context Protocol (MCP) Server for Cursor, Claude Desktop, Windsurf, OpenCode, and Hermes
 - **Bin**: `shipsafe-mcp` -> `dist/index.js`
@@ -156,7 +156,7 @@
 ## 5. CI/CD Configs
 - **GitHub Actions** (`.github/workflows/shipsafe-gatekeeper.yml`):
   - Automated PR and push gatekeeper
-  - Runs `@shipsafe/cli` producing SARIF 2.1.0 output
+  - Runs `@lankdev/shipsafe-cli` producing SARIF 2.1.0 output
   - Uploads security findings to GitHub Code Scanning via `github/codeql-action/upload-sarif@v3`
   - Supports optional remote audit via ShipSafe VPS engine
 - **Pre-Commit Hook** (`cli/scripts/install-hook.js`):

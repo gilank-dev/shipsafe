@@ -4,7 +4,8 @@
   "description": "ShipSafe Pre-Deployment Security Gatekeeper CLI for CI/CD and Pre-Commit Hooks",
   "main": "dist/index.js",
   "bin": {
-    "shipsafe": "dist/index.js"
+    "shipsafe": "dist/index.js",
+    "shipsafe-cli": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",

@@ -1,4 +1,4 @@
-# @shipsafe/cli — Pre-Deployment Security Gatekeeper
+# @lankdev/shipsafe-cli — Pre-Deployment Security Gatekeeper
 
 ShipSafe CLI provides automated pre-commit and CI/CD security audits. It inspects local source files using deterministic static AST & regex security rules, ensuring zero unvetted security vectors are shipped to production.
 
@@ -6,19 +6,25 @@ ShipSafe CLI provides automated pre-commit and CI/CD security audits. It inspect
 
 ## ⚡ Quickstart
 
-### 1. Run directly via Node
+### 1. Run instantly via npx (Zero Installation)
 ```bash
-node cli/dist/index.js scan .
+npx @lankdev/shipsafe-cli scan .
 ```
 
 ### 2. Install / Link Globally
 ```bash
-cd cli
-npm link
+npm install -g @lankdev/shipsafe-cli
+# or locally in this repository:
+cd cli && npm link
 shipsafe scan .
 ```
 
-### 3. Output Formats
+### 3. Run directly via Node
+```bash
+node cli/dist/index.js scan .
+```
+
+### 4. Output Formats
 ```bash
 # Standard Customs Docket ASCII Format
 shipsafe scan .
@@ -30,7 +36,7 @@ shipsafe scan . --format=json
 shipsafe scan . --format=sarif > results.sarif
 
 # Remote Cloud Scan via ShipSafe VPS Engine
-shipsafe scan . --remote-url=https://api.shipsafe.dev --api-key=sk_live_xxx
+shipsafe scan . --remote-url=https://shipsafe.lankdev.my.id --api-key=sk_live_xxx
 
 # Fail only on Critical issues (exit code 1)
 shipsafe scan . --fail-on=critical
@@ -54,7 +60,7 @@ If any `CRITICAL` or `HIGH` vulnerabilities are detected, the commit is aborted 
 
 ---
 
-## 📦 Architecture & Conventions
+## 🏗️ Architecture & Conventions
 - **Zero-External Dependencies**: Utilizes native Node.js 18+ APIs (`node:fs`, `node:path`, `node:util`).
 - **Aesthetic**: Strictly adheres to ShipSafe's *ink-on-ruled-paper* terminal docket design (zero decorative slop).
 - **Exit Codes**:

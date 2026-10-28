@@ -20,6 +20,10 @@
     "sast",
     "shipsafe"
   ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "author": "LankDev",
   "license": "MIT",
   "devDependencies": {
