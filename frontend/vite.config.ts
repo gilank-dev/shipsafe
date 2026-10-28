@@ -16,6 +16,15 @@ const securityHeaders = {
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://213.163.197.214:23010',
+        changeOrigin: true,
+      },
+    },
+  },
   preview: { headers: securityHeaders },
   build: {
     rollupOptions: {
