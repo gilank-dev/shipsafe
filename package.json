@@ -10,10 +10,11 @@
   ],
   "scripts": {
     "build": "npm --prefix frontend run build",
+    "vercel-build": "npm --prefix frontend run build",
     "start": "npm --prefix frontend run dev",
     "test": "npm --prefix frontend test"
   },
-  "devDependencies": {
+  "dependencies": {
     "vite": "^7.3.7"
   }
 }
