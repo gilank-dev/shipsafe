@@ -71,6 +71,10 @@ export interface ShipSafeState {
   setAuthUser: (user: UserProfile | null) => void
   setAuthModalOpen: (open: boolean) => void
   setHistoryModalOpen: (open: boolean) => void
+  isEcosystemModalOpen: boolean
+  ecosystemTab: 'mcp' | 'cli' | 'docs'
+  openEcosystemModal: (tab?: 'mcp' | 'cli' | 'docs') => void
+  closeEcosystemModal: () => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -164,6 +168,10 @@ export const useStore = create<ShipSafeState>()((set) => ({
   },
   setAuthModalOpen: (isAuthModalOpen) => set((s) => ({ auth: { ...s.auth, isAuthModalOpen } })),
   setHistoryModalOpen: (isHistoryModalOpen) => set((s) => ({ auth: { ...s.auth, isHistoryModalOpen } })),
+  isEcosystemModalOpen: false,
+  ecosystemTab: 'mcp',
+  openEcosystemModal: (tab = 'mcp') => set({ isEcosystemModalOpen: true, ecosystemTab: tab }),
+  closeEcosystemModal: () => set({ isEcosystemModalOpen: false }),
   setTheme: (theme) => {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', theme)

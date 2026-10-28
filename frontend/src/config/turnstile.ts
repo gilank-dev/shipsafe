@@ -1,17 +1,23 @@
-// Official Cloudflare Turnstile Sitekey
-export const DEFAULT_TURNSTILE_SITE_KEY = '0x4AAAAAAFWIfT5Sj972IRnm'
+// Cloudflare Turnstile Sitekey default test fallback (always passes in non-production)
+export const DEFAULT_TURNSTILE_SITE_KEY = '1x00000000000000000000BB'
 
 /**
  * Returns the configured Cloudflare Turnstile Sitekey.
- * Defaults to the production Turnstile Sitekey:
- * 0x4AAAAAAFWIfT5Sj972IRnm
+ * Reads from VITE_CLOUDFLARE_TURNSTILE_SITE_KEY.
+ * If unset in production, logs a loud error.
  */
 export function getTurnstileSiteKey(): string {
   const configured = import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY
-  if (!configured || configured === '1x00000000000000000000AA' || configured === '1x00000000000000000000BB') {
-    return DEFAULT_TURNSTILE_SITE_KEY
+  if (configured) {
+    return configured
   }
-  return configured
+
+  const isProd = import.meta.env.PROD === true || import.meta.env.MODE === 'production'
+  if (isProd) {
+    console.error('[ShipSafe] Missing VITE_CLOUDFLARE_TURNSTILE_SITE_KEY environment variable in production.')
+  }
+
+  return DEFAULT_TURNSTILE_SITE_KEY
 }
 
 /**

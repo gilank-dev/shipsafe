@@ -5,6 +5,7 @@ import { AuthModal } from './AuthModal'
 import { useStore } from '../../state/store'
 import * as supabaseLib from '../../lib/supabase'
 import * as clerkReact from '@clerk/clerk-react'
+import type { User, Session } from '@supabase/supabase-js'
 
 vi.mock('../../lib/supabase', async (importOriginal) => {
   const actual = await importOriginal<typeof supabaseLib>()
@@ -100,8 +101,8 @@ describe('AuthModal component', () => {
         id: 'usr-auditor-123',
         email: 'auditor@enterprise.com',
         user_metadata: { full_name: 'Lead Security Auditor' },
-      } as any,
-      session: { access_token: 'valid-jwt-token' } as any,
+      } as unknown as User,
+      session: { access_token: 'valid-jwt-token' } as unknown as Session,
       error: null,
     })
 
@@ -131,8 +132,8 @@ describe('AuthModal component', () => {
   it('toggles to sign up mode and sends registration', async () => {
     const user = userEvent.setup()
     vi.mocked(supabaseLib.signUpWithEmail).mockResolvedValueOnce({
-      user: { id: 'usr-new-123', email: 'new@enterprise.com', user_metadata: {} } as any,
-      session: { access_token: 'new-jwt-token' } as any,
+      user: { id: 'usr-new-123', email: 'new@enterprise.com', user_metadata: {} } as unknown as User,
+      session: { access_token: 'new-jwt-token' } as unknown as Session,
       error: null,
     })
 

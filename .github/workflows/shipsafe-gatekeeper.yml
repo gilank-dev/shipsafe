@@ -1,0 +1,121 @@
+name: ShipSafe Gatekeeper
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday 02:00 UTC
+
+permissions:
+  contents: read
+  security-events: write  # Required for codeql-action/upload-sarif
+  actions: read
+
+jobs:
+  shipsafe-scan:
+    name: ShipSafe Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for gitignore parsing
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: cli/package-lock.json
+
+      - name: Install ShipSafe CLI
+        working-directory: ./cli
+        run: npm ci
+
+      - name: Build ShipSafe CLI
+        working-directory: ./cli
+        run: npm run build
+
+      - name: Run ShipSafe Scan (SARIF)
+        id: shipsafe-scan
+        working-directory: ./cli
+        run: |
+          node dist/index.js scan .. --format=sarif --fail-on=high > shipsafe-results.sarif
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: cli/shipsafe-results.sarif
+          category: shipsafe
+
+      - name: Fail job on threshold breach
+        if: steps.shipsafe-scan.outputs.exit_code == '1'
+        run: |
+          echo "::error::ShipSafe scan found vulnerabilities at or above HIGH severity"
+          exit 1
+
+      - name: Report scan error
+        if: steps.shipsafe-scan.outputs.exit_code == '2'
+        run: |
+          echo "::error::ShipSafe scan encountered a runtime error"
+          exit 2
+
+  shipsafe-remote-audit:
+    name: ShipSafe Remote Audit (VPS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: vars.SHIPSAFE_REMOTE_URL != '' && secrets.SHIPSAFE_API_KEY != ''
+    env:
+      SHIPSAFE_REMOTE_URL: ${{ vars.SHIPSAFE_REMOTE_URL }}
+      SHIPSAFE_API_KEY: ${{ secrets.SHIPSAFE_API_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: cli/package-lock.json
+
+      - name: Install ShipSafe CLI
+        working-directory: ./cli
+        run: npm ci
+
+      - name: Build ShipSafe CLI
+        working-directory: ./cli
+        run: npm run build
+
+      - name: Run ShipSafe Remote Audit
+        id: shipsafe-remote
+        working-directory: ./cli
+        run: |
+          node dist/index.js scan .. \
+            --remote-url="${SHIPSAFE_REMOTE_URL}" \
+            --api-key="${SHIPSAFE_API_KEY}" \
+            --format=sarif \
+            --fail-on=high > shipsafe-remote-results.sarif
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload Remote SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: cli/shipsafe-remote-results.sarif
+          category: shipsafe-remote
+
+      - name: Fail job on threshold breach
+        if: steps.shipsafe-remote.outputs.exit_code == '1'
+        run: |
+          echo "::error::ShipSafe remote audit found vulnerabilities at or above HIGH severity"
+          exit 1

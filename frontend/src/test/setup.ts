@@ -5,6 +5,10 @@ import * as axeMatchers from 'vitest-axe/matchers'
 
 expect.extend(axeMatchers)
 
+if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+  vi.stubEnv('VITE_CLERK_PUBLISHABLE_KEY', 'pk_test_mock_clerk_key_for_testing')
+}
+
 const clerkMock = vi.hoisted(() => () => ({
   ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
   useUser: () => ({ isSignedIn: false, user: null, isLoaded: true }),

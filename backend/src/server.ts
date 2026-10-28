@@ -11,7 +11,7 @@ import { buildAuditReport } from './engine/report-builder';
 import { generateRemediationPrompt } from './engine/prompts';
 import { enrichReportWithAi, getAiConfig, callAiCompletion } from './engine/ai-client';
 import { globalAuditQueue } from './engine/queue';
-import { supabaseAuthGuard, requireSupabaseAuth, AuthRequest } from './security/auth-guard';
+import { clerkAuthGuard, requireClerkAuth, AuthRequest } from './security/auth-guard';
 import { parseGitHubRepo, fetchGitHubRepoZip } from './security/repo-importer';
 import { AgentTarget, AuditReport, Finding } from './types';
 
@@ -179,7 +179,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 });
 
 // 1.3 Import GitHub Repository Endpoint (Mandatory Auth)
-app.post('/api/import-repo', requireSupabaseAuth, async (req: AuthRequest, res: Response) => {
+app.post('/api/import-repo', requireClerkAuth, async (req: AuthRequest, res: Response) => {
   const repoUrl = req.body?.repoUrl;
   if (!repoUrl || typeof repoUrl !== 'string') {
     res.status(400).json({
@@ -234,7 +234,7 @@ app.post('/api/import-repo', requireSupabaseAuth, async (req: AuthRequest, res: 
 });
 
 // 2. Audit Endpoint with Mandatory Auth & Concurrency Limiter (Max 3 concurrent users + FIFO Queue)
-app.post('/api/audit', requireSupabaseAuth, upload.single('file'), async (req: AuthRequest, res: Response, next: NextFunction) => {
+app.post('/api/audit', requireClerkAuth, upload.single('file'), async (req: AuthRequest, res: Response, next: NextFunction) => {
   const turnstileToken =
     req.body?.['cf-turnstile-response'] ||
     req.body?.turnstileToken ||
@@ -246,6 +246,7 @@ app.post('/api/audit', requireSupabaseAuth, upload.single('file'), async (req: A
     expectedAction: 'audit'
   });
   if (!turnstileResult.success) {
+    console.error(`[Turnstile] Verification failed for client ${clientIp || 'unknown'}: ${turnstileResult.error || 'verification_failed'}`);
     res.status(403).json({
       error: {
         code: 'captcha_failed',

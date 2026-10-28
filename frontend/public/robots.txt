@@ -37,5 +37,6 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
+Sitemap: https://shipsafe.lankdev.my.id/sitemap.xml
 Sitemap: https://ship-safe.lankdev.my.id/sitemap.xml
 Sitemap: https://shipsafe-pi.vercel.app/sitemap.xml

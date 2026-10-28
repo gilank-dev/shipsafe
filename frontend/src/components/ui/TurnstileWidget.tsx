@@ -98,7 +98,7 @@ export function TurnstileWidget({
 
   const enabled = isTurnstileEnabled()
   const sitekey = propSitekey || getTurnstileSiteKey()
-  const isDev = !import.meta.env.PROD
+  const isProd = import.meta.env.PROD === true || import.meta.env.MODE === 'production'
   const isInvisibleDummy = sitekey === '1x00000000000000000000AA'
 
   // Synchronize with external store token resets (resetAll, cancelAudit, captcha_failed)
@@ -203,7 +203,8 @@ export function TurnstileWidget({
         widgetIdRef.current = null
       }
     }
-  }, [enabled, sitekey, action, cdata, theme, reloadKey, setTurnstileToken, onSuccess, onError, onExpire])
+    // isInvisibleDummy is derived from sitekey (primitive boolean); safe in deps without causing re-render loops
+  }, [enabled, sitekey, action, cdata, theme, reloadKey, setTurnstileToken, onSuccess, onError, onExpire, isInvisibleDummy])
 
   const handleRetry = () => {
     setLoadError(null)
@@ -211,6 +212,7 @@ export function TurnstileWidget({
   }
 
   const handleDevBypass = () => {
+    if (isProd) return
     setLoadError(null)
     setIsVerified(true)
     setTurnstileToken('dev-bypass-token')
@@ -218,6 +220,7 @@ export function TurnstileWidget({
   }
 
   const handleManualVerify = () => {
+    if (isProd) return
     setLoadError(null)
     setIsVerified(true)
     setTurnstileToken('bypass-token')
@@ -254,13 +257,16 @@ export function TurnstileWidget({
       {!isVerified && !loadError && (
         <div className="mt-1 flex items-center justify-between text-[11px] text-ink-3">
           <span>Verifikasi keamanan bot Cloudflare</span>
-          <button
-            type="button"
-            className="hover:text-ink underline cursor-pointer"
-            onClick={handleManualVerify}
-          >
-            Kendala CAPTCHA? Lewati
-          </button>
+          {!isProd && (
+            <button
+              type="button"
+              disabled={isProd}
+              className="hover:text-ink underline cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+              onClick={handleManualVerify}
+            >
+              Kendala CAPTCHA? Lewati
+            </button>
+          )}
         </div>
       )}
 
@@ -276,17 +282,21 @@ export function TurnstileWidget({
               <IconRefresh />
               Coba Muat Ulang
             </button>
-            <button
-              type="button"
-              className="btn text-xs text-status-pass hover:bg-surface-2 cursor-pointer font-medium"
-              onClick={handleManualVerify}
-            >
-              ✓ Verifikasi Manual / Lewati CAPTCHA
-            </button>
-            {isDev && (
+            {!isProd && (
               <button
                 type="button"
-                className="btn text-xs text-ink-2 hover:text-ink cursor-pointer"
+                disabled={isProd}
+                className="btn text-xs text-status-pass hover:bg-surface-2 cursor-pointer font-medium disabled:opacity-50 disabled:pointer-events-none"
+                onClick={handleManualVerify}
+              >
+                ✓ Verifikasi Manual / Lewati CAPTCHA
+              </button>
+            )}
+            {!isProd && (
+              <button
+                type="button"
+                disabled={isProd}
+                className="btn text-xs text-ink-2 hover:text-ink cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                 onClick={handleDevBypass}
               >
                 Bypass CAPTCHA (Development Mode)

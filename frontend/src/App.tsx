@@ -5,8 +5,10 @@ import { ReportArea } from './components/run/ReportArea'
 import { SubmissionPanel } from './components/submission/SubmissionPanel'
 import { AuthModal } from './components/dialogs/AuthModal'
 import { HistoryModal } from './components/dialogs/HistoryModal'
+import { EcosystemModal } from './components/dialogs/EcosystemModal'
 import { ToastContainer } from './components/ui/Toast'
 import { NotFoundPage } from './components/shell/NotFoundPage'
+import { LandingPage } from './components/landing/LandingPage'
 import { onAuthStateChange } from './lib/supabase'
 import { useStore } from './state/store'
 import { Analytics } from '@vercel/analytics/react'
@@ -26,6 +28,25 @@ export default function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  // Navigation helpers
+  const navigateTo = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+      if (path.includes('#')) {
+        const hash = path.substring(path.indexOf('#'))
+        setTimeout(() => {
+          const el = document.querySelector(hash)
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' })
+          }
+        }, 100)
+      }
+    }
+    const cleanPath = path.split('#')[0]?.split('?')[0] || '/'
+    setCurrentPath(cleanPath)
+  }
 
   // Clerk session synchronization
   const { user: clerkUser, isSignedIn: isClerkSignedIn } = useUser()
@@ -109,28 +130,43 @@ export default function App() {
     return <AuthenticateWithRedirectCallback signInForceRedirectUrl="/" />
   }
 
-  // Custom 404 Route handling
-  if (currentPath !== '/' && currentPath !== '') {
+  // Landing Page Route
+  if (currentPath === '/' || currentPath === '' || currentPath === '/landing') {
     return (
       <>
-        <NotFoundPage
-          onGoHome={() => {
-            window.history.pushState({}, '', '/')
-            setCurrentPath('/')
-          }}
-        />
+        <LandingPage onLaunchConsole={() => navigateTo('/console')} />
         <AuthModal />
+        <EcosystemModal />
         <ToastContainer />
         <Analytics />
       </>
     )
   }
 
+  // Security Console Routes
+  if (currentPath === '/console' || currentPath === '/app' || currentPath === '/audit') {
+    return (
+      <>
+        <AppShell submission={<SubmissionPanel />} report={<ReportArea />} />
+        <AuthModal />
+        <HistoryModal />
+        <EcosystemModal />
+        <ToastContainer />
+        <Analytics />
+      </>
+    )
+  }
+
+  // Custom 404 Route handling
   return (
     <>
-      <AppShell submission={<SubmissionPanel />} report={<ReportArea />} />
+      <NotFoundPage
+        onGoHome={() => {
+          navigateTo('/')
+        }}
+      />
       <AuthModal />
-      <HistoryModal />
+      <EcosystemModal />
       <ToastContainer />
       <Analytics />
     </>

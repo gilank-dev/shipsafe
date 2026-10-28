@@ -11,7 +11,6 @@
  */
 
 export const CLOUDFLARE_SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-export const DEFAULT_PRODUCTION_SECRET_KEY = '0x4AAAAAAFWIfQ5tlLe1PRfW2xZrc0iYgkU';
 export const DEFAULT_TEST_SECRET_KEY = '1x0000000000000000000000000000000AA';
 
 export interface TurnstileVerificationResult {
@@ -64,16 +63,16 @@ export async function verifyTurnstileToken(
 
   const trimmedToken = token.trim();
 
-  // 3. Test environment bypass or explicit test-token bypass
-  const isTestEnv = process.env.NODE_ENV === 'test';
-  if (
+  // 3. Non-production bypass (only active when NODE_ENV !== 'production')
+  const isProd = process.env.NODE_ENV === 'production';
+  const isBypassToken =
     trimmedToken === 'test-token' ||
-    (isTestEnv && trimmedToken === 'test-token') ||
     trimmedToken === 'bypass-token' ||
     trimmedToken === 'dev-bypass-token' ||
     trimmedToken === 'cf-fallback-verified' ||
-    trimmedToken === 'fallback-token'
-  ) {
+    trimmedToken === 'fallback-token';
+
+  if (!isProd && isBypassToken) {
     return { success: true };
   }
 
@@ -92,11 +91,17 @@ export async function verifyTurnstileToken(
       ? { clientIp: clientIpOrOptions }
       : (clientIpOrOptions || {});
 
-  // 5. Determine secret key
-  const secretKey =
-    process.env.TURNSTILE_SECRET ||
-    process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY ||
-    (isTestEnv ? DEFAULT_TEST_SECRET_KEY : DEFAULT_PRODUCTION_SECRET_KEY);
+  // 5. Determine secret key (in production, secret MUST come from env)
+  const envSecretKey = process.env.TURNSTILE_SECRET || process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY;
+
+  if (isProd && !envSecretKey) {
+    return {
+      success: false,
+      error: 'Turnstile secret key is not configured in production environment (missing TURNSTILE_SECRET or CLOUDFLARE_TURNSTILE_SECRET_KEY)'
+    };
+  }
+
+  const secretKey = envSecretKey || DEFAULT_TEST_SECRET_KEY;
 
   try {
     const formData = new URLSearchParams();

@@ -243,4 +243,68 @@ describe('Cloudflare Turnstile Verification', () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe('Network connection timeout');
   });
+
+  it('does NOT short-circuit bypass tokens in production environment', async () => {
+    delete process.env.TURNSTILE_ENABLED;
+    process.env.NODE_ENV = 'production';
+    process.env.TURNSTILE_SECRET = 'prod-secret-key';
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: false,
+        'error-codes': ['invalid-input-response']
+      })
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    // In production, bypass tokens must NOT be accepted unconditionally
+    const bypassTokens = ['test-token', 'bypass-token', 'dev-bypass-token', 'cf-fallback-verified', 'fallback-token'];
+    for (const token of bypassTokens) {
+      clearUsedTokensForTesting();
+      const res = await verifyTurnstileToken(token);
+      expect(res.success).toBe(false);
+      expect(res.error).toContain('invalid-input-response');
+    }
+    expect(mockFetch).toHaveBeenCalledTimes(bypassTokens.length);
+  });
+
+  it('fails cleanly in production when secret key is not configured in env', async () => {
+    delete process.env.TURNSTILE_ENABLED;
+    process.env.NODE_ENV = 'production';
+    delete process.env.TURNSTILE_SECRET;
+    delete process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY;
+
+    const mockFetch = vi.fn();
+    vi.stubGlobal('fetch', mockFetch);
+
+    const result = await verifyTurnstileToken('real-token-submitted');
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/Turnstile secret key is not configured in production environment/i);
+    // Must fail without calling Cloudflare siteverify
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('succeeds in production when valid secret is configured and Cloudflare verifies token', async () => {
+    delete process.env.TURNSTILE_ENABLED;
+    process.env.NODE_ENV = 'production';
+    process.env.TURNSTILE_SECRET = 'prod-secret-123';
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        hostname: 'ship-safe.lankdev.my.id',
+        action: 'audit'
+      })
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const result = await verifyTurnstileToken('valid-user-token', { expectedAction: 'audit' });
+    expect(result.success).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const bodyString = mockFetch.mock.calls[0][1].body.toString();
+    expect(bodyString).toContain('secret=prod-secret-123');
+    expect(bodyString).toContain('response=valid-user-token');
+  });
 });

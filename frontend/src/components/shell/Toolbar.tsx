@@ -27,6 +27,7 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
   const user = useStore((s) => s.auth.user)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
   const setHistoryModalOpen = useStore((s) => s.setHistoryModalOpen)
+  const openEcosystemModal = useStore((s) => s.openEcosystemModal)
   const setAuthUser = useStore((s) => s.setAuthUser)
   const clerk = useClerk()
 
@@ -48,12 +49,80 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
       <div className="mx-auto flex min-h-12 max-w-[105rem] flex-col gap-2.5 px-3 py-2 sm:px-4 md:flex-row md:items-center md:gap-x-4 md:gap-y-2 md:px-6 xl:px-10">
         <div className="flex w-full items-center justify-between gap-2 md:w-auto">
           <div className="flex items-center gap-2.5 shrink-0">
-            <span className="block size-3.5 bg-ink" aria-hidden="true" />
-            <span className="text-h3 leading-none font-extrabold [font-stretch:125%]">ShipSafe</span>
-            <span className="hidden text-small text-ink-3 md:inline">Pre-deployment security gate</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', '/')
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }
+              }}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer text-left"
+              title="Return to Landing Page & System Overview"
+            >
+              <span className="block size-3.5 bg-ink" aria-hidden="true" />
+              <span className="text-h3 leading-none font-extrabold [font-stretch:125%]">ShipSafe</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.history.pushState({}, '', '/')
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }
+              }}
+              className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-ink font-bold border border-rule hover:border-rule-strong bg-surface hover:bg-raised px-2.5 py-1 rounded-sm cursor-pointer transition-colors shadow-xs"
+              title="Return to Landing Page & System Overview"
+            >
+              <span>←</span>
+              <span>Landing Page</span>
+            </button>
+            <div className="hidden sm:flex items-center gap-1.5 font-mono text-[11px]">
+              <button
+                type="button"
+                onClick={() => openEcosystemModal('mcp')}
+                className="px-2 py-0.5 rounded-xs border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
+                title="ShipSafe MCP Server Configuration for AI Agents"
+              >
+                ⚡ MCP
+              </button>
+              <button
+                type="button"
+                onClick={() => openEcosystemModal('cli')}
+                className="px-2 py-0.5 rounded-xs border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
+                title="ShipSafe Terminal CLI & Pre-Commit Git Hook"
+              >
+                💻 CLI
+              </button>
+              <button
+                type="button"
+                onClick={() => openEcosystemModal('docs')}
+                className="px-2 py-0.5 rounded-xs border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
+                title="Security Architecture & Threat Vectors Documentation"
+              >
+                📖 Docs
+              </button>
+            </div>
+            <span className="hidden text-small text-ink-3 lg:inline">Pre-deployment security gate</span>
           </div>
 
           <div className="flex items-center gap-1.5 md:hidden">
+            <button
+              type="button"
+              onClick={() => openEcosystemModal('mcp')}
+              className="px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
+              title="MCP Server"
+            >
+              MCP
+            </button>
+            <button
+              type="button"
+              onClick={() => openEcosystemModal('cli')}
+              className="px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
+              title="CLI Gatekeeper"
+            >
+              CLI
+            </button>
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-1">

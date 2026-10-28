@@ -39,7 +39,7 @@ export function ContextForm() {
       <textarea
         id={DESCRIPTION_ID}
         className="control mt-1"
-        rows={3}
+        rows={2}
         maxLength={MAX_DESCRIPTION_CHARS}
         value={description}
         placeholder="Who uses it, what data it stores, and how it signs people in."

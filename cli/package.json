@@ -1,0 +1,38 @@
+{
+  "name": "@shipsafe/cli",
+  "version": "1.0.0",
+  "description": "ShipSafe Pre-Deployment Security Gatekeeper CLI for CI/CD and Pre-Commit Hooks",
+  "main": "dist/index.js",
+  "bin": {
+    "shipsafe": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "test": "vitest run",
+    "scan": "node dist/index.js scan ."
+  },
+  "keywords": [
+    "security",
+    "cli",
+    "ast-scanner",
+    "pre-commit",
+    "sast",
+    "audit"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "author": "ShipSafe Engineering Team",
+  "license": "MIT",
+  "dependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.6.1"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.7",
+    "@types/node": "^22.13.9",
+    "typescript": "^5.7.3"
+  }
+}

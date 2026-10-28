@@ -1,8 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
-import { supabaseAuthGuard, requireSupabaseAuth, verifySupabaseJwt, AuthRequest } from './auth-guard';
+import {
+  clerkAuthGuard,
+  requireClerkAuth,
+  verifyClerkJwt,
+  supabaseAuthGuard,
+  requireSupabaseAuth,
+  verifySupabaseJwt,
+  AuthRequest,
+} from './auth-guard';
 import { Response } from 'express';
 
-describe('Supabase Auth Guard Middleware', () => {
+describe('Clerk Auth Guard Middleware', () => {
+  it('exports backward compatibility aliases matching clerk equivalents', () => {
+    expect(supabaseAuthGuard).toBe(clerkAuthGuard);
+    expect(requireSupabaseAuth).toBe(requireClerkAuth);
+    expect(verifySupabaseJwt).toBe(verifyClerkJwt);
+  });
+
   it('allows anonymous requests when Authorization header is absent', async () => {
     const req = { headers: {} } as AuthRequest;
     const res = {
@@ -11,7 +25,7 @@ describe('Supabase Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await supabaseAuthGuard(req, res, next);
+    await clerkAuthGuard(req, res, next);
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toBeNull();
@@ -26,7 +40,7 @@ describe('Supabase Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await supabaseAuthGuard(req, res, next);
+    await clerkAuthGuard(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
@@ -47,7 +61,7 @@ describe('Supabase Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await supabaseAuthGuard(req, res, next);
+    await clerkAuthGuard(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
@@ -68,7 +82,7 @@ describe('Supabase Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await supabaseAuthGuard(req, res, next);
+    await clerkAuthGuard(req, res, next);
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({
@@ -77,14 +91,14 @@ describe('Supabase Auth Guard Middleware', () => {
     });
   });
 
-  it('verifySupabaseJwt returns valid user for valid test token', async () => {
-    const result = await verifySupabaseJwt('valid-test-token');
+  it('verifyClerkJwt returns valid user for valid test token', async () => {
+    const result = await verifyClerkJwt('valid-test-token');
     expect(result.valid).toBe(true);
     expect(result.user?.id).toBe('usr-test-123');
   });
 
-  it('verifySupabaseJwt returns lead auditor user for dev-token-developer@example.com', async () => {
-    const result = await verifySupabaseJwt('dev-token-developer@example.com');
+  it('verifyClerkJwt returns lead auditor user for dev-token-developer@example.com', async () => {
+    const result = await verifyClerkJwt('dev-token-developer@example.com');
     expect(result.valid).toBe(true);
     expect(result.user).toEqual({
       id: 'usr-dev-auditor',
@@ -92,8 +106,8 @@ describe('Supabase Auth Guard Middleware', () => {
     });
   });
 
-  it('verifySupabaseJwt parses custom email in dev-token prefix', async () => {
-    const result = await verifySupabaseJwt('dev-token-alice@custom.io');
+  it('verifyClerkJwt parses custom email in dev-token prefix', async () => {
+    const result = await verifyClerkJwt('dev-token-alice@custom.io');
     expect(result.valid).toBe(true);
     expect(result.user).toEqual({
       id: 'usr-dev-auditor',
@@ -101,13 +115,13 @@ describe('Supabase Auth Guard Middleware', () => {
     });
   });
 
-  it('verifySupabaseJwt returns 401 for empty or invalid token', async () => {
-    const result = await verifySupabaseJwt('');
+  it('verifyClerkJwt returns 401 for empty or invalid token', async () => {
+    const result = await verifyClerkJwt('');
     expect(result.valid).toBe(false);
     expect(result.statusCode).toBe(401);
   });
 
-  describe('requireSupabaseAuth', () => {
+  describe('requireClerkAuth', () => {
     it('rejects unauthenticated requests with HTTP 401 and unauthorized code', async () => {
       const req = { headers: {} } as AuthRequest;
       const res = {
@@ -116,7 +130,7 @@ describe('Supabase Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireSupabaseAuth(req, res, next);
+      await requireClerkAuth(req, res, next);
 
       expect(next).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(401);
@@ -136,7 +150,7 @@ describe('Supabase Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireSupabaseAuth(req, res, next);
+      await requireClerkAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -153,7 +167,7 @@ describe('Supabase Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireSupabaseAuth(req, res, next);
+      await requireClerkAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -170,7 +184,7 @@ describe('Supabase Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireSupabaseAuth(req, res, next);
+      await requireClerkAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -187,7 +201,7 @@ describe('Supabase Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireSupabaseAuth(req, res, next);
+      await requireClerkAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -207,11 +221,10 @@ describe('Supabase Auth Guard Middleware', () => {
       ).toString('base64url');
       const fakeClerkToken = `${fakeClerkHeader}.${fakeClerkPayload}.invalidsignature123`;
 
-      const result = await verifySupabaseJwt(fakeClerkToken);
+      const result = await verifyClerkJwt(fakeClerkToken);
       expect(result.valid).toBe(false);
       expect(result.statusCode).toBe(401);
       expect(result.error).toContain('Clerk verification failed');
     });
   });
 });
-

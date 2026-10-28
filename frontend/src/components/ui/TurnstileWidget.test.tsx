@@ -145,4 +145,31 @@ describe('TurnstileWidget', () => {
     expect(useStore.getState().submission.turnstileToken).toBe('dev-bypass-token')
     expect(screen.getByText(/Verified by Cloudflare Turnstile/i)).toBeInTheDocument()
   })
+
+  it('hides and disables bypass buttons when in production mode', async () => {
+    vi.spyOn(turnstileConfig, 'isTurnstileEnabled').mockReturnValue(true)
+    vi.stubEnv('MODE', 'production')
+
+    render(<TurnstileWidget />)
+
+    // Verify "Kendala CAPTCHA? Lewati" is not rendered in production
+    expect(screen.queryByRole('button', { name: /Kendala CAPTCHA\? Lewati/i })).not.toBeInTheDocument()
+
+    // Simulate script load failure
+    const script = document.getElementById('cf-turnstile-script') as HTMLScriptElement
+    if (script?.onerror) {
+      script.onerror('error' as unknown as Event)
+    }
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+
+    // Retry button is available
+    expect(screen.getByRole('button', { name: /Coba Muat Ulang/i })).toBeInTheDocument()
+
+    // Both bypass buttons must be hidden in production
+    expect(screen.queryByRole('button', { name: /Bypass CAPTCHA \(Development Mode\)/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Verifikasi Manual \/ Lewati CAPTCHA/i })).not.toBeInTheDocument()
+  })
 })

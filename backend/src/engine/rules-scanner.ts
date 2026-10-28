@@ -136,7 +136,10 @@ function isTestOrDocFile(relativePath: string): boolean {
         /(?:db|conn|client|sequelize|pool)\.(?:query|execute)\s*\(\s*['"`]\s*(?:SELECT|INSERT|UPDATE|DELETE)[^'`"]*['"`]\s*\+\s*(?!['"`])[a-zA-Z0-9_.]+/i.test(line) ||
         /(?:const|let|var)?\s*[a-zA-Z0-9_]*(?:query|sql|stmt)\s*=\s*['"`]\s*(?:SELECT|INSERT|UPDATE|DELETE)[^'`"]*['"`]\s*\+\s*(?!['"`])[a-zA-Z0-9_.]+/i.test(line) ||
         /(?:const|let|var)?\s*[a-zA-Z0-9_]*(?:query|sql|stmt)\s*=\s*`\s*(?:SELECT|INSERT|UPDATE|DELETE)[^`]*\$\{[^}]+\}/i.test(line) ||
-        /\$db->(?:query|exec)\s*\(\s*['"][^'"]*\$[a-zA-Z0-9_]+/i.test(line)
+        /\$db->(?:query|exec)\s*\(\s*['"][^'"]*\$[a-zA-Z0-9_]+/i.test(line) ||
+        /(?:cursor|connection|conn)\.execute\s*\(\s*f['"][^'"]*\{[^}]+\}/i.test(line) ||
+        /(?:text|\.raw)\s*\(\s*f['"][^'"]*\{[^}]+\}\s*\)/i.test(line) ||
+        /(?:cursor|connection|conn)\.execute\s*\(\s*['"][^'"]*%s['"]\s*%\s*(?!['"])[a-zA-Z0-9_.]+/i.test(line)
       ) {
         addThreatFinding({
           title: `SQL Injection (SQLi) via Dynamic Query Concatenation`,
@@ -204,7 +207,9 @@ function isTestOrDocFile(relativePath: string): boolean {
         /(?:c99shell|r57shell|b374k|wso\s*shell|alfa\s*team\s*shell)/i.test(line) ||
         /eval\s*\(\s*base64_decode\s*\(\s*\$_(?:POST|GET|REQUEST)/i.test(line) ||
         /(?:system|passthru|shell_exec|exec)\s*\(\s*\$_(?:POST|GET|REQUEST)/i.test(line) ||
-        /require\s*\(\s*['"]child_process['"]\s*\)\s*\.exec\s*\([^)]*req\.(?:query|body|params)/i.test(line)
+        /require\s*\(\s*['"]child_process['"]\s*\)\s*\.exec\s*\([^)]*req\.(?:query|body|params)/i.test(line) ||
+        /\bos\.system\s*\([^)]*(?:request\.|params\.|sys\.argv|input\()/i.test(line) ||
+        /\bsubprocess\.(?:call|Popen|run)\s*\([^)]*shell\s*=\s*True/i.test(line)
       ) {
         addThreatFinding({
           title: `Malware / Web Shell Backdoor Pattern Detected`,
@@ -411,6 +416,44 @@ function isTestOrDocFile(relativePath: string): boolean {
           verifyWith: `Kirim payload JSON berisi {"__proto__": {"polluted": true}}`,
           confidence: 'Likely, verify'
         });
+      }
+
+      // Python Insecure Deserialization (pickle / unsafe yaml)
+      if (
+        /\bpickle\.(?:loads|load)\s*\(/i.test(line) ||
+        /\b_pickle\.(?:loads|load)\s*\(/i.test(line) ||
+        /\byaml\.(?:load|unsafe_load)\s*\([^)]*(?:Loader\s*=\s*(?:yaml\.)?(?:UnsafeLoader|CLoader|Loader)|\bLoader\b(?!\s*=\s*(?:yaml\.)?SafeLoader))/i.test(line)
+      ) {
+        addThreatFinding({
+          title: `Insecure Deserialization via Python pickle / unsafe yaml.load (Remote Code Execution)`,
+          severity: 'Critical',
+          area: 'Code',
+          threatCategory: 'zero_day',
+          location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+          what: `Deserialisasi objek untrusted menggunakan pickle atau yaml.load tanpa SafeLoader.`,
+          why: `Format pickle dan PyYAML unsafe loader mengizinkan instansiasi objek arbitrer yang dapat memicu eksekusi kode biner berbahaya (RCE).`,
+          recommendedFix: `Gunakan format serialisasi aman seperti JSON atau gunakan yaml.safe_load(). Jangan pernah men-deserialize data pickle dari pihak luar.`,
+          verifyWith: `Periksa pemanggilan pickle.loads() dan ganti dengan json.loads()`,
+          confidence: 'Confirmed'
+        });
+      }
+
+      // Dockerfile hardcoded secrets
+      if (/(?:^|\/)Dockerfile(?:\..*)?$/i.test(file.relativePath)) {
+        if (/^\s*ENV\s+[A-Za-z0-9_]*(?:PASSWORD|SECRET|KEY|TOKEN|AUTH)\s*=\s*['"]?[^\s"']{6,}/i.test(line)) {
+          addThreatFinding({
+            title: `Hardcoded Secret in Dockerfile Image Layer`,
+            severity: 'Critical',
+            area: 'Secrets',
+            threatCategory: 'mitm',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `Kredensial atau secret sensitif didefinisikan secara statis pada instruksi ENV Dockerfile.`,
+            why: `Nilai ENV akan tersimpan permanen dalam metadata image Docker dan dapat diekstrak oleh siapa saja yang memiliki akses pull image.`,
+            recommendedFix: `Gunakan Docker BuildKit secrets (--secret id=mysecret) atau inject secret pada saat runtime via environment container.`,
+            verifyWith: `docker history <image-name> untuk melihat layer yang mengekspos environment variable`,
+            confidence: 'Confirmed'
+          });
+        }
       }
 
       // ReDoS pattern

@@ -1,0 +1,30 @@
+{
+  "name": "@shipsafe/mcp-server",
+  "version": "1.0.0",
+  "description": "ShipSafe Model Context Protocol (MCP) Server for Cursor, Claude Desktop, Windsurf, OpenCode, and Hermes",
+  "main": "dist/index.js",
+  "bin": {
+    "shipsafe-mcp": "./dist/index.js"
+  },
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "security",
+    "auditor",
+    "sast",
+    "shipsafe"
+  ],
+  "author": "LankDev",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}

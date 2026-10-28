@@ -40,16 +40,17 @@ Keputusan berikut diambil sebagai default yang masuk akal; tandai di sini bila i
 
 ```
 ┌──────────────────────┐     ┌──────────────────────────┐     ┌──────────────────────┐
-│  FRONTEND (Vercel)   │     │  BACKEND + AI (VPS)      │     │  SUPABASE            │
+│  FRONTEND (Vercel)   │     │  BACKEND + AI (VPS)      │     │  SUPABASE / CLERK    │
 │                      │     │                          │     │                      │
-│  Next.js + TS UI     │──1─▶│  POST /api/audit         │──4─▶│  Postgres (audits,   │
+│  React 19 + Vite UI  │──1─▶│  POST /api/audit         │──4─▶│  Postgres (audits,   │
 │  Upload ZIP          │     │  - verifikasi JWT        │     │   findings)          │
 │  Report + Prompt     │◀─3──│  - validasi + extract    │◀────│  Auth (opsional)     │
-│  Supabase Auth (UI)  │     │  - mask secret           │     │  RLS per-user        │
-│                      │──2─▶│  - panggil LLM (Claude)  │     │                      │
+│  Clerk / Supabase UI │     │  - mask secret           │     │  RLS per-user        │
+│                      │──2─▶│  - rules scanner + AI    │     │                      │
 │                      │     │  - build report + prompt │     │                      │
 └──────────────────────┘     └──────────────────────────┘     └──────────────────────┘
-   (login via Supabase)        (proses berat, no timeout)        (data + identitas)
+   (login opsional)            (proses berat, no timeout)        (data + identitas)
+```
 
  1 = upload ZIP (multipart) + Authorization: Bearer <supabase JWT bila login>
  2 = backend memverifikasi JWT ke Supabase (bila ada); anonim tetap boleh
@@ -265,12 +266,12 @@ Untuk **setiap temuan**, hasilkan **satu prompt mandiri** untuk ditempel ke codi
 ### 9.1 Tech Stack (Konkret)
 
 **Frontend — Vercel**
-- Next.js (App Router) + TypeScript, React 18
-- Tailwind CSS + shadcn/ui + lucide-react
+- React 19 + Vite + TypeScript
+- Tailwind CSS v4 + Semantic Design Tokens (Archivo + IBM Plex Mono)
 - Zustand (state, tanpa persistensi lokal sensitif)
-- react-markdown + remark-gfm + rehype-sanitize (render report aman)
-- `@supabase/supabase-js` (auth UI + ambil JWT)
-- Memanggil backend VPS via HTTPS
+- react-markdown + remark-gfm (render report aman tanpa rehype-raw)
+- Clerk & `@supabase/supabase-js` (auth UI + JWT management)
+- Memanggil backend VPS via HTTPS / mock fallback
 
 **Backend + AI — VPS**
 - Node.js + TypeScript (Fastify atau Express)

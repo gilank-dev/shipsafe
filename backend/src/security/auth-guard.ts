@@ -17,18 +17,33 @@ export interface VerifyJwtResult {
   statusCode?: number;
 }
 
-const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || 'sk_test_UgZSMf9NW14F5Wg5964xUGNP976f0rWFyFKl3kwamR';
-const clerkClient = createClerkClient({ secretKey: CLERK_SECRET_KEY });
+const isProd = process.env.NODE_ENV === 'production';
+const envClerkKey = process.env.CLERK_SECRET_KEY;
+
+if (isProd && !envClerkKey) {
+  console.error('[ShipSafe] CRITICAL: CLERK_SECRET_KEY is not configured in production environment.');
+}
+
+const CLERK_SECRET_KEY = envClerkKey || (isProd ? '' : 'test_clerk_secret_key');
+const clerkClient = createClerkClient({ secretKey: CLERK_SECRET_KEY || 'dummy_test_key' });
 
 // In-memory cache for user email lookups to reduce Clerk API calls
 const userEmailCache = new Map<string, { email: string; timestamp: number }>();
 
 /**
- * Verifies authentication token against Clerk or Supabase Auth.
+ * Verifies authentication token against Clerk or fallback tokens.
  */
-export async function verifySupabaseJwt(token: string): Promise<VerifyJwtResult> {
+export async function verifyClerkJwt(token: string): Promise<VerifyJwtResult> {
   if (!token || typeof token !== 'string') {
     return { valid: false, error: 'Token is missing or empty', statusCode: 401 };
+  }
+
+  if (isProd && !CLERK_SECRET_KEY) {
+    return {
+      valid: false,
+      error: 'Clerk authentication secret key is not configured in production environment',
+      statusCode: 500,
+    };
   }
 
   // Check if token is a Clerk JWT or session token
@@ -153,14 +168,14 @@ export async function verifySupabaseJwt(token: string): Promise<VerifyJwtResult>
 }
 
 /**
- * Express middleware adhering to Requirement 2:
+ * Express middleware:
  * - If no Authorization header: proceeds as anonymous user (req.user = null).
  * - If Authorization header is present:
  *   - Must be `Bearer <JWT>`. Otherwise 401.
- *   - Verifies JWT with Supabase. If invalid, 401. If 503, 503.
+ *   - Verifies JWT with Clerk (or fallback). If invalid, 401. If 503, 503.
  *   - If valid, attaches req.user and proceeds.
  */
-export async function supabaseAuthGuard(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function clerkAuthGuard(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
   // Anonymous request allowed (when auth is optional)
@@ -191,7 +206,7 @@ export async function supabaseAuthGuard(req: AuthRequest, res: Response, next: N
     return;
   }
 
-  const result = await verifySupabaseJwt(token);
+  const result = await verifyClerkJwt(token);
 
   if (!result.valid || !result.user) {
     const status = result.statusCode || 401;
@@ -211,9 +226,9 @@ export async function supabaseAuthGuard(req: AuthRequest, res: Response, next: N
 /**
  * Mandatory Authentication Middleware:
  * Rejects any unauthenticated requests with HTTP 401 Unauthorized.
- * Users must sign in via GitHub or Google to audit code or import repositories.
+ * Users must sign in via Clerk (GitHub/Google) before auditing code or importing repositories.
  */
-export async function requireSupabaseAuth(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function requireClerkAuth(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -234,5 +249,11 @@ export async function requireSupabaseAuth(req: AuthRequest, res: Response, next:
   }
 
   // Delegate to standard token verifier
-  return supabaseAuthGuard(req, res, next);
+  return clerkAuthGuard(req, res, next);
 }
+
+// Backwards compatibility aliases
+export const supabaseAuthGuard = clerkAuthGuard;
+export const requireSupabaseAuth = requireClerkAuth;
+export const verifySupabaseJwt = verifyClerkJwt;
+

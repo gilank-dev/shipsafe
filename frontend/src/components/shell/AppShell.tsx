@@ -119,7 +119,7 @@ export function AppShell({ submission, report }: AppShellProps) {
             id="project-submission"
             aria-labelledby="submission-title"
             tabIndex={-1}
-            className={`w-full min-w-0 max-w-full lg:max-w-none lg:border-r lg:border-rule lg:pr-8 xl:pr-10 lg:sticky lg:top-[calc(var(--rail-h)+0.75rem)] lg:max-h-[calc(100dvh-var(--rail-h)-1.5rem)] lg:overflow-y-auto custom-scrollbar ${
+            className={`w-full min-w-0 max-w-full lg:max-w-none lg:border-r lg:border-rule lg:pr-8 xl:pr-10 pb-16 lg:pb-24 lg:sticky lg:top-[calc(var(--rail-h)+0.75rem)] lg:max-h-[calc(100dvh-var(--rail-h)-1.5rem)] lg:overflow-y-auto overscroll-contain custom-scrollbar ${
               activeMobileTab === 'submission' ? 'block' : 'hidden lg:block'
             }`}
             data-print="hide"
