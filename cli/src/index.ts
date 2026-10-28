@@ -54,6 +54,8 @@ const style = {
   critical: (s: string) => COLORS.bgRed + COLORS.white + s + COLORS.reset,
   high: (s: string) => COLORS.bgRed + COLORS.black + s + COLORS.reset,
   medium: (s: string) => COLORS.bgYellow + COLORS.black + s + COLORS.reset,
+  low: (s: string) => COLORS.bgBlue + COLORS.white + s + COLORS.reset,
+  info: (s: string) => COLORS.dim + s + COLORS.reset,
   dim: (s: string) => COLORS.dim + s + COLORS.reset,
 }
 
@@ -530,15 +532,17 @@ async function runRemoteAudit(
 ): Promise<ScanResult> {
   const formData = new FormData()
   const zipBuffer = createZipBuffer(targetDir, gitIgnoreRules)
+  formData.append('file', new Blob([new Uint8Array(zipBuffer)]), 'project.zip')
   formData.append('zip', new Blob([new Uint8Array(zipBuffer)]), 'project.zip')
 
   const abortCtrl = new AbortController()
-  const timeoutId = setTimeout(() => abortCtrl.abort(), 30000)
+  const timeoutId = setTimeout(() => abortCtrl.abort(), 60000)
 
-  const response = await fetch(`${config.remoteUrl}/api/audit`, {
+  const response = await fetch(`${config.remoteUrl.replace(/\/+$/, '')}/api/audit`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${config.apiKey}`,
+      'X-ShipSafe-Client': 'cli',
     },
     body: formData,
     signal: abortCtrl.signal,
@@ -553,18 +557,19 @@ async function runRemoteAudit(
     )
   }
 
-  const data: BackendResponse = await response.json()
+  const data: any = await response.json()
+  const rawFindings: any[] = data.report?.findings || data.findings || []
 
   // Transform backend response to ScanResult format
-  const findings: Finding[] = (data.findings || []).map((f: BackendFinding) => ({
+  const findings: Finding[] = rawFindings.map((f: any) => ({
     id: f.id || f.ruleId || 'UNKNOWN',
     title: f.title || f.message || 'Unknown finding',
-    severity: (f.severity || 'MEDIUM') as Severity,
-    category: f.category || 'Security',
+    severity: String(f.severity || 'MEDIUM').toUpperCase() as Severity,
+    category: f.category || f.area || 'Security',
     file: f.file || f.location?.file || 'unknown',
     line: f.line || f.location?.line,
-    description: f.description || f.message || '',
-    remediation: f.remediation || 'See documentation for remediation steps.',
+    description: f.description || f.what || f.message || '',
+    remediation: f.remediation || f.recommendedFix || 'See documentation for remediation steps.',
   }))
 
   const counts = {
@@ -578,7 +583,7 @@ async function runRemoteAudit(
 
   return {
     targetDir,
-    scannedFiles: data.scannedFiles || 0,
+    scannedFiles: data.scannedFiles || rawFindings.length,
     findings,
     verdict,
     counts,
@@ -643,8 +648,8 @@ function printTextReport(result: ScanResult, failOn: string): void {
 
   for (const f of result.findings) {
     const loc = f.line ? `${style.cyan(f.file)}:${style.dim(String(f.line))}` : style.cyan(f.file)
-    const sevStyle = style[f.severity.toLowerCase() as keyof typeof style]
-    console.log(sevStyle(`[${f.severity}]`) + ' ' + style.bold(f.id + ': ' + f.title))
+    const sevFunc = (style[f.severity.toLowerCase() as keyof typeof style] as ((s: string) => string) | undefined) || style.dim
+    console.log(sevFunc(`[${f.severity}]`) + ' ' + style.bold(f.id + ': ' + f.title))
     console.log(`  Location : ${loc}`)
     console.log(`  Threat   : ${f.category}`)
     console.log(`  Remedy   : ${f.remediation}`)

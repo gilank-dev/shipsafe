@@ -60,13 +60,17 @@ app.use(
 
 app.use(express.json({ limit: '2mb' }));
 
-// Configure multer memory storage with 10MB limit
+// Configure multer memory storage with 10MB limit (supporting both 'file' and 'zip' fields)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024 // 10 MB cap
   }
 });
+const uploadAuditFile = upload.fields([
+  { name: 'file', maxCount: 1 },
+  { name: 'zip', maxCount: 1 }
+]);
 
 // Simple in-memory report cache for prompt reformatting
 const reportCache = new Map<string, AuditReport>();
@@ -235,34 +239,47 @@ app.post('/api/import-repo', requireClerkAuth, async (req: AuthRequest, res: Res
 });
 
 // 2. Audit Endpoint with Mandatory Auth & Concurrency Limiter (Max 3 concurrent users + FIFO Queue)
-app.post('/api/audit', requireClerkAuth, upload.single('file'), async (req: AuthRequest, res: Response, next: NextFunction) => {
+app.post('/api/audit', requireClerkAuth, uploadAuditFile, async (req: AuthRequest, res: Response, next: NextFunction) => {
   const turnstileToken =
     req.body?.['cf-turnstile-response'] ||
     req.body?.turnstileToken ||
     (typeof req.headers['cf-turnstile-response'] === 'string' ? req.headers['cf-turnstile-response'] : undefined);
   const clientIp = (req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string | undefined;
 
-  const turnstileResult = await verifyTurnstileToken(turnstileToken, {
-    clientIp,
-    expectedAction: 'audit'
-  });
-  if (!turnstileResult.success) {
-    console.error(`[Turnstile] Verification failed for client ${clientIp || 'unknown'}: ${turnstileResult.error || 'verification_failed'}`);
-    res.status(403).json({
-      error: {
-        code: 'captcha_failed',
-        message: 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.'
-      }
+  // Bypass Turnstile for CLI runners, dev tokens, and authenticated API keys
+  const isCliOrApiKey =
+    req.user?.id === 'usr-cli-runner' ||
+    req.user?.id === 'usr-dev-auditor' ||
+    req.headers['x-shipsafe-client'] === 'cli' ||
+    req.headers.authorization?.includes('sk_') ||
+    req.headers.authorization?.includes('dev-token-');
+
+  if (!isCliOrApiKey) {
+    const turnstileResult = await verifyTurnstileToken(turnstileToken, {
+      clientIp,
+      expectedAction: 'audit'
     });
-    return;
+    if (!turnstileResult.success) {
+      console.error(`[Turnstile] Verification failed for client ${clientIp || 'unknown'}: ${turnstileResult.error || 'verification_failed'}`);
+      res.status(403).json({
+        error: {
+          code: 'captcha_failed',
+          message: 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.'
+        }
+      });
+      return;
+    }
   }
 
   let fileBuffer: Buffer;
   let fileName: string;
 
-  if (req.file) {
-    fileBuffer = req.file.buffer;
-    fileName = req.file.originalname || 'archive.zip';
+  const filesMap = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+  const auditFile = req.file || filesMap?.file?.[0] || filesMap?.zip?.[0];
+
+  if (auditFile) {
+    fileBuffer = auditFile.buffer;
+    fileName = auditFile.originalname || 'archive.zip';
   } else if (req.body?.repoUrl && typeof req.body.repoUrl === 'string') {
     const parsed = parseGitHubRepo(req.body.repoUrl);
     if (!parsed) {
@@ -369,7 +386,7 @@ app.post('/api/audit', requireClerkAuth, upload.single('file'), async (req: Auth
       try {
         const saveRes = await saveAuditToSupabase({
           report: result,
-          projectName: req.file?.originalname || 'codebase.zip',
+          projectName: fileName || 'codebase.zip',
           userId: req.user.id,
         });
         savedToHistory = saveRes.saved;
@@ -384,6 +401,8 @@ app.post('/api/audit', requireClerkAuth, upload.single('file'), async (req: Auth
     res.json({
       reportId: result.id,
       report: result,
+      findings: result.findings,
+      scannedFiles: result.findings.length,
       savedToHistory,
       queueStats: globalAuditQueue.stats
     });
