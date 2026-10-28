@@ -71,10 +71,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 {
   "mcpServers": {
     "shipsafe": {
-      "command": "node",
-      "args": [
-        "${typeof window !== 'undefined' ? window.location.origin : 'https://shipsafe.lankdev.my.id'}/mcp/dist/index.js"
-      ]
+      "command": "npx",
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
     }
   }
 }`,
@@ -82,8 +80,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 {
   "mcpServers": {
     "shipsafe": {
-      "command": "node",
-      "args": ["C:/ShipSafe/mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
     }
   }
 }`,
@@ -109,29 +107,36 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#FAFAFA] dark:bg-[#090A0B] text-[#18181B] dark:text-[#F4F4F5] font-sans antialiased selection:bg-[#18181B] selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-200">
+    <div className="relative min-h-[100dvh] bg-white dark:bg-black text-neutral-900 dark:text-neutral-100 font-sans antialiased selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-black">
+      {/* Vercel-Style Subtle Grid Background with Top Radial Mask */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_70%_50%_at_50%_0%,#000_70%,transparent_100%)]"
+        aria-hidden="true"
+      />
+
       {/* 1. TOP NAVIGATION BAR */}
-      <header className="sticky top-0 z-40 border-b border-[#E4E4E7]/80 dark:border-[#27272A]/80 bg-[#FAFAFA]/85 dark:bg-[#090A0B]/85 backdrop-blur-md transition-colors duration-200">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <header className="sticky top-0 z-40 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-white/80 dark:bg-black/80 backdrop-blur-md transition-colors duration-200">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="flex size-7 items-center justify-center rounded-md bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] font-mono text-[11px] font-bold tracking-tight shadow-xs">
+            {/* Minimalist Vercel-Style Monogram / Emblem */}
+            <div className="flex size-6 items-center justify-center rounded-sm bg-black dark:bg-white text-white dark:text-black font-mono text-[10px] font-bold tracking-tight shadow-xs">
               SS
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold tracking-tight text-base text-neutral-900 dark:text-neutral-100">
+              <span className="font-semibold tracking-tight text-sm text-neutral-950 dark:text-white">
                 ShipSafe
               </span>
-              <span className="font-mono text-xs text-neutral-400 dark:text-neutral-500 font-normal">
+              <span className="hidden sm:inline font-mono text-[11px] text-neutral-400 dark:text-neutral-500 font-normal">
                 // CUSTOMS DESK
               </span>
             </div>
           </div>
 
-          <nav className="hidden items-center gap-6 text-sm text-neutral-600 dark:text-neutral-400 font-medium md:flex">
+          <nav className="hidden items-center gap-6 text-xs text-neutral-600 dark:text-neutral-400 font-medium md:flex">
             <button
               type="button"
               onClick={onLaunchConsole}
-              className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
               Console
             </button>
@@ -141,7 +146,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 e.preventDefault()
                 scrollToSection('mcp')
               }}
-              className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
               MCP
             </a>
@@ -151,7 +156,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 e.preventDefault()
                 scrollToSection('cli')
               }}
-              className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
               CLI
             </a>
@@ -161,7 +166,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 e.preventDefault()
                 scrollToSection('threat-matrix')
               }}
-              className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
               10 Vectors
             </a>
@@ -171,23 +176,23 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 e.preventDefault()
                 scrollToSection('faq')
               }}
-              className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
               FAQ
             </a>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="hidden font-mono text-xs text-neutral-600 dark:text-neutral-400 sm:inline truncate max-w-[130px]">
+                <span className="hidden font-mono text-xs text-neutral-600 dark:text-neutral-400 sm:inline truncate max-w-[120px]">
                   {user.email || user.fullName}
                 </span>
                 <button
                   type="button"
                   onClick={() => void handleSignOut()}
-                  className="text-xs px-2.5 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer font-medium"
+                  className="text-xs px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer font-medium"
                 >
                   Keluar
                 </button>
@@ -196,7 +201,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="text-xs px-3 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all cursor-pointer font-medium"
+                className="text-xs px-3 py-1.5 rounded border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer font-medium shadow-2xs"
               >
                 Login / Daftar
               </button>
@@ -204,7 +209,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <button
               type="button"
               onClick={onLaunchConsole}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] px-3.5 py-1.5 text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-black dark:bg-white text-white dark:text-black px-3.5 py-1.5 text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
             >
               <span>Launch Console</span>
               <span aria-hidden="true">&rarr;</span>
@@ -213,30 +218,39 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6">
+      <main className="relative z-10 mx-auto max-w-6xl px-6">
         {/* 2. HERO SECTION */}
-        <section className="pt-20 pb-20 sm:pt-28 sm:pb-24">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.06] max-w-4xl text-neutral-900 dark:text-neutral-50 mb-6">
+        <section className="pt-20 pb-16 sm:pt-28 sm:pb-20">
+          {/* Vercel-Style Eyebrow Tag */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900/70 px-3 py-1 text-xs font-mono text-neutral-600 dark:text-neutral-400 mb-6 backdrop-blur-xs">
+            <span className="flex size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-semibold text-neutral-950 dark:text-white">// PRE-DEPLOYMENT GATEKEEPER</span>
+            <span className="text-neutral-300 dark:text-neutral-700">|</span>
+            <span>Automated AST &amp; Regex Security Barrier</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-[-0.035em] text-neutral-950 dark:text-white leading-[1.02] max-w-4xl mb-6">
             The Customs Desk for <br className="hidden sm:inline" />
             <span className="text-neutral-400 dark:text-neutral-500 font-normal">
               Vibe-Coded Web Apps.
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed mb-10 font-normal">
-            Built for developers prompting at the speed of thought. Catch leaked service keys, unauthenticated API routes, broken RLS, and prompt injection surfaces in <strong>3 seconds</strong> before pushing to production.
+          <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed mb-8 font-normal">
+            Built for developers prompting at the speed of thought. Catch leaked service keys, unauthenticated API routes, broken RLS, and prompt injection surfaces in <strong className="text-neutral-950 dark:text-white font-semibold">3 seconds</strong> before pushing to production.
           </p>
 
-          <div className="flex flex-wrap items-center gap-3 mb-10">
+          <div className="flex flex-wrap items-center gap-3 mb-8">
             <button
               type="button"
               onClick={onLaunchConsole}
-              className="flex items-center gap-2 rounded-md bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] px-4 py-2.5 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md bg-black dark:bg-white text-white dark:text-black px-4 py-2.5 text-xs sm:text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
             >
               <span>Launch Console</span>
-              <kbd className="hidden sm:inline-block px-1.5 py-0.2 rounded border border-neutral-700 dark:border-neutral-300 bg-neutral-800 dark:bg-neutral-100 text-[10px] font-mono text-neutral-300 dark:text-neutral-700">
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded border border-neutral-700 dark:border-neutral-300 bg-neutral-900 dark:bg-neutral-100 text-[10px] font-mono text-neutral-300 dark:text-neutral-700">
                 ⌘K
               </kbd>
+              <span aria-hidden="true">&rarr;</span>
             </button>
             <a
               href="#mcp"
@@ -244,7 +258,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 e.preventDefault()
                 scrollToSection('mcp')
               }}
-              className="flex items-center gap-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-2.5 text-xs sm:text-sm font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all shadow-2xs"
             >
               <span>Explore Ecosystem</span>
               <span aria-hidden="true">&darr;</span>
@@ -253,31 +267,34 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           {/* Quick CLI Copy Strip */}
           <div className="mb-14">
-            <div className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 py-2 font-mono text-xs sm:w-80 shadow-xs">
-              <span className="text-neutral-800 dark:text-neutral-200 truncate">npx @lankdev/shipsafe-cli scan .</span>
+            <div className="flex items-center justify-between rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3.5 py-2 font-mono text-xs w-full max-w-md shadow-2xs">
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-neutral-400 select-none">$</span>
+                <span className="text-neutral-900 dark:text-neutral-100 font-medium truncate">npx @lankdev/shipsafe-cli scan .</span>
+              </div>
               <button
                 type="button"
                 onClick={handleCopyCli}
-                className="ml-2 font-mono text-[10px] font-medium uppercase px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors cursor-pointer"
+                className="ml-3 shrink-0 font-mono text-[10px] font-medium uppercase px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors cursor-pointer text-neutral-700 dark:text-neutral-300"
               >
                 {copiedCli ? 'Copied' : 'Copy'}
               </button>
             </div>
           </div>
 
-          {/* Clean Bento Pillars Grid */}
+          {/* Clean Vercel-Style Bento Pillars Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
             <button
               type="button"
               onClick={onLaunchConsole}
-              className="group rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 text-left cursor-pointer transition-all hover:border-neutral-300 dark:hover:border-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between"
+              className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 text-left cursor-pointer transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between text-xs text-neutral-400 dark:text-neutral-500 font-mono mb-4">
                   <span>PILLAR 01 // CONSOLE</span>
-                  <span className="transition-transform group-hover:translate-x-0.5">&rarr;</span>
+                  <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
                 </div>
-                <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
+                <div className="text-base font-semibold text-neutral-950 dark:text-white tracking-tight mb-2">
                   Launch Web Audit
                 </div>
                 <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -292,13 +309,14 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 e.preventDefault()
                 scrollToSection('mcp')
               }}
-              className="group rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 transition-all hover:border-neutral-300 dark:hover:border-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between"
+              className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-4">
                   <span>PILLAR 02 // MCP</span>
+                  <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
                 </div>
-                <div className="font-semibold text-base text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
+                <div className="font-semibold text-base text-neutral-950 dark:text-white tracking-tight mb-2">
                   Autonomous Agent Bridge
                 </div>
                 <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -313,13 +331,14 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 e.preventDefault()
                 scrollToSection('cli')
               }}
-              className="group rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 transition-all hover:border-neutral-300 dark:hover:border-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between"
+              className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-4">
                   <span>PILLAR 03 // CLI</span>
+                  <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
                 </div>
-                <div className="font-semibold text-base text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
+                <div className="font-semibold text-base text-neutral-950 dark:text-white tracking-tight mb-2">
                   Pre-Commit Gatekeeper
                 </div>
                 <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -329,9 +348,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             </a>
           </div>
 
-          {/* Interactive Inspection Telemetry (Faux-OS Window Chrome) */}
-          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 px-4 py-2.5">
+          {/* Interactive Inspection Telemetry (Vercel-Style Terminal Chrome) */}
+          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-900/60 px-4 py-2.5">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 mr-2">
                   <span className="size-2 rounded-full bg-neutral-300 dark:bg-neutral-700" />
@@ -346,10 +365,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={() => setActiveTab('report')}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                     activeTab === 'report'
-                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
+                      ? 'bg-black text-white dark:bg-white dark:text-black font-semibold'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
                   Inspection Report
@@ -357,10 +376,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={() => setActiveTab('prompt')}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                     activeTab === 'prompt'
-                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
-                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white'
+                      ? 'bg-black text-white dark:bg-white dark:text-black font-semibold'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
                   1-Click Agent Prompt
@@ -368,7 +387,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               </div>
             </div>
 
-            <div className="p-5 font-mono text-xs leading-relaxed overflow-x-auto">
+            <div className="p-5 font-mono text-xs leading-relaxed overflow-x-auto bg-neutral-50/30 dark:bg-black/50">
               {activeTab === 'report' ? (
                 <div className="space-y-2.5 text-neutral-600 dark:text-neutral-400">
                   <div className="text-neutral-500">
@@ -383,21 +402,21 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   <div className="text-amber-600 dark:text-amber-400">
                     [00:02.89] Vector: Prompt Injection Surface - [WARN] Raw unsanitized query passed into OpenAI prompt in <span className="underline">lib/agent.ts:42</span>
                   </div>
-                  <div className="pt-3 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <span className="text-neutral-800 dark:text-neutral-200">
+                  <div className="pt-3 mt-3 border-t border-neutral-200/80 dark:border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="text-neutral-900 dark:text-neutral-100 font-medium">
                       Verdict: 2 critical findings, 1 warning detected
                     </span>
-                    <span className="text-rose-600 dark:text-rose-400 text-xs font-medium">
+                    <span className="text-rose-600 dark:text-rose-400 text-xs font-semibold uppercase tracking-wider">
                       Action Required
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3 bg-neutral-50/70 dark:bg-neutral-900/40 p-4 rounded-lg border border-neutral-100 dark:border-neutral-800">
-                  <div className="text-neutral-500 pb-2 border-b border-neutral-200/60 dark:border-neutral-800">
+                <div className="space-y-3 bg-white dark:bg-neutral-900/60 p-4 rounded-lg border border-neutral-200 dark:border-neutral-800">
+                  <div className="text-neutral-500 pb-2 border-b border-neutral-200/60 dark:border-neutral-800 text-[11px] font-semibold tracking-wider">
                     TAILORED REMEDIATION PROMPT FOR CLAUDE CODE / CURSOR
                   </div>
-                  <pre className="text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap leading-relaxed">
+                  <pre className="text-neutral-900 dark:text-neutral-100 whitespace-pre-wrap leading-relaxed">
 {`Fix critical vulnerability F-001 in \`src/config/stripe.ts\` (line 8):
 1. Remove hardcoded Stripe live key \`sk_live_****\`.
 2. Load secret securely via \`process.env.STRIPE_SECRET_KEY\`.
@@ -416,7 +435,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
               PILLAR 02 // MODEL CONTEXT PROTOCOL
             </div>
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-3">
               Autonomous AI Agent Security Bridge
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-sm sm:text-base">
@@ -425,16 +444,16 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] shadow-xs overflow-hidden">
-              <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 px-4 py-2 font-mono text-xs">
-                <div className="flex items-center gap-1.5">
+            <div className="lg:col-span-7 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs overflow-hidden">
+              <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-900/60 px-4 py-2 font-mono text-xs">
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setMcpTab('cursor')}
                     className={`px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
                       mcpTab === 'cursor'
-                        ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-medium'
-                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                        ? 'bg-black text-white dark:bg-white dark:text-black font-semibold'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                     }`}
                   >
                     Cursor
@@ -444,8 +463,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     onClick={() => setMcpTab('claude')}
                     className={`px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
                       mcpTab === 'claude'
-                        ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-medium'
-                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                        ? 'bg-black text-white dark:bg-white dark:text-black font-semibold'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                     }`}
                   >
                     Claude Desktop
@@ -455,8 +474,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     onClick={() => setMcpTab('windsurf')}
                     className={`px-2.5 py-1 rounded text-xs transition-colors cursor-pointer ${
                       mcpTab === 'windsurf'
-                        ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-medium'
-                        : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                        ? 'bg-black text-white dark:bg-white dark:text-black font-semibold'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                     }`}
                   >
                     Windsurf
@@ -465,46 +484,46 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={() => handleCopyMcp(mcpConfigs[mcpTab])}
-                  className="text-xs px-2.5 py-0.5 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 transition-colors cursor-pointer font-mono"
+                  className="text-xs px-2.5 py-0.5 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors cursor-pointer font-mono"
                 >
                   {copiedMcp ? 'Copied' : 'Copy'}
                 </button>
               </div>
 
-              <div className="p-4 font-mono text-xs overflow-x-auto">
-                <pre className="text-neutral-800 dark:text-neutral-200 leading-relaxed whitespace-pre font-mono">
+              <div className="p-4 font-mono text-xs overflow-x-auto bg-neutral-50/20 dark:bg-black/40">
+                <pre className="text-neutral-900 dark:text-neutral-100 leading-relaxed whitespace-pre font-mono">
                   {mcpConfigs[mcpTab]}
                 </pre>
               </div>
 
-              <div className="border-t border-neutral-100 dark:border-neutral-800/80 px-4 py-2.5 text-xs text-neutral-500">
+              <div className="border-t border-neutral-100 dark:border-neutral-800/80 px-4 py-2.5 text-xs text-neutral-500 font-mono">
                 Paste into your editor config file, restart the agent, and prompt: &quot;audit this repo with ShipSafe&quot;.
               </div>
             </div>
 
-            <div className="lg:col-span-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 flex flex-col justify-between shadow-xs">
+            <div className="lg:col-span-5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 flex flex-col justify-between shadow-xs">
               <div>
                 <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">
                   4 NATIVE MCP TOOLS
                 </div>
-                <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-4 tracking-tight">
+                <h3 className="text-base font-semibold text-neutral-950 dark:text-white mb-4 tracking-tight">
                   Autonomous Tool Definitions
                 </h3>
                 <div className="space-y-2.5 font-mono text-xs">
                   <div className="rounded-lg border border-neutral-100 dark:border-neutral-800 p-2.5 bg-neutral-50/50 dark:bg-neutral-900/40">
-                    <span className="font-medium text-neutral-900 dark:text-neutral-100">1. audit_codebase</span>
+                    <span className="font-semibold text-neutral-900 dark:text-neutral-100">1. audit_codebase</span>
                     <p className="text-neutral-500 font-sans text-xs mt-0.5">Scans local directory path against 10 critical web threat vectors.</p>
                   </div>
                   <div className="rounded-lg border border-neutral-100 dark:border-neutral-800 p-2.5 bg-neutral-50/50 dark:bg-neutral-900/40">
-                    <span className="font-medium text-neutral-900 dark:text-neutral-100">2. get_threat_matrix</span>
+                    <span className="font-semibold text-neutral-900 dark:text-neutral-100">2. get_threat_matrix</span>
                     <p className="text-neutral-500 font-sans text-xs mt-0.5">Returns matrix status (Secure, Warning, Vulnerable) per vector.</p>
                   </div>
                   <div className="rounded-lg border border-neutral-100 dark:border-neutral-800 p-2.5 bg-neutral-50/50 dark:bg-neutral-900/40">
-                    <span className="font-medium text-neutral-900 dark:text-neutral-100">3. get_remediation_prompt</span>
+                    <span className="font-semibold text-neutral-900 dark:text-neutral-100">3. get_remediation_prompt</span>
                     <p className="text-neutral-500 font-sans text-xs mt-0.5">Generates agent-tailored instructions ready to paste or run.</p>
                   </div>
                   <div className="rounded-lg border border-neutral-100 dark:border-neutral-800 p-2.5 bg-neutral-50/50 dark:bg-neutral-900/40">
-                    <span className="font-medium text-neutral-900 dark:text-neutral-100">4. verify_fix</span>
+                    <span className="font-semibold text-neutral-900 dark:text-neutral-100">4. verify_fix</span>
                     <p className="text-neutral-500 font-sans text-xs mt-0.5">Validates if the vulnerability was resolved without regressions.</p>
                   </div>
                 </div>
@@ -523,7 +542,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
               PILLAR 03 // PRE-COMMIT &amp; CI/CD BARRIER
             </div>
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-3">
               ShipSafe Terminal CLI &amp; Git Hook
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-sm sm:text-base">
@@ -533,9 +552,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-6 space-y-4">
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs">
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5 shadow-xs">
                 <div className="font-mono text-xs text-neutral-400 mb-2">QUICKSTART 01: AUDIT CURRENT DIRECTORY</div>
-                <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
+                <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900/80 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
                   <code className="text-neutral-900 dark:text-neutral-100 font-medium">npx @lankdev/shipsafe-cli scan .</code>
                   <button
                     type="button"
@@ -550,9 +569,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs">
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5 shadow-xs">
                 <div className="font-mono text-xs text-neutral-400 mb-2">QUICKSTART 02: ONE-CLICK PRE-COMMIT HOOK</div>
-                <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
+                <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900/80 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
                   <code className="text-neutral-900 dark:text-neutral-100 font-medium">node cli/scripts/install-hook.js --install</code>
                   <button
                     type="button"
@@ -567,7 +586,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-4 font-mono text-xs shadow-xs">
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 font-mono text-xs shadow-xs">
                 <div className="text-neutral-400 mb-2 font-medium">DETERMINISTIC EXIT CODES</div>
                 <div className="text-neutral-600 dark:text-neutral-400 space-y-1">
                   <div className="flex items-center gap-2">
@@ -586,8 +605,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               </div>
             </div>
 
-            <div className="lg:col-span-6 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-4 font-mono text-xs flex flex-col justify-between shadow-xs">
-              <div className="rounded-lg border border-neutral-100 dark:border-neutral-800 bg-[#FAFAFA] dark:bg-neutral-950 p-4 text-neutral-800 dark:text-neutral-200 overflow-x-auto">
+            <div className="lg:col-span-6 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 font-mono text-xs flex flex-col justify-between shadow-xs">
+              <div className="rounded-lg border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50 dark:bg-black p-4 text-neutral-800 dark:text-neutral-200 overflow-x-auto">
                 <pre className="text-[11px] leading-relaxed">
 {`┌──────────────────────────────────────────────────────────────────────────┐
 │ SHIPSAFE SECURITY DOCKET // VERDICT: [APPROVED FOR SHIP]                 │
@@ -601,7 +620,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 ✓ Ready for git commit and production deployment.`}
                 </pre>
               </div>
-              <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 text-neutral-400">
+              <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 text-neutral-400 font-mono text-[11px]">
                 GitHub Action: .github/workflows/shipsafe-gatekeeper.yml
               </div>
             </div>
@@ -614,7 +633,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
               COMPREHENSIVE COVERAGE
             </div>
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-3">
               10 Critical Threat Vectors Audited
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-sm sm:text-base">
@@ -624,34 +643,37 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-12">
             {[
-              { name: 'SQL Injection', desc: 'Raw SQL concatenation & template literal injection in ORM/DB' },
-              { name: 'Cross-Site Scripting (XSS)', desc: 'Unescaped innerHTML, dangerouslySetInnerHTML, document.write' },
-              { name: 'DDoS & ReDoS', desc: 'Missing rate limiters and vulnerable exponential regex loops' },
-              { name: 'Brute Force & Timing', desc: 'Plaintext string password compare without timing-safe equality' },
-              { name: 'Malware & Web Shell', desc: 'Dangerous PHP/Node shell signatures and unvalidated file uploads' },
-              { name: 'MitM & Broken TLS', desc: 'rejectUnauthorized: false, plaintext credentials, missing secure cookies' },
-              { name: 'Phishing & Open Redirect', desc: 'Unvalidated redirect parameters and clickjacking missing X-Frame' },
-              { name: 'Defacement Risks', desc: 'Unauthenticated template or webroot modification vulnerabilities' },
-              { name: 'LFI / RFI & SSRF', desc: 'Path traversal in fs.readFile and unvalidated fetch(req.query.url)' },
-              { name: 'Zero-Day Dynamic Exec', desc: 'eval(), new Function(), prototype pollution, execSync calls' },
+              { id: '01', name: 'SQL Injection', desc: 'Raw SQL concatenation & template literal injection in ORM/DB' },
+              { id: '02', name: 'Cross-Site Scripting (XSS)', desc: 'Unescaped innerHTML, dangerouslySetInnerHTML, document.write' },
+              { id: '03', name: 'DDoS & ReDoS', desc: 'Missing rate limiters and vulnerable exponential regex loops' },
+              { id: '04', name: 'Brute Force & Timing', desc: 'Plaintext string password compare without timing-safe equality' },
+              { id: '05', name: 'Malware & Web Shell', desc: 'Dangerous PHP/Node shell signatures and unvalidated file uploads' },
+              { id: '06', name: 'MitM & Broken TLS', desc: 'rejectUnauthorized: false, plaintext credentials, missing secure cookies' },
+              { id: '07', name: 'Phishing & Open Redirect', desc: 'Unvalidated redirect parameters and clickjacking missing X-Frame' },
+              { id: '08', name: 'Defacement Risks', desc: 'Unauthenticated template or webroot modification vulnerabilities' },
+              { id: '09', name: 'LFI / RFI & SSRF', desc: 'Path traversal in fs.readFile and unvalidated fetch(req.query.url)' },
+              { id: '10', name: 'Zero-Day Dynamic Exec', desc: 'eval(), new Function(), prototype pollution, execSync calls' },
             ].map((v) => (
               <div
                 key={v.name}
-                className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-4 flex flex-col justify-between transition-colors shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700"
+                className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 flex flex-col justify-between transition-colors shadow-2xs hover:border-neutral-400 dark:hover:border-neutral-700"
               >
                 <div>
-                  <div className="font-medium text-sm text-neutral-900 dark:text-neutral-100 mb-1.5 leading-snug">
+                  <div className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 mb-1">
+                    VECTOR {v.id}
+                  </div>
+                  <div className="font-semibold text-sm text-neutral-950 dark:text-white mb-1.5 leading-snug">
                     {v.name}
                   </div>
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{v.desc}</div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed font-normal">{v.desc}</div>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 shadow-xs">
-              <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 shadow-xs">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 text-neutral-950 dark:text-white tracking-tight">
                 Ephemeral Sandbox Processing
               </h3>
               <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -659,8 +681,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               </p>
             </div>
 
-            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 shadow-xs">
-              <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 shadow-xs">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 text-neutral-950 dark:text-white tracking-tight">
                 Multi-Agent Prompt Formatter
               </h3>
               <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -672,17 +694,17 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
         {/* 6. RADICAL TRANSPARENCY & BOUNDARIES */}
         <section id="limitations" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
-          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 sm:p-10 shadow-xs">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-3 text-neutral-900 dark:text-neutral-100">
-              What ShipSafe Does Not Do
+          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-8 sm:p-10 shadow-xs">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3 text-neutral-950 dark:text-white">
+              WHAT SHIPSAFE DOES NOT DO
             </h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl mb-8 leading-relaxed font-normal">
               We believe in honest developer tooling without misleading security marketing. Please note the deliberate engineering boundaries:
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
+              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/80 dark:bg-neutral-900/40 p-5">
+                <div className="font-semibold text-sm mb-1.5 text-neutral-950 dark:text-white tracking-tight">
                   10MB Archive Upper Limit
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -690,8 +712,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
+              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/80 dark:bg-neutral-900/40 p-5">
+                <div className="font-semibold text-sm mb-1.5 text-neutral-950 dark:text-white tracking-tight">
                   Purely Static AST Analysis
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -699,8 +721,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
+              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/80 dark:bg-neutral-900/40 p-5">
+                <div className="font-semibold text-sm mb-1.5 text-neutral-950 dark:text-white tracking-tight">
                   Not a Human Pentest Replacement
                 </div>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
@@ -713,9 +735,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
         {/* 7. DIRECT DEVELOPER ASSISTANCE */}
         <section id="developer-support" className="py-16 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
-          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xs">
+          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xs">
             <div>
-              <h3 className="text-xl sm:text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 text-neutral-950 dark:text-white tracking-tight">
                 Need Custom Audit Rules or Dedicated Guidance?
               </h3>
               <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed font-normal">
@@ -728,7 +750,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 href="https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] text-xs font-medium px-4 py-2.5 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all inline-flex items-center gap-2 shadow-xs active:scale-98"
+                className="rounded-md bg-black dark:bg-white text-white dark:text-black text-xs font-medium px-4 py-2.5 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all inline-flex items-center gap-2 shadow-xs active:scale-98"
               >
                 <svg className="size-4 fill-current" viewBox="0 0 24 24">
                   <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.761.884 2.796.885h.005c3.179 0 5.767-2.587 5.768-5.766 0-3.18-2.588-5.769-5.773-5.772zm3.374 8.211c-.147.418-.749.775-1.042.825-.294.05-.67.07-1.085-.064-.265-.086-.607-.207-1.053-.401-1.895-.824-3.128-2.739-3.223-2.865-.094-.125-.769-1.023-.769-1.95 0-.927.487-1.383.66-1.573.174-.189.38-.237.507-.237.127 0 .253.002.364.007.118.005.276-.045.432.329.162.391.554 1.349.602 1.448.048.099.08.214.016.34-.063.125-.095.203-.189.314-.095.111-.2.247-.286.332-.095.095-.195.198-.084.388.111.19.493.813 1.057 1.316.726.647 1.339.848 1.53.943.19.095.302.079.414-.048.111-.126.475-.554.602-.744.126-.19.253-.158.428-.095.174.064 1.109.523 1.3.618.19.095.317.143.364.222.048.079.048.459-.099.877z" />
@@ -739,7 +761,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 href="https://t.me/gilankdev"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 text-xs font-medium px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all inline-flex items-center gap-2 shadow-xs active:scale-98"
+                className="rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 text-xs font-medium px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all inline-flex items-center gap-2 shadow-2xs active:scale-98"
               >
                 <svg className="size-4 fill-current" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
@@ -756,12 +778,12 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
               DOCUMENTATION &amp; ANSWERS
             </div>
-            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-3">
               Frequently Asked Questions
             </h2>
           </div>
 
-          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          <div className="divide-y divide-neutral-200 dark:divide-neutral-800 border-y border-neutral-200 dark:border-neutral-800">
             {[
               {
                 q: 'How does ShipSafe differ from legacy scanners like Snyk or SonarQube?',
@@ -788,7 +810,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={() => toggleFaq(idx)}
-                  className="flex w-full items-center justify-between text-left font-medium text-sm sm:text-base text-neutral-900 dark:text-neutral-100 cursor-pointer transition-colors hover:text-neutral-600 dark:hover:text-neutral-300"
+                  className="flex w-full items-center justify-between text-left font-medium text-sm sm:text-base text-neutral-950 dark:text-white cursor-pointer transition-colors hover:text-neutral-600 dark:hover:text-neutral-300"
                 >
                   <span>{item.q}</span>
                   <span className="font-mono text-xs text-neutral-400 ml-4 shrink-0">
@@ -805,22 +827,28 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
         </section>
 
-        {/* 9. MINIMAL TECHNICAL FOOTER */}
+        {/* 9. MINIMAL VERCEL-STYLE TECHNICAL FOOTER */}
         <footer className="py-12 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500 font-mono">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
             <div>
-              <div className="font-semibold text-neutral-800 dark:text-neutral-200 text-xs mb-1">
-                SHIPSAFE SECURITY GATEWAY
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="flex size-1.5 rounded-full bg-emerald-500" />
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs">
+                  SHIPSAFE SECURITY GATEWAY
+                </span>
+                <span className="text-[10px] rounded px-1.5 py-0.2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-500">
+                  ALL SYSTEMS OPERATIONAL
+                </span>
               </div>
-              <div className="text-neutral-400 font-sans text-xs">
+              <div className="text-neutral-500 font-sans text-xs">
                 Pre-Deployment Security Gatekeeper for Web Applications &amp; Vibe-Coded Projects.
               </div>
             </div>
-            <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-4 text-xs font-mono">
               <button
                 type="button"
                 onClick={onLaunchConsole}
-                className="text-neutral-800 dark:text-neutral-200 hover:underline cursor-pointer"
+                className="text-neutral-900 dark:text-neutral-100 hover:underline cursor-pointer"
               >
                 [ENTER CONSOLE &rarr;]
               </button>
@@ -828,14 +856,14 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 href="https://github.com/gilank-dev/shipsafe"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-neutral-800 dark:hover:text-neutral-200 hover:underline"
+                className="hover:text-neutral-900 dark:hover:text-neutral-100 hover:underline"
               >
                 GITHUB REPO
               </a>
             </div>
           </div>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] text-neutral-400">
+          <div className="pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] text-neutral-400 border-t border-neutral-100 dark:border-neutral-900">
             <div>
               GDPR ZERO-PERSISTENCE COMPLIANT &bull; WCAG 2.1 AA ACCESSIBLE &bull; NO CODE RETENTION
             </div>
