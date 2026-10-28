@@ -624,11 +624,11 @@ EXAMPLES:
     // Determine exit code based on threshold
     const thresholdWeight = SEVERITY_WEIGHT[failOn.toUpperCase()] || 3;
     const hasFailingViolation = result.findings.some((f) => SEVERITY_WEIGHT[f.severity] >= thresholdWeight);
-    if (hasFailingViolation) {
-        process.exit(1);
-    }
-    else {
-        process.exit(0);
+    const exitCode = hasFailingViolation ? 1 : 0;
+    process.exitCode = exitCode;
+    // In test environment, call process.exit so test mocks capture the code
+    if (process.env.NODE_ENV === 'test') {
+        process.exit(exitCode);
     }
 }
 // Entry point when running `node dist/index.js` directly
