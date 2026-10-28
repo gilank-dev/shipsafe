@@ -9,7 +9,7 @@ describe('LandingPage', () => {
 
     const brandingElements = screen.getAllByText(/ShipSafe/i)
     expect(brandingElements.length).toBeGreaterThan(0)
-    expect(screen.getByText(/\/\/ SECURITY GATEKEEPER/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Security Gatekeeper/i).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/The Pre-Deployment Security Gatekeeper for/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/Vibe-Coded Web Apps/i)).toBeInTheDocument()
 
@@ -86,6 +86,39 @@ describe('LandingPage', () => {
     expect(screen.getByText(/ShipSafe Terminal CLI & Git Hook/i)).toBeInTheDocument()
     expect(screen.getAllByText(/audit_codebase/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/node cli\/scripts\/install-hook.js --install/i)).toBeInTheDocument()
+  })
+
+  it('supports 6 agent harnesses and prompt tab switching', () => {
+    render(<LandingPage onLaunchConsole={vi.fn()} />)
+
+    // Verify all 6 harness tabs + Prompt AI Agent tab
+    expect(screen.getByRole('button', { name: /Cursor/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Claude Desktop/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Antigravity/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /OpenAI Codex/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Windsurf/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /GitHub Copilot/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Prompt AI Agent/i })).toBeInTheDocument()
+
+    // Switch to Antigravity
+    fireEvent.click(screen.getByRole('button', { name: /Antigravity/i }))
+    expect(screen.getByText(/mcp_config\.json/i)).toBeInTheDocument()
+    expect(screen.getByText(/agy mcp add shipsafe/i)).toBeInTheDocument()
+
+    // Switch to OpenAI Codex
+    fireEvent.click(screen.getByRole('button', { name: /OpenAI Codex/i }))
+    expect(screen.getByText(/config\.json/i)).toBeInTheDocument()
+    expect(screen.getByText(/codex mcp add shipsafe/i)).toBeInTheDocument()
+
+    // Switch to GitHub Copilot
+    fireEvent.click(screen.getByRole('button', { name: /GitHub Copilot/i }))
+    expect(screen.getByText(/mcp\.json/i)).toBeInTheDocument()
+
+    // Switch to Prompt AI Agent
+    fireEvent.click(screen.getByRole('button', { name: /Prompt AI Agent/i }))
+    expect(screen.getByText(/One-Click Prompt for Coding Agents/i)).toBeInTheDocument()
+    expect(screen.getByText(/Install and configure the ShipSafe security auditor MCP server/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Copy Prompt/i })).toBeInTheDocument()
   })
 
   it('renders How It Works, Comparison Matrix, and Transparent Pricing sections', () => {

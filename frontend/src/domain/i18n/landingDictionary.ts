@@ -200,7 +200,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
   en: {
     nav: {
       brandName: 'ShipSafe',
-      tagline: '// SECURITY GATEKEEPER',
+      tagline: 'Security Gatekeeper',
       console: 'Console',
       howItWorks: 'How It Works',
       comparison: 'Comparison',
@@ -214,7 +214,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       launchConsole: 'Launch Console',
     },
     hero: {
-      eyebrowBadge: '// PRE-DEPLOYMENT GATEKEEPER',
+      eyebrowBadge: 'Pre-Deployment Security Gatekeeper',
       eyebrowSub: 'Automated AST & Regex Security Barrier',
       headlineMain: 'The Pre-Deployment Security Gatekeeper for',
       headlineHighlight: 'Vibe-Coded Web Apps.',
@@ -256,21 +256,21 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     bentoPillars: {
       pillars: [
         {
-          pillarId: 'PILLAR 01 // CONSOLE',
+          pillarId: 'Pillar 01: Web Console',
           title: 'Instant Web Audit',
           description:
             'Upload a ZIP archive or link a GitHub repository for a 3-second AST analysis and an authoritative security clearance verdict.',
           actionLabel: 'Launch Console',
         },
         {
-          pillarId: 'PILLAR 02 // MCP',
+          pillarId: 'Pillar 02: Model Context Protocol',
           title: 'Autonomous Agent Bridge',
           description:
             'Connect Cursor, Claude Desktop, Windsurf, and Hermes via native stdio JSON-RPC 2.0 tools for self-healing codebases.',
           actionLabel: 'Explore MCP',
         },
         {
-          pillarId: 'PILLAR 03 // CLI',
+          pillarId: 'Pillar 03: Terminal CLI & Git Hook',
           title: 'Pre-Commit Gatekeeper',
           description:
             'Audit locally with zero dependencies or install a 1-click git hook that blocks vulnerable commits before code leaves your machine.',
@@ -279,16 +279,16 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       ],
     },
     telemetry: {
-      windowTitle: 'telemetry // repo-vibe-saas.bundle.zip (4.8MB)',
+      windowTitle: 'Telemetry: repo-vibe-saas.bundle.zip (4.8MB)',
       reportTab: 'Inspection Report',
       promptTab: '1-Click Agent Prompt',
-      astScanStatus: '[00:01.04] AST parsing 42 source files... OK (0.8s)',
+      astScanStatus: '[00:01.04] AST parsing 42 source files: OK (0.8s)',
       findingSecrets:
-        '[00:01.88] Vector: Secrets Scan - [FAIL] Stripe live key exposed in src/config/stripe.ts:8',
+        '[00:01.88] Vector Secrets Scan: [FAIL] Stripe live key exposed in src/config/stripe.ts:8',
       findingAccessControl:
-        '[00:02.12] Vector: Broken Access Control - [FAIL] Public endpoint lacks session RLS guard in app/api/invoices/[id]/route.ts:19',
+        '[00:02.12] Vector Broken Access Control: [FAIL] Public endpoint lacks session RLS guard in app/api/invoices/[id]/route.ts:19',
       findingPromptInjection:
-        '[00:02.89] Vector: Prompt Injection Surface - [WARN] Raw unsanitized query passed into OpenAI prompt in lib/agent.ts:42',
+        '[00:02.89] Vector Prompt Injection Surface: [WARN] Raw unsanitized query passed into OpenAI prompt in lib/agent.ts:42',
       verdictSummary: 'Verdict: 2 critical findings, 1 warning detected',
       verdictBadge: 'Action Required',
       promptTitle: 'TAILORED REMEDIATION PROMPT FOR CLAUDE CODE / CURSOR',
@@ -547,7 +547,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         'Connect directly with the creator of ShipSafe. Get hands-on guidance on custom AST rulesets, CI/CD pipeline automation, or auditing bespoke fullstack architectures.',
       whatsappButton: 'Talk on WhatsApp',
       telegramButton: 'Talk on Telegram',
-      statusBadge: '● ADMIN ONLINE // AVERAGE RESPONSE < 15 MINUTES',
+      statusBadge: 'Admin Online: Average response under 15 minutes',
     },
     faq: {
       eyebrow: 'DOCUMENTATION & ANSWERS',
@@ -599,7 +599,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
   id: {
     nav: {
       brandName: 'ShipSafe',
-      tagline: '// GERBANG KEAMANAN KODE',
+      tagline: 'Gerbang Keamanan Kode',
       console: 'Konsol Web',
       howItWorks: 'Cara Kerja',
       comparison: 'Perbandingan',
@@ -613,7 +613,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       launchConsole: 'Buka Konsol',
     },
     hero: {
-      eyebrowBadge: '// GERBANG KEAMANAN PRA-DEPLOY',
+      eyebrowBadge: 'Gerbang Keamanan Pra-Deploy',
       eyebrowSub: 'Barikade Keamanan AST & Regex Otomatis',
       headlineMain: 'Gerbang Keamanan Pra-Deploy untuk',
       headlineHighlight: 'Aplikasi Web Vibe-Coding.',
@@ -655,21 +655,21 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     bentoPillars: {
       pillars: [
         {
-          pillarId: 'PILAR 01 // KONSOL WEB',
+          pillarId: 'Pilar 01: Konsol Web',
           title: 'Audit Web Seketika',
           description:
             'Unggah arsip ZIP atau masukkan tautan repositori GitHub untuk analisis AST 3 detik di memori dengan stempel kelayakan keamanan resmi.',
           actionLabel: 'Buka Konsol',
         },
         {
-          pillarId: 'PILAR 02 // SERVER MCP',
+          pillarId: 'Pilar 02: Server MCP',
           title: 'Jembatan AI Agent Otonom',
           description:
             'Hubungkan Cursor, Claude Desktop, Windsurf, dan Hermes melalui tool standar stdio JSON-RPC 2.0 untuk perbaikan kode mandiri.',
           actionLabel: 'Pelajari MCP',
         },
         {
-          pillarId: 'PILAR 03 // CLI TERMINAL',
+          pillarId: 'Pilar 03: CLI Terminal & Git Hook',
           title: 'Penjaga Pre-Commit Lokal',
           description:
             'Audit kode secara lokal tanpa dependensi atau pasang git hook 1-klik yang memblokir commit berbahaya sebelum keluar dari laptop.',
@@ -678,16 +678,16 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       ],
     },
     telemetry: {
-      windowTitle: 'telemetri // repo-vibe-saas.bundle.zip (4.8MB)',
+      windowTitle: 'Telemetri: repo-vibe-saas.bundle.zip (4.8MB)',
       reportTab: 'Laporan Inspeksi',
       promptTab: 'Prompt Remediasi AI',
-      astScanStatus: '[00:01.04] Parsing AST 42 berkas kode sumber... OK (0.8s)',
+      astScanStatus: '[00:01.04] Parsing AST 42 berkas kode sumber: OK (0.8s)',
       findingSecrets:
-        '[00:01.88] Vektor: Pemindaian Kunci Rahasia - [GAGAL] Live key Stripe terekspos di src/config/stripe.ts:8',
+        '[00:01.88] Vektor Pemindaian Kunci Rahasia: [GAGAL] Live key Stripe terekspos di src/config/stripe.ts:8',
       findingAccessControl:
-        '[00:02.12] Vektor: Kontrol Akses Terbuka - [GAGAL] Endpoint publik tanpa proteksi sesi RLS di app/api/invoices/[id]/route.ts:19',
+        '[00:02.12] Vektor Kontrol Akses Terbuka: [GAGAL] Endpoint publik tanpa proteksi sesi RLS di app/api/invoices/[id]/route.ts:19',
       findingPromptInjection:
-        '[00:02.89] Vektor: Celah Prompt Injection - [PERINGATAN] Kueri pengguna tanpa sanitasi masuk ke prompt OpenAI di lib/agent.ts:42',
+        '[00:02.89] Vektor Celah Prompt Injection: [PERINGATAN] Kueri pengguna tanpa sanitasi masuk ke prompt OpenAI di lib/agent.ts:42',
       verdictSummary: 'Keputusan: 2 temuan kritis, 1 peringatan terdeteksi',
       verdictBadge: 'Tindakan Diperlukan',
       promptTitle: 'PROMPT REMEDIASI KHUSUS UNTUK CLAUDE CODE / CURSOR',
@@ -946,7 +946,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         'Terhubung langsung dengan kreator inti ShipSafe. Dapatkan panduan integrasi aturan AST khusus, otomatisasi pipeline CI/CD, atau audit arsitektur fullstack spesifik.',
       whatsappButton: 'Konsultasi via WhatsApp',
       telegramButton: 'Diskusi via Telegram',
-      statusBadge: '● PENGEMBANG ONLINE // RATA-RATA RESPON < 15 MENIT',
+      statusBadge: 'Pengembang Online: Rata-rata respon di bawah 15 menit',
     },
     faq: {
       eyebrow: 'DOKUMENTASI & JAWABAN',

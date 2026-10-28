@@ -11,7 +11,8 @@ export function EcosystemModal() {
   const [copiedCli, setCopiedCli] = useState(false)
   const [copiedMcp, setCopiedMcp] = useState(false)
   const [copiedHook, setCopiedHook] = useState(false)
-  const [mcpClient, setMcpClient] = useState<'cursor' | 'claude' | 'windsurf'>('cursor')
+  type McpClient = 'cursor' | 'claude' | 'antigravity' | 'codex' | 'windsurf' | 'copilot' | 'prompt'
+  const [mcpClient, setMcpClient] = useState<McpClient>('cursor')
 
   if (!isOpen) return null
 
@@ -27,29 +28,20 @@ export function EcosystemModal() {
     setTimeout(() => setCopiedHook(false), 2000)
   }
 
-  const mcpConfigs = {
-    cursor: `// .cursor/mcp.json
-{
-  "mcpServers": {
-    "shipsafe": {
-      "command": "node",
-      "args": [
-        "${typeof window !== 'undefined' ? window.location.origin : 'https://shipsafe.lankdev.my.id'}/mcp/dist/index.js"
-      ]
+  const mcpConfigs: Record<
+    McpClient,
+    {
+      name: string
+      targetPath: string
+      cliCommand?: string
+      snippet: string
+      isPrompt?: boolean
     }
-  }
-}`,
-    claude: `// claude_desktop_config.json
-{
-  "mcpServers": {
-    "shipsafe": {
-      "command": "node",
-      "args": ["C:/ShipSafe/mcp/dist/index.js"]
-    }
-  }
-}`,
-    windsurf: `// ~/.codeium/windsurf/mcp_config.json
-{
+  > = {
+    cursor: {
+      name: 'Cursor',
+      targetPath: '.cursor/mcp.json',
+      snippet: `{
   "mcpServers": {
     "shipsafe": {
       "command": "npx",
@@ -57,10 +49,86 @@ export function EcosystemModal() {
     }
   }
 }`,
+    },
+    claude: {
+      name: 'Claude Desktop',
+      targetPath: 'claude_desktop_config.json',
+      cliCommand: 'claude mcp add shipsafe npx -y @lankdev/shipsafe-mcp',
+      snippet: `{
+  "mcpServers": {
+    "shipsafe": {
+      "command": "npx",
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
+    }
+  }
+}`,
+    },
+    antigravity: {
+      name: 'Antigravity (agy)',
+      targetPath: '~/.gemini/antigravity/mcp_config.json',
+      cliCommand: 'agy mcp add shipsafe -- npx -y @lankdev/shipsafe-mcp',
+      snippet: `{
+  "mcpServers": {
+    "shipsafe": {
+      "command": "npx",
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
+    }
+  }
+}`,
+    },
+    codex: {
+      name: 'OpenAI Codex',
+      targetPath: '~/.codex/config.json',
+      cliCommand: 'codex mcp add shipsafe -- npx -y @lankdev/shipsafe-mcp',
+      snippet: `{
+  "mcpServers": {
+    "shipsafe": {
+      "command": "npx",
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
+    }
+  }
+}`,
+    },
+    windsurf: {
+      name: 'Windsurf',
+      targetPath: '~/.codeium/windsurf/mcp_config.json',
+      snippet: `{
+  "mcpServers": {
+    "shipsafe": {
+      "command": "npx",
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
+    }
+  }
+}`,
+    },
+    copilot: {
+      name: 'GitHub Copilot',
+      targetPath: '.vscode/mcp.json',
+      snippet: `{
+  "mcpServers": {
+    "shipsafe": {
+      "command": "npx",
+      "args": ["-y", "@lankdev/shipsafe-mcp"]
+    }
+  }
+}`,
+    },
+    prompt: {
+      name: 'Prompt AI Agent',
+      targetPath: 'One-Click Prompt for Coding Agents',
+      isPrompt: true,
+      snippet: `Install and configure the ShipSafe security auditor MCP server in this workspace so you can audit vulnerabilities before deployment.
+
+MCP Server Configuration:
+Command: npx -y @lankdev/shipsafe-mcp
+Protocol: Stdio JSON-RPC 2.0
+
+Once registered, run the \`audit_codebase\` tool across the project root, evaluate findings against the 10 threat vectors, and generate verified remediation patches before deployment.`,
+    },
   }
 
   const handleCopyMcp = () => {
-    void navigator.clipboard.writeText(mcpConfigs[mcpClient])
+    void navigator.clipboard.writeText(mcpConfigs[mcpClient].snippet)
     setCopiedMcp(true)
     setTimeout(() => setCopiedMcp(false), 2000)
   }
@@ -122,40 +190,60 @@ export function EcosystemModal() {
           </div>
 
           <div className="border border-rule bg-raised rounded-sm overflow-hidden">
-            <div className="flex items-center justify-between border-b border-rule bg-surface px-3 py-2 font-mono text-caption">
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setMcpClient('cursor')}
-                  className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer ${mcpClient === 'cursor' ? 'border-ink bg-ink text-canvas' : 'border-rule hover:border-ink'}`}
-                >
-                  Cursor
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMcpClient('claude')}
-                  className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer ${mcpClient === 'claude' ? 'border-ink bg-ink text-canvas' : 'border-rule hover:border-ink'}`}
-                >
-                  Claude Desktop
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMcpClient('windsurf')}
-                  className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer ${mcpClient === 'windsurf' ? 'border-ink bg-ink text-canvas' : 'border-rule hover:border-ink'}`}
-                >
-                  Windsurf / Hermes
-                </button>
+            <div className="flex items-center justify-between border-b border-rule bg-surface px-3 py-2 font-mono text-caption gap-2">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                {(Object.keys(mcpConfigs) as McpClient[]).map((key) => {
+                  const cfg = mcpConfigs[key]
+                  const isActive = mcpClient === key
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setMcpClient(key)}
+                      className={`px-2 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer whitespace-nowrap shrink-0 ${
+                        isActive
+                          ? cfg.isPrompt
+                            ? 'border-emerald-600 bg-emerald-600 text-white'
+                            : 'border-ink bg-ink text-canvas'
+                          : cfg.isPrompt
+                            ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500'
+                            : 'border-rule hover:border-ink'
+                      }`}
+                    >
+                      {cfg.isPrompt ? '✦ ' + cfg.name : cfg.name}
+                    </button>
+                  )
+                })}
               </div>
               <button
                 type="button"
                 onClick={handleCopyMcp}
-                className="font-bold uppercase px-2 py-1 text-[11px] bg-surface border border-rule hover:border-ink cursor-pointer active:scale-95"
+                className="font-bold uppercase px-2.5 py-1 text-[11px] bg-surface border border-rule hover:border-ink cursor-pointer active:scale-95 shrink-0"
               >
-                {copiedMcp ? '✓ COPIED' : 'COPY CONFIG'}
+                {copiedMcp ? '✓ COPIED' : mcpConfigs[mcpClient].isPrompt ? 'COPY PROMPT' : 'COPY CONFIG'}
               </button>
             </div>
+            <div className="px-3 py-1.5 border-b border-rule bg-canvas/40 font-mono text-[11px] flex items-center justify-between gap-2 text-ink-3">
+              <div className="truncate">
+                <span>Target: </span>
+                <span className="font-semibold text-ink truncate">{mcpConfigs[mcpClient].targetPath}</span>
+              </div>
+              {mcpConfigs[mcpClient].cliCommand && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(mcpConfigs[mcpClient].cliCommand!)
+                    setCopiedMcp(true)
+                    setTimeout(() => setCopiedMcp(false), 2000)
+                  }}
+                  className="hidden sm:inline-block text-[10px] bg-surface px-1.5 py-0.5 border border-rule hover:border-ink cursor-pointer text-ink-2"
+                >
+                  CLI: <code className="text-ink">{mcpConfigs[mcpClient].cliCommand}</code>
+                </button>
+              )}
+            </div>
             <pre className="p-3 text-caption font-mono text-ink overflow-x-auto leading-relaxed bg-raised">
-              {mcpConfigs[mcpClient]}
+              {mcpConfigs[mcpClient].snippet}
             </pre>
           </div>
 

@@ -4,7 +4,7 @@ export const idContent: LandingContentSchema = {
   nav: {
     brand: {
       name: 'ShipSafe',
-      desk: '// GERBANG KEAMANAN KODE',
+      desk: 'Gerbang Keamanan Kode',
       versionBadge: 'v2.4-STABIL',
       monogram: 'SS',
     },
@@ -40,7 +40,7 @@ export const idContent: LandingContentSchema = {
 
   hero: {
     eyebrow: {
-      tag: '// PENGAWAS PRA-DEPLOYMENT',
+      tag: 'Gerbang Keamanan Pra-Deploy',
       separator: '|',
       subtitle: 'Palang Pintu Keamanan Otomatis Berbasis AST & Regex',
     },
@@ -73,21 +73,21 @@ export const idContent: LandingContentSchema = {
         'Lakukan audit instan di peramban, pasang palang pintu otomatis di terminal lokal, atau biarkan agen AI menambal celah secara mandiri melalui MCP.',
     },
     console: {
-      tag: 'PILLAR 01 // KONSOL WEB',
+      tag: 'Pilar 01: Konsol Web',
       title: 'Konsol Web Audit',
       description:
         'Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan stempel kelayakan keamanan resmi langsung di peramban Anda.',
       action: 'Buka Konsol Web ->',
     },
     mcp: {
-      tag: 'PILLAR 02 // MCP',
+      tag: 'Pilar 02: Server MCP',
       title: 'Jembatan Agen AI Otonom',
       description:
         'Hubungkan ShipSafe langsung ke Cursor, Claude Desktop, Windsurf, OpenCode, dan Hermes melalui protokol standar stdio JSON-RPC 2.0. Biarkan agen AI mengaudit dan menambal celah secara mandiri.',
       action: 'Pelajari Konfigurasi MCP ->',
     },
     cli: {
-      tag: 'PILLAR 03 // CLI',
+      tag: 'Pillar 03: CLI Terminal & Git Hook',
       title: 'Palang Pintu Pre-Commit & CI',
       description:
         'Audit kode secara lokal dalam hitungan milidetik atau pasang git hook 1-klik yang memblokir commit berbahaya. Menghasilkan telemetri SARIF 2.1.0 standar OASIS untuk integrasi native GitHub Code Scanning.',
@@ -97,7 +97,7 @@ export const idContent: LandingContentSchema = {
 
   telemetry: {
     window: {
-      title: 'telemetri // repo-vibe-saas.bundle.zip (4.8MB)',
+      title: 'Telemetri: repo-vibe-saas.bundle.zip (4.8MB)',
       statusActive: 'PEMINDAIAN AKTIF',
       dotsAria: 'Kontrol jendela terminal',
     },
@@ -407,7 +407,7 @@ export const idContent: LandingContentSchema = {
     title: 'Butuh Aturan Audit Kustom atau Konsultasi Langsung?',
     subtitle:
       'Terhubung langsung dengan kreator dan tim inti ShipSafe. Dapatkan bantuan untuk merancang aturan regex kustom, mengonfigurasi pipeline CI/CD, atau mengaudit arsitektur sistem khusus.',
-    badge: '● ADMIN AKTIF // RATA-RATA RESPON < 15 MENIT',
+    badge: 'Admin Online: Respon di bawah 15 menit',
     whatsapp: {
       label: 'Konsultasi via WhatsApp',
       url: 'https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya',
