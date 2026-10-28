@@ -12,9 +12,27 @@ import { onAuthStateChange } from './lib/supabase'
 import { useStore } from './state/store'
 import { Analytics } from '@vercel/analytics/react'
 
+const normalizePath = (rawPath: string): string => {
+  let p = rawPath.split('?')[0] || '/'
+  while (p.length > 1 && p.endsWith('/')) {
+    p = p.slice(0, -1)
+  }
+  p = p.toLowerCase()
+  if (p === '/index.html' || p === '') {
+    return '/'
+  }
+  return p
+}
+
 export default function App() {
   const setAuthUser = useStore((s) => s.setAuthUser)
-  const [currentPath, setCurrentPath] = useState(() => (typeof window !== 'undefined' ? window.location.pathname : '/'))
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window === 'undefined') return '/'
+    const hash = window.location.hash
+    if (hash === '#/console' || hash === '#console') return '/console'
+    if (hash === '#/landing' || hash === '#landing') return '/'
+    return normalizePath(window.location.pathname)
+  })
 
   // Listen for browser navigation
   useEffect(() => {
@@ -22,10 +40,23 @@ export default function App() {
       ;(window as unknown as { __STORE__: typeof useStore }).__STORE__ = useStore
     }
     const handlePopState = () => {
-      setCurrentPath(window.location.pathname)
+      const hash = window.location.hash
+      if (hash === '#/console' || hash === '#console') {
+        setCurrentPath('/console')
+        return
+      }
+      if (hash === '#/landing' || hash === '#landing') {
+        setCurrentPath('/')
+        return
+      }
+      setCurrentPath(normalizePath(window.location.pathname))
     }
     window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+    window.addEventListener('hashchange', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('hashchange', handlePopState)
+    }
   }, [])
 
   // Navigation helpers
@@ -43,7 +74,7 @@ export default function App() {
         }, 100)
       }
     }
-    const cleanPath = path.split('#')[0]?.split('?')[0] || '/'
+    const cleanPath = normalizePath(path.split('#')[0] || '/')
     setCurrentPath(cleanPath)
   }
 
@@ -129,8 +160,23 @@ export default function App() {
     return <AuthenticateWithRedirectCallback signInForceRedirectUrl="/" />
   }
 
-  // Landing Page Route
-  if (currentPath === '/' || currentPath === '' || currentPath === '/landing') {
+  // Landing Page Route & Aliases
+  const isLandingRoute =
+    currentPath === '/' ||
+    currentPath === '' ||
+    currentPath === '/landing' ||
+    currentPath === '/home' ||
+    currentPath === '/pricing' ||
+    currentPath === '/mcp' ||
+    currentPath === '/cli' ||
+    currentPath === '/docs' ||
+    currentPath === '/documentation' ||
+    currentPath === '/threat-matrix' ||
+    currentPath === '/faq' ||
+    currentPath === '/privacy' ||
+    currentPath === '/terms'
+
+  if (isLandingRoute) {
     return (
       <>
         <LandingPage onLaunchConsole={() => navigateTo('/console')} />
@@ -142,8 +188,17 @@ export default function App() {
     )
   }
 
-  // Security Console Routes
-  if (currentPath === '/console' || currentPath === '/app' || currentPath === '/audit') {
+  // Security Console Routes & Aliases
+  const isConsoleRoute =
+    currentPath === '/console' ||
+    currentPath === '/app' ||
+    currentPath === '/audit' ||
+    currentPath === '/scan' ||
+    currentPath === '/dashboard' ||
+    currentPath === '/report' ||
+    currentPath === '/history'
+
+  if (isConsoleRoute) {
     return (
       <>
         <AppShell submission={<SubmissionPanel />} report={<ReportArea />} />
