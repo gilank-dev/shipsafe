@@ -795,7 +795,11 @@ EXAMPLES:
       console.error(
         `Error: ${error.message ?? 'Remote audit failed — check URL, API key, and network'}`
       )
-      process.exit(2)
+      process.exitCode = 2
+      if (process.env.NODE_ENV === 'test') {
+        process.exit(2)
+      }
+      return
     }
   } else {
     // Local scan mode
