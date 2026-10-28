@@ -70,7 +70,7 @@ jobs:
     name: ShipSafe Remote Audit (VPS)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.SHIPSAFE_REMOTE_URL != '' && secrets.SHIPSAFE_API_KEY != ''
+    if: vars.SHIPSAFE_REMOTE_URL != null && vars.SHIPSAFE_REMOTE_URL != ''
     env:
       SHIPSAFE_REMOTE_URL: ${{ vars.SHIPSAFE_REMOTE_URL }}
       SHIPSAFE_API_KEY: ${{ secrets.SHIPSAFE_API_KEY }}
