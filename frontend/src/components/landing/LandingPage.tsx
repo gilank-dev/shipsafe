@@ -3,18 +3,29 @@ import { useClerk } from '@clerk/clerk-react'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { signOut } from '../../lib/supabase'
 import { useStore } from '../../state/store'
+import { landingDictionary, type Language } from '../../domain/i18n/landingDictionary'
 
 interface LandingPageProps {
   onLaunchConsole: () => void
 }
 
 export function LandingPage({ onLaunchConsole }: LandingPageProps) {
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('shipsafe.lang') as Language
+      if (saved === 'en' || saved === 'id') return saved
+    }
+    return 'en'
+  })
+
   const [copiedCli, setCopiedCli] = useState(false)
   const [copiedMcp, setCopiedMcp] = useState(false)
   const [copiedHook, setCopiedHook] = useState(false)
   const [mcpTab, setMcpTab] = useState<'cursor' | 'claude' | 'windsurf'>('cursor')
   const [activeTab, setActiveTab] = useState<'report' | 'prompt'>('report')
   const [openFaq, setOpenFaq] = useState<number | null>(0)
+
+  const t = landingDictionary[lang]
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash) {
@@ -31,6 +42,13 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   const setAuthUser = useStore((s) => s.setAuthUser)
   const user = useStore((s) => s.auth.user)
   const clerk = useClerk()
+
+  const handleToggleLang = (newLang: Language) => {
+    setLang(newLang)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shipsafe.lang', newLang)
+    }
+  }
 
   const handleCopyCli = () => {
     void navigator.clipboard.writeText('npx @lankdev/shipsafe-cli scan .')
@@ -114,51 +132,65 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         aria-hidden="true"
       />
 
-      {/* 1. TOP NAVIGATION BAR */}
-      <header className="sticky top-0 z-40 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-white/80 dark:bg-black/80 backdrop-blur-md transition-colors duration-200">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+      {/* 1. TOP NAVIGATION BAR WITH BILINGUAL SWITCHER */}
+      <header className="sticky top-0 z-40 border-b border-neutral-200/80 dark:border-neutral-800/80 bg-white/85 dark:bg-black/85 backdrop-blur-md transition-colors duration-200">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
             {/* Minimalist Vercel-Style Monogram / Emblem */}
-            <div className="flex size-6 items-center justify-center rounded-sm bg-black dark:bg-white text-white dark:text-black font-mono text-[10px] font-bold tracking-tight shadow-xs">
+            <div className="flex size-6 items-center justify-center rounded-xs bg-black dark:bg-white text-white dark:text-black font-mono text-[10px] font-bold tracking-tight shadow-xs">
               SS
             </div>
             <div className="flex items-center gap-2">
               <span className="font-semibold tracking-tight text-sm text-neutral-950 dark:text-white">
-                ShipSafe
+                {t.nav.brandName}
               </span>
               <span className="hidden sm:inline font-mono text-[11px] text-neutral-400 dark:text-neutral-500 font-normal">
-                // CUSTOMS DESK
+                {t.nav.tagline}
+              </span>
+              <span className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/60 px-2 py-0.5 text-[10px] font-mono text-neutral-600 dark:text-neutral-400">
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                v2.4-STABLE
               </span>
             </div>
           </div>
 
-          <nav className="hidden items-center gap-6 text-xs text-neutral-600 dark:text-neutral-400 font-medium md:flex">
+          <nav className="hidden items-center gap-4 lg:gap-5 text-xs text-neutral-600 dark:text-neutral-400 font-medium md:flex">
             <button
               type="button"
               onClick={onLaunchConsole}
               className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
-              Console
+              {t.nav.console}
             </button>
             <a
-              href="#mcp"
+              href="#how-it-works"
               onClick={(e) => {
                 e.preventDefault()
-                scrollToSection('mcp')
+                scrollToSection('how-it-works')
               }}
               className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
-              MCP
+              {t.nav.howItWorks}
             </a>
             <a
-              href="#cli"
+              href="#comparison"
               onClick={(e) => {
                 e.preventDefault()
-                scrollToSection('cli')
+                scrollToSection('comparison')
               }}
               className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
-              CLI
+              {t.nav.comparison}
+            </a>
+            <a
+              href="#pricing"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('pricing')
+              }}
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+            >
+              {t.nav.pricing}
             </a>
             <a
               href="#threat-matrix"
@@ -168,7 +200,27 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               }}
               className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
-              10 Vectors
+              {t.nav.threatMatrix}
+            </a>
+            <a
+              href="#mcp"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('mcp')
+              }}
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+            >
+              {t.nav.mcp}
+            </a>
+            <a
+              href="#cli"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('cli')
+              }}
+              className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+            >
+              {t.nav.cli}
             </a>
             <a
               href="#faq"
@@ -178,12 +230,47 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               }}
               className="hover:text-black dark:hover:text-white transition-colors cursor-pointer"
             >
-              FAQ
+              {t.nav.faq}
             </a>
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Tactile Bilingual Segmented Switcher [EN | ID] */}
+            <div
+              role="group"
+              aria-label="Language selection"
+              className="relative inline-flex items-center rounded-md border border-neutral-200 dark:border-neutral-800 bg-neutral-100/80 dark:bg-neutral-900/80 p-0.5 text-[11px] font-mono"
+            >
+              <button
+                type="button"
+                onClick={() => handleToggleLang('en')}
+                className={`relative z-10 flex min-h-[30px] sm:min-h-[26px] min-w-[32px] sm:min-w-[28px] items-center justify-center rounded-sm px-2 py-0.5 font-semibold transition-all duration-150 cursor-pointer ${
+                  lang === 'en'
+                    ? 'bg-white dark:bg-neutral-800 text-neutral-950 dark:text-white shadow-2xs'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                }`}
+                aria-pressed={lang === 'en'}
+                aria-label="Switch language to English"
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleLang('id')}
+                className={`relative z-10 flex min-h-[30px] sm:min-h-[26px] min-w-[32px] sm:min-w-[28px] items-center justify-center rounded-sm px-2 py-0.5 font-semibold transition-all duration-150 cursor-pointer ${
+                  lang === 'id'
+                    ? 'bg-white dark:bg-neutral-800 text-neutral-950 dark:text-white shadow-2xs'
+                    : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+                }`}
+                aria-pressed={lang === 'id'}
+                aria-label="Ganti bahasa ke Bahasa Indonesia"
+              >
+                ID
+              </button>
+            </div>
+
             <ThemeToggle />
+
             {user ? (
               <div className="flex items-center gap-2">
                 <span className="hidden font-mono text-xs text-neutral-600 dark:text-neutral-400 sm:inline truncate max-w-[120px]">
@@ -194,161 +281,183 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   onClick={() => void handleSignOut()}
                   className="text-xs px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer font-medium"
                 >
-                  Keluar
+                  {t.nav.logout}
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
+                aria-label="Login / Daftar"
                 className="text-xs px-3 py-1.5 rounded border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer font-medium shadow-2xs"
               >
-                Login / Daftar
+                {t.nav.login}
               </button>
             )}
+
             <button
               type="button"
               onClick={onLaunchConsole}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-black dark:bg-white text-white dark:text-black px-3.5 py-1.5 text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-black dark:bg-white text-white dark:text-black px-3.5 py-1.5 text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
             >
-              <span>Launch Console</span>
+              <span>{t.nav.launchConsole}</span>
               <span aria-hidden="true">&rarr;</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-6">
-        {/* 2. HERO SECTION */}
-        <section className="pt-20 pb-16 sm:pt-28 sm:pb-20">
-          {/* Vercel-Style Eyebrow Tag */}
+      <main className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
+        {/* 2. HERO SECTION WITH LOSS AVERSION TRIGGERS */}
+        <section className="pt-16 pb-16 sm:pt-24 sm:pb-20">
+          {/* Eyebrow Tag */}
           <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900/70 px-3 py-1 text-xs font-mono text-neutral-600 dark:text-neutral-400 mb-6 backdrop-blur-xs">
             <span className="flex size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-semibold text-neutral-950 dark:text-white">// PRE-DEPLOYMENT GATEKEEPER</span>
+            <span className="font-semibold text-neutral-950 dark:text-white">{t.hero.eyebrowBadge}</span>
             <span className="text-neutral-300 dark:text-neutral-700">|</span>
-            <span>Automated AST &amp; Regex Security Barrier</span>
+            <span>{t.hero.eyebrowSub}</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-[-0.035em] text-neutral-950 dark:text-white leading-[1.02] max-w-4xl mb-6">
-            The Customs Desk for <br className="hidden sm:inline" />
+            {t.hero.headlineMain} <br className="hidden sm:inline" />
             <span className="text-neutral-400 dark:text-neutral-500 font-normal">
-              Vibe-Coded Web Apps.
+              {t.hero.headlineHighlight}
             </span>
           </h1>
 
           <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed mb-8 font-normal">
-            Built for developers prompting at the speed of thought. Catch leaked service keys, unauthenticated API routes, broken RLS, and prompt injection surfaces in <strong className="text-neutral-950 dark:text-white font-semibold">3 seconds</strong> before pushing to production.
+            {t.hero.subheadline}
           </p>
 
           <div className="flex flex-wrap items-center gap-3 mb-8">
             <button
               type="button"
               onClick={onLaunchConsole}
-              className="inline-flex items-center gap-2 rounded-md bg-black dark:bg-white text-white dark:text-black px-4 py-2.5 text-xs sm:text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md bg-black dark:bg-white text-white dark:text-black px-4 py-2.5 text-xs sm:text-sm font-semibold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
             >
-              <span>Launch Console</span>
+              <span>{t.hero.ctaPrimary}</span>
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded border border-neutral-700 dark:border-neutral-300 bg-neutral-900 dark:bg-neutral-100 text-[10px] font-mono text-neutral-300 dark:text-neutral-700">
                 ⌘K
               </kbd>
               <span aria-hidden="true">&rarr;</span>
             </button>
             <a
-              href="#mcp"
+              href="#how-it-works"
               onClick={(e) => {
                 e.preventDefault()
-                scrollToSection('mcp')
+                scrollToSection('how-it-works')
               }}
               className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-2.5 text-xs sm:text-sm font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all shadow-2xs"
             >
-              <span>Explore Ecosystem</span>
+              <span>{t.hero.ctaSecondary}</span>
               <span aria-hidden="true">&darr;</span>
             </a>
           </div>
 
           {/* Quick CLI Copy Strip */}
-          <div className="mb-14">
+          <div className="mb-12">
             <div className="flex items-center justify-between rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3.5 py-2 font-mono text-xs w-full max-w-md shadow-2xs">
               <div className="flex items-center gap-2 truncate">
                 <span className="text-neutral-400 select-none">$</span>
-                <span className="text-neutral-900 dark:text-neutral-100 font-medium truncate">npx @lankdev/shipsafe-cli scan .</span>
+                <span className="text-neutral-900 dark:text-neutral-100 font-medium truncate">{t.hero.cliLabel}</span>
               </div>
               <button
                 type="button"
                 onClick={handleCopyCli}
                 className="ml-3 shrink-0 font-mono text-[10px] font-medium uppercase px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors cursor-pointer text-neutral-700 dark:text-neutral-300"
               >
-                {copiedCli ? 'Copied' : 'Copy'}
+                {copiedCli ? t.hero.copiedButton : t.hero.copyButton}
               </button>
+            </div>
+          </div>
+
+          {/* 4 Emotional Security Triggers (Loss Aversion & Peace of Mind) */}
+          <div className="mb-14">
+            <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-4">
+              {t.hero.triggersTitle}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {t.hero.triggers.map((trigger, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 flex flex-col justify-between shadow-2xs hover:border-neutral-400 dark:hover:border-neutral-700 transition-colors"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500">
+                        RISK 0{idx + 1}
+                      </span>
+                      <span className="font-mono text-[10px] uppercase font-semibold text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/40 px-1.5 py-0.2 rounded-xs">
+                        {trigger.risk}
+                      </span>
+                    </div>
+                    <div className="font-semibold text-sm text-neutral-950 dark:text-white mb-1.5 tracking-tight">
+                      {trigger.title}
+                    </div>
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                      {trigger.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Clean Vercel-Style Bento Pillars Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
-            <button
-              type="button"
-              onClick={onLaunchConsole}
-              className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 text-left cursor-pointer transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs text-neutral-400 dark:text-neutral-500 font-mono mb-4">
-                  <span>PILLAR 01 // CONSOLE</span>
-                  <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
-                </div>
-                <div className="text-base font-semibold text-neutral-950 dark:text-white tracking-tight mb-2">
-                  Launch Web Audit
-                </div>
-                <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Upload ZIP archive or import GitHub repository for 3-second AST analysis and official customs verdict stamp.
-                </div>
-              </div>
-            </button>
-
-            <a
-              href="#mcp"
-              onClick={(e) => {
-                e.preventDefault()
-                scrollToSection('mcp')
-              }}
-              className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-4">
-                  <span>PILLAR 02 // MCP</span>
-                  <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
-                </div>
-                <div className="font-semibold text-base text-neutral-950 dark:text-white tracking-tight mb-2">
-                  Autonomous Agent Bridge
-                </div>
-                <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Connect Cursor, Claude Desktop, Windsurf, and Hermes via standard stdio JSON-RPC 2.0 tools.
-                </div>
-              </div>
-            </a>
-
-            <a
-              href="#cli"
-              onClick={(e) => {
-                e.preventDefault()
-                scrollToSection('cli')
-              }}
-              className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-4">
-                  <span>PILLAR 03 // CLI</span>
-                  <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
-                </div>
-                <div className="font-semibold text-base text-neutral-950 dark:text-white tracking-tight mb-2">
-                  Pre-Commit Gatekeeper
-                </div>
-                <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Audit locally with zero dependencies or install a 1-click git hook that blocks vulnerable commits.
-                </div>
-              </div>
-            </a>
+            {t.bentoPillars.pillars.map((pillar, idx) => {
+              if (idx === 0) {
+                return (
+                  <button
+                    key={pillar.pillarId}
+                    type="button"
+                    onClick={onLaunchConsole}
+                    className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 text-left cursor-pointer transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-neutral-400 dark:text-neutral-500 font-mono mb-4">
+                        <span>{pillar.pillarId}</span>
+                        <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
+                      </div>
+                      <div className="text-base font-semibold text-neutral-950 dark:text-white tracking-tight mb-2">
+                        {pillar.title}
+                      </div>
+                      <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                        {pillar.description}
+                      </div>
+                    </div>
+                  </button>
+                )
+              }
+              const targetHash = idx === 1 ? 'mcp' : 'cli'
+              return (
+                <a
+                  key={pillar.pillarId}
+                  href={`#${targetHash}`}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    scrollToSection(targetHash)
+                  }}
+                  className="group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 transition-all hover:border-neutral-400 dark:hover:border-neutral-700 shadow-2xs flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-4">
+                      <span>{pillar.pillarId}</span>
+                      <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
+                    </div>
+                    <div className="font-semibold text-base text-neutral-950 dark:text-white tracking-tight mb-2">
+                      {pillar.title}
+                    </div>
+                    <div className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                      {pillar.description}
+                    </div>
+                  </div>
+                </a>
+              )
+            })}
           </div>
 
-          {/* Interactive Inspection Telemetry (Vercel-Style Terminal Chrome) */}
+          {/* Interactive Inspection Telemetry */}
           <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs overflow-hidden">
             <div className="flex flex-wrap items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-900/60 px-4 py-2.5">
               <div className="flex items-center gap-2">
@@ -358,7 +467,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   <span className="size-2 rounded-full bg-neutral-300 dark:bg-neutral-700" />
                 </div>
                 <span className="font-mono text-xs text-neutral-600 dark:text-neutral-400">
-                  telemetry // repo-vibe-saas.bundle.zip (4.8MB)
+                  {t.telemetry.windowTitle}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -371,7 +480,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  Inspection Report
+                  {t.telemetry.reportTab}
                 </button>
                 <button
                   type="button"
@@ -382,7 +491,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  1-Click Agent Prompt
+                  {t.telemetry.promptTab}
                 </button>
               </div>
             </div>
@@ -391,37 +500,33 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               {activeTab === 'report' ? (
                 <div className="space-y-2.5 text-neutral-600 dark:text-neutral-400">
                   <div className="text-neutral-500">
-                    [00:01.04] AST parsing 42 source files... <span className="text-emerald-600 dark:text-emerald-400 font-medium">OK (0.8s)</span>
+                    {t.telemetry.astScanStatus}
                   </div>
                   <div className="text-rose-600 dark:text-rose-400">
-                    [00:01.88] Vector: Secrets Scan - [FAIL] Stripe live key exposed in <span className="underline">src/config/stripe.ts:8</span>
+                    {t.telemetry.findingSecrets}
                   </div>
                   <div className="text-rose-600 dark:text-rose-400">
-                    [00:02.12] Vector: Broken Access Control - [FAIL] Public endpoint lacks session RLS guard in <span className="underline">app/api/invoices/[id]/route.ts:19</span>
+                    {t.telemetry.findingAccessControl}
                   </div>
                   <div className="text-amber-600 dark:text-amber-400">
-                    [00:02.89] Vector: Prompt Injection Surface - [WARN] Raw unsanitized query passed into OpenAI prompt in <span className="underline">lib/agent.ts:42</span>
+                    {t.telemetry.findingPromptInjection}
                   </div>
                   <div className="pt-3 mt-3 border-t border-neutral-200/80 dark:border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <span className="text-neutral-900 dark:text-neutral-100 font-medium">
-                      Verdict: 2 critical findings, 1 warning detected
+                      {t.telemetry.verdictSummary}
                     </span>
                     <span className="text-rose-600 dark:text-rose-400 text-xs font-semibold uppercase tracking-wider">
-                      Action Required
+                      {t.telemetry.verdictBadge}
                     </span>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3 bg-white dark:bg-neutral-900/60 p-4 rounded-lg border border-neutral-200 dark:border-neutral-800">
-                  <div className="text-neutral-500 pb-2 border-b border-neutral-200/60 dark:border-neutral-800 text-[11px] font-semibold tracking-wider">
-                    TAILORED REMEDIATION PROMPT FOR CLAUDE CODE / CURSOR
+                  <div className="text-neutral-500 pb-2 border-b border-neutral-200/60 dark:border-neutral-800 text-[11px] font-semibold tracking-wider uppercase">
+                    {t.telemetry.promptTitle}
                   </div>
                   <pre className="text-neutral-900 dark:text-neutral-100 whitespace-pre-wrap leading-relaxed">
-{`Fix critical vulnerability F-001 in \`src/config/stripe.ts\` (line 8):
-1. Remove hardcoded Stripe live key \`sk_live_****\`.
-2. Load secret securely via \`process.env.STRIPE_SECRET_KEY\`.
-3. Add null check validation and throw meaningful ConfigurationError if missing.
-4. Verify fix by executing: \`npm run test && npm run build\`.`}
+                    {t.telemetry.promptSnippet}
                   </pre>
                 </div>
               )}
@@ -429,7 +534,150 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
         </section>
 
-        {/* 3. DEDICATED MCP SERVER SHOWCASE */}
+        {/* 3. HOW IT WORKS SECTION (CARA KERJA: 3-SECOND PROTOCOL) */}
+        <section id="how-it-works" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-14">
+          <div className="max-w-3xl mb-14">
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900/70 px-3 py-1 text-xs font-mono text-neutral-600 dark:text-neutral-400 mb-4">
+              <span className="size-1.5 rounded-full bg-black dark:bg-white" />
+              <span>// {t.howItWorks.eyebrow}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-4">
+              {t.howItWorks.title}
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+              {t.howItWorks.subtitle}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
+            {t.howItWorks.steps.map((step, idx) => (
+              <div
+                key={step.stepNumber}
+                className="group relative flex flex-col justify-between rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 sm:p-7 shadow-xs hover:border-neutral-400 dark:hover:border-neutral-600 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <span className="flex items-center justify-center size-9 rounded-md border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 font-mono text-sm font-bold text-neutral-950 dark:text-white shadow-2xs group-hover:scale-105 transition-transform">
+                    {step.stepNumber}
+                  </span>
+                  <span className="font-mono text-[10px] tracking-wider uppercase text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-2 py-0.5 rounded-xs">
+                    {step.badge}
+                  </span>
+                </div>
+
+                <div className="mb-6">
+                  <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-1">
+                    {step.tagline}
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-neutral-950 dark:text-white mb-2 tracking-tight">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                    {step.description}
+                  </p>
+                </div>
+
+                <div className="mt-auto pt-4 border-t border-neutral-100 dark:border-neutral-900 flex items-center justify-between font-mono text-[11px] text-neutral-400 dark:text-neutral-500">
+                  <span>STEP 0{idx + 1} // PROTOCOL</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold uppercase">READY</span>
+                </div>
+
+                {/* Connector pip for desktop */}
+                {idx < 2 && (
+                  <div
+                    aria-hidden="true"
+                    className="hidden lg:block absolute -right-3.5 top-10 z-20 size-2 rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-400 dark:bg-neutral-500"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 4. PERBEDAAN DENGAN PLATFORM SEJENIS (COMPARISON MATRIX) */}
+        <section id="comparison" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-14">
+          <div className="max-w-3xl mb-12">
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900/70 px-3 py-1 text-xs font-mono text-neutral-600 dark:text-neutral-400 mb-4">
+              <span className="size-1.5 rounded-full bg-black dark:bg-white" />
+              <span>// {t.comparison.eyebrow}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-4">
+              {t.comparison.title}
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+              {t.comparison.subtitle}
+            </p>
+          </div>
+
+          {/* Responsive Comparison Table Container with Sticky Column */}
+          <div className="relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs overflow-hidden">
+            {/* Mobile swipe helper */}
+            <div className="flex sm:hidden items-center justify-between px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 font-mono text-[11px] text-neutral-500">
+              <span>&larr; {lang === 'id' ? 'Geser tabel horizontal' : 'Swipe horizontally'} &rarr;</span>
+              <span>4 Columns</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-900/80 font-mono text-xs text-neutral-600 dark:text-neutral-400">
+                    <th
+                      scope="col"
+                      className="py-4 px-4 sm:px-6 font-semibold w-[220px] sticky left-0 bg-neutral-50 dark:bg-neutral-900 z-10 border-r border-neutral-200 dark:border-neutral-800"
+                    >
+                      {t.comparison.colFeature}
+                    </th>
+                    <th
+                      scope="col"
+                      className="py-4 px-4 sm:px-6 font-bold text-neutral-950 dark:text-white bg-neutral-100/90 dark:bg-neutral-800/90 border-x-2 border-neutral-950 dark:border-neutral-100 w-[240px]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{t.comparison.colShipSafe}</span>
+                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded-xs bg-emerald-600 text-white font-normal uppercase">
+                          AI NATIVE
+                        </span>
+                      </div>
+                    </th>
+                    <th scope="col" className="py-4 px-4 sm:px-6 font-semibold w-[180px]">
+                      {t.comparison.colLegacy}
+                    </th>
+                    <th scope="col" className="py-4 px-4 sm:px-6 font-semibold w-[180px]">
+                      {t.comparison.colLinters}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800 text-xs sm:text-sm">
+                  {t.comparison.rows.map((row, idx) => (
+                    <tr
+                      key={idx}
+                      className="hover:bg-neutral-50/60 dark:hover:bg-neutral-900/40 transition-colors"
+                    >
+                      <th
+                        scope="row"
+                        className="py-3.5 px-4 sm:px-6 font-semibold text-neutral-900 dark:text-neutral-100 sticky left-0 bg-white dark:bg-neutral-950 z-10 border-r border-neutral-200 dark:border-neutral-800"
+                      >
+                        {row.feature}
+                      </th>
+                      <td className="py-3.5 px-4 sm:px-6 font-medium text-neutral-950 dark:text-white bg-neutral-50/60 dark:bg-neutral-900/30 border-x-2 border-neutral-950 dark:border-neutral-100">
+                        <div className="flex items-start gap-1.5">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">&check;</span>
+                          <span>{row.shipsafe}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 sm:px-6 text-neutral-600 dark:text-neutral-400">
+                        {row.legacyEnterprise}
+                      </td>
+                      <td className="py-3.5 px-4 sm:px-6 text-neutral-600 dark:text-neutral-400">
+                        {row.basicLinters}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. DEDICATED MCP SERVER SHOWCASE */}
         <section id="mcp" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="max-w-3xl mb-12">
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
@@ -536,7 +784,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
         </section>
 
-        {/* 4. DEDICATED TERMINAL CLI SHOWCASE */}
+        {/* 6. DEDICATED TERMINAL CLI SHOWCASE */}
         <section id="cli" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="max-w-3xl mb-12">
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
@@ -627,33 +875,22 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
         </section>
 
-        {/* 5. 10 THREAT VECTORS AUDITED */}
+        {/* 7. 10 THREAT VECTORS AUDITED */}
         <section id="threat-matrix" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="max-w-3xl mb-12">
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
-              COMPREHENSIVE COVERAGE
+              {t.threatVectors.eyebrow}
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-3">
-              10 Critical Threat Vectors Audited
+              {t.threatVectors.title}
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-sm sm:text-base">
-              ShipSafe inspects the full surface of modern AI-generated codebases against the 10 most common vibe-coding security pitfalls:
+              {t.threatVectors.subtitle}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-12">
-            {[
-              { id: '01', name: 'SQL Injection', desc: 'Raw SQL concatenation & template literal injection in ORM/DB' },
-              { id: '02', name: 'Cross-Site Scripting (XSS)', desc: 'Unescaped innerHTML, dangerouslySetInnerHTML, document.write' },
-              { id: '03', name: 'DDoS & ReDoS', desc: 'Missing rate limiters and vulnerable exponential regex loops' },
-              { id: '04', name: 'Brute Force & Timing', desc: 'Plaintext string password compare without timing-safe equality' },
-              { id: '05', name: 'Malware & Web Shell', desc: 'Dangerous PHP/Node shell signatures and unvalidated file uploads' },
-              { id: '06', name: 'MitM & Broken TLS', desc: 'rejectUnauthorized: false, plaintext credentials, missing secure cookies' },
-              { id: '07', name: 'Phishing & Open Redirect', desc: 'Unvalidated redirect parameters and clickjacking missing X-Frame' },
-              { id: '08', name: 'Defacement Risks', desc: 'Unauthenticated template or webroot modification vulnerabilities' },
-              { id: '09', name: 'LFI / RFI & SSRF', desc: 'Path traversal in fs.readFile and unvalidated fetch(req.query.url)' },
-              { id: '10', name: 'Zero-Day Dynamic Exec', desc: 'eval(), new Function(), prototype pollution, execSync calls' },
-            ].map((v) => (
+            {t.threatVectors.vectors.map((v) => (
               <div
                 key={v.name}
                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 flex flex-col justify-between transition-colors shadow-2xs hover:border-neutral-400 dark:hover:border-neutral-700"
@@ -665,7 +902,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   <div className="font-semibold text-sm text-neutral-950 dark:text-white mb-1.5 leading-snug">
                     {v.name}
                   </div>
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed font-normal">{v.desc}</div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed font-normal">
+                    {v.description}
+                  </div>
                 </div>
               </div>
             ))}
@@ -674,74 +913,173 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 shadow-xs">
               <h3 className="text-base sm:text-lg font-semibold mb-2 text-neutral-950 dark:text-white tracking-tight">
-                Ephemeral Sandbox Processing
+                {t.threatVectors.sandboxGuaranteeTitle}
               </h3>
               <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                Raw source code is extracted strictly to an isolated temporary sandbox directory. Once analysis finishes, the directory is immediately wiped from memory. Your proprietary code is never persisted, never indexed, and never used to train machine learning models.
+                {t.threatVectors.sandboxGuaranteeDesc}
               </p>
             </div>
 
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 shadow-xs">
               <h3 className="text-base sm:text-lg font-semibold mb-2 text-neutral-950 dark:text-white tracking-tight">
-                Multi-Agent Prompt Formatter
+                {t.threatVectors.promptFormatterTitle}
               </h3>
               <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                Instead of leaving you with abstract CVE codes, ShipSafe formats exact, line-specific remediation prompts tailored for <strong>Cursor, Claude Code, GitHub Copilot, and Windsurf</strong> with self-contained reproduction and verification instructions.
+                {t.threatVectors.promptFormatterDesc}
               </p>
             </div>
           </div>
         </section>
 
-        {/* 6. RADICAL TRANSPARENCY & BOUNDARIES */}
+        {/* 8. RADICAL TRANSPARENCY & BOUNDARIES */}
         <section id="limitations" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-8 sm:p-10 shadow-xs">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3 text-neutral-950 dark:text-white">
-              WHAT SHIPSAFE DOES NOT DO
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3 text-neutral-950 dark:text-white uppercase">
+              {t.limitations.title}
             </h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl mb-8 leading-relaxed font-normal">
-              We believe in honest developer tooling without misleading security marketing. Please note the deliberate engineering boundaries:
+              {t.limitations.subtitle}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/80 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-950 dark:text-white tracking-tight">
-                  10MB Archive Upper Limit
+              {t.limitations.items.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/80 dark:bg-neutral-900/40 p-5"
+                >
+                  <div className="font-semibold text-sm mb-1.5 text-neutral-950 dark:text-white tracking-tight">
+                    {item.title}
+                  </div>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                    {item.description}
+                  </p>
                 </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Engineered specifically for web applications, frontend single-page apps, and microservice APIs. It is not designed to ingest multi-gigabyte monolithic repositories or binary assets.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/80 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-950 dark:text-white tracking-tight">
-                  Purely Static AST Analysis
-                </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  ShipSafe scans configurations and AST structures statically. It does not spin up runtime containers, execute fuzzing network probes, or inspect dynamic heap memory allocations.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/80 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-950 dark:text-white tracking-tight">
-                  Not a Human Pentest Replacement
-                </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Eliminates 95% of common vibe-coding blunders (leaked keys, missing CORS/RLS, unauthed routes), but does not replace a manual $25,000 SOC2 compliance human penetration audit.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* 7. DIRECT DEVELOPER ASSISTANCE */}
+        {/* 9. TRANSPARENT DEVELOPER-FIRST PRICING */}
+        <section id="pricing" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-14">
+          <div className="max-w-3xl mb-14">
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900/70 px-3 py-1 text-xs font-mono text-neutral-600 dark:text-neutral-400 mb-4">
+              <span className="size-1.5 rounded-full bg-black dark:bg-white" />
+              <span>// {t.pricing.eyebrow}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-4">
+              {t.pricing.title}
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+              {t.pricing.subtitle}
+            </p>
+          </div>
+
+          {/* 3-Card Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch mb-10">
+            {t.pricing.tiers.map((tier) => (
+              <div
+                key={tier.id}
+                className={`relative flex flex-col justify-between rounded-xl bg-white dark:bg-neutral-950 p-6 sm:p-8 transition-all duration-200 ${
+                  tier.isPopular
+                    ? 'border-2 border-neutral-950 dark:border-white shadow-md lg:-translate-y-1'
+                    : 'border border-neutral-200 dark:border-neutral-800 shadow-xs hover:border-neutral-400 dark:hover:border-neutral-600'
+                }`}
+              >
+                {/* Popular Tier Badge */}
+                {tier.isPopular && (
+                  <div className="absolute -top-3 left-6 inline-flex items-center gap-1.5 rounded-full bg-black dark:bg-white text-white dark:text-black px-3 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase shadow-xs">
+                    <span>{tier.badge}</span>
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-neutral-950 dark:text-white tracking-tight">
+                      {tier.name}
+                    </h3>
+                    {!tier.isPopular && (
+                      <span className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 uppercase">
+                        {tier.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed font-normal min-h-[36px]">
+                    {tier.description}
+                  </p>
+
+                  <div className="flex items-baseline gap-1.5 mb-6 pb-6 border-b border-neutral-100 dark:border-neutral-800">
+                    <span className="text-3xl sm:text-4xl font-bold font-mono tracking-tight text-neutral-950 dark:text-white">
+                      {tier.price}
+                    </span>
+                    <span className="text-xs text-neutral-500 font-mono">
+                      {tier.period}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5 mb-8">
+                    <div className="font-mono text-[10px] uppercase font-semibold text-neutral-400 dark:text-neutral-500 mb-2">
+                      {lang === 'id' ? 'Fitur & Jaminan:' : 'Included Guarantees:'}
+                    </div>
+                    {tier.features.map((feature, fIdx) => (
+                      <div key={fIdx} className="flex items-start gap-2 text-xs text-neutral-700 dark:text-neutral-300">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">&check;</span>
+                        <span className="leading-relaxed">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (tier.id === 'enterprise') {
+                      window.open('https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20solusi%20Enterprise%20ShipSafe', '_blank')
+                    } else {
+                      onLaunchConsole()
+                    }
+                  }}
+                  className={`w-full py-2.5 px-4 rounded-md text-xs font-semibold tracking-tight transition-all active:scale-[0.98] cursor-pointer shadow-xs ${
+                    tier.isPopular
+                      ? 'bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200'
+                      : 'border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  {tier.cta} &rarr;
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Peace of Mind Reassurance Box */}
+          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 font-mono text-xs text-neutral-600 dark:text-neutral-400">
+            <div className="flex items-center gap-2.5">
+              <span className="flex size-2 rounded-full bg-emerald-500 shrink-0" />
+              <span>{t.pricing.reassuranceNote}</span>
+            </div>
+            <a
+              href="https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20ingin%20tanya%20tentang%20pembayaran%20lokal%20atau%20paket%20Pro"
+              target="_blank"
+              rel="noreferrer"
+              className="text-neutral-950 dark:text-white font-semibold underline underline-offset-4 hover:text-neutral-700 dark:hover:text-neutral-300 shrink-0"
+            >
+              {lang === 'id' ? 'Tanya Admin Langsung &rarr;' : 'Chat Maintainer &rarr;'}
+            </a>
+          </div>
+        </section>
+
+        {/* 10. DIRECT DEVELOPER ASSISTANCE */}
         <section id="developer-support" className="py-16 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xs">
             <div>
+              <div className="font-mono text-xs text-emerald-600 dark:text-emerald-400 mb-2 font-medium">
+                {t.contact.statusBadge}
+              </div>
               <h3 className="text-xl sm:text-2xl font-bold mb-2 text-neutral-950 dark:text-white tracking-tight">
-                Need Custom Audit Rules or Dedicated Guidance?
+                {t.contact.title}
               </h3>
               <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed font-normal">
-                Connect directly with the creator of ShipSafe. Get assistance on integrating custom regex rulesets, configuring CI/CD pipelines, or auditing specialized web architectures.
+                {t.contact.subtitle}
               </p>
             </div>
 
@@ -750,76 +1088,55 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 href="https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-md bg-black dark:bg-white text-white dark:text-black text-xs font-medium px-4 py-2.5 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all inline-flex items-center gap-2 shadow-xs active:scale-98"
+                className="rounded-md bg-black dark:bg-white text-white dark:text-black text-xs font-semibold px-4 py-2.5 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all inline-flex items-center gap-2 shadow-xs active:scale-98"
               >
                 <svg className="size-4 fill-current" viewBox="0 0 24 24">
                   <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.761.884 2.796.885h.005c3.179 0 5.767-2.587 5.768-5.766 0-3.18-2.588-5.769-5.773-5.772zm3.374 8.211c-.147.418-.749.775-1.042.825-.294.05-.67.07-1.085-.064-.265-.086-.607-.207-1.053-.401-1.895-.824-3.128-2.739-3.223-2.865-.094-.125-.769-1.023-.769-1.95 0-.927.487-1.383.66-1.573.174-.189.38-.237.507-.237.127 0 .253.002.364.007.118.005.276-.045.432.329.162.391.554 1.349.602 1.448.048.099.08.214.016.34-.063.125-.095.203-.189.314-.095.111-.2.247-.286.332-.095.095-.195.198-.084.388.111.19.493.813 1.057 1.316.726.647 1.339.848 1.53.943.19.095.302.079.414-.048.111-.126.475-.554.602-.744.126-.19.253-.158.428-.095.174.064 1.109.523 1.3.618.19.095.317.143.364.222.048.079.048.459-.099.877z" />
                 </svg>
-                <span>Talk on WhatsApp</span>
+                <span>{t.contact.whatsappButton}</span>
               </a>
               <a
                 href="https://t.me/gilankdev"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 text-xs font-medium px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all inline-flex items-center gap-2 shadow-2xs active:scale-98"
+                className="rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 text-xs font-semibold px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all inline-flex items-center gap-2 shadow-2xs active:scale-98"
               >
                 <svg className="size-4 fill-current" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
                 </svg>
-                <span>Talk on Telegram</span>
+                <span>{t.contact.telegramButton}</span>
               </a>
             </div>
           </div>
         </section>
 
-        {/* 8. INTERACTIVE FAQ ACCORDION */}
+        {/* 11. INTERACTIVE FAQ ACCORDION */}
         <section id="faq" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="max-w-3xl mb-12">
             <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
-              DOCUMENTATION &amp; ANSWERS
+              {t.faq.eyebrow}
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white mb-3">
-              Frequently Asked Questions
+              {t.faq.title}
             </h2>
           </div>
 
           <div className="divide-y divide-neutral-200 dark:divide-neutral-800 border-y border-neutral-200 dark:border-neutral-800">
-            {[
-              {
-                q: 'How does ShipSafe differ from legacy scanners like Snyk or SonarQube?',
-                a: 'Traditional tools are built for slow, enterprise waterfall cycles and require extensive YAML configurations. ShipSafe is designed specifically for vibe coding: instant 3-second AST scans, tailored focus on LLM hallucination risks (exposed keys, prompt injections, missing RLS), and direct 1-click remediation prompts ready to paste back into Cursor or Claude.',
-              },
-              {
-                q: 'Do you upload or store my proprietary source code?',
-                a: 'Never. ShipSafe enforces a strict Zero-Persistence architecture. ZIP files are extracted into an isolated temporary RAM directory, audited, and wiped completely. We never index your code, never retain archives, and never train AI models on user submissions.',
-              },
-              {
-                q: 'How do I use the ShipSafe Model Context Protocol (MCP) server?',
-                a: 'The ShipSafe MCP server provides an automated bridge for Cursor, Windsurf, and Claude Desktop. By adding @lankdev/shipsafe-mcp to your configuration, your coding agent can execute audit_codebase locally and fix detected vulnerabilities autonomously.',
-              },
-              {
-                q: 'Can ShipSafe run completely offline in an air-gapped environment?',
-                a: 'Yes. By running the ShipSafe CLI (`npx @lankdev/shipsafe-cli scan .`) pointed to a local self-hosted instance of our backend engine, all AST analysis runs locally on your workstation or internal CI runner.',
-              },
-              {
-                q: 'What happens if a false positive is reported?',
-                a: 'Each finding includes a confidence rating (Confirmed, Likely verify, or Not enough information) and an exact verification command (e.g. npm audit, curl probe). If a rule does not apply to your architecture, you can safely ignore it without breaking your build.',
-              },
-            ].map((item, idx) => (
+            {t.faq.items.map((item, idx) => (
               <div key={idx} className="py-5">
                 <button
                   type="button"
                   onClick={() => toggleFaq(idx)}
                   className="flex w-full items-center justify-between text-left font-medium text-sm sm:text-base text-neutral-950 dark:text-white cursor-pointer transition-colors hover:text-neutral-600 dark:hover:text-neutral-300"
                 >
-                  <span>{item.q}</span>
+                  <span>{item.question}</span>
                   <span className="font-mono text-xs text-neutral-400 ml-4 shrink-0">
                     {openFaq === idx ? '−' : '+'}
                   </span>
                 </button>
                 {openFaq === idx && (
                   <div className="pt-3 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                    {item.a}
+                    {item.answer}
                   </div>
                 )}
               </div>
@@ -827,21 +1144,21 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
         </section>
 
-        {/* 9. MINIMAL VERCEL-STYLE TECHNICAL FOOTER */}
+        {/* 12. MINIMAL VERCEL-STYLE TECHNICAL FOOTER */}
         <footer className="py-12 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500 font-mono">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="flex size-1.5 rounded-full bg-emerald-500" />
                 <span className="font-semibold text-neutral-900 dark:text-neutral-100 text-xs">
-                  SHIPSAFE SECURITY GATEWAY
+                  {t.footer.operationalBadge}
                 </span>
                 <span className="text-[10px] rounded px-1.5 py-0.2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-500">
-                  ALL SYSTEMS OPERATIONAL
+                  {t.footer.operationalText}
                 </span>
               </div>
               <div className="text-neutral-500 font-sans text-xs">
-                Pre-Deployment Security Gatekeeper for Web Applications &amp; Vibe-Coded Projects.
+                {t.footer.description}
               </div>
             </div>
             <div className="flex items-center gap-4 text-xs font-mono">
@@ -850,7 +1167,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 onClick={onLaunchConsole}
                 className="text-neutral-900 dark:text-neutral-100 hover:underline cursor-pointer"
               >
-                [ENTER CONSOLE &rarr;]
+                {t.footer.consoleLink}
               </button>
               <a
                 href="https://github.com/gilank-dev/shipsafe"
@@ -858,17 +1175,17 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 rel="noreferrer"
                 className="hover:text-neutral-900 dark:hover:text-neutral-100 hover:underline"
               >
-                GITHUB REPO
+                {t.footer.repoLink}
               </a>
             </div>
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[11px] text-neutral-400 border-t border-neutral-100 dark:border-neutral-900">
             <div>
-              GDPR ZERO-PERSISTENCE COMPLIANT &bull; WCAG 2.1 AA ACCESSIBLE &bull; NO CODE RETENTION
+              {t.footer.complianceNotice}
             </div>
             <div>
-              &copy; {new Date().getFullYear()} ShipSafe. Built by LankDev &amp; AI Agents.
+              {t.footer.copyrightNotice}
             </div>
           </div>
         </footer>
