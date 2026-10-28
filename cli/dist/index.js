@@ -40,16 +40,66 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.runCli = runCli;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const util_1 = require("util");
 const crypto = __importStar(require("crypto"));
+const util_1 = require("util");
 const adm_zip_1 = __importDefault(require("adm-zip"));
+// ============================================================================
+// ANSI Color Codes & Terminal Styling
+// ============================================================================
+// Colors are applied via classes; terminals without color support will
+// see raw codes but the layout remains intact. Never paint backgrounds
+// — the canvas is the reader's theme.
+const COLORS = {
+    reset: '\x1b[0m',
+    bold: '\x1b[1m',
+    dim: '\x1b[2m',
+    black: '\x1b[30m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m',
+    cyan: '\x1b[36m',
+    white: '\x1b[37m',
+    bgRed: '\x1b[41m',
+    bgGreen: '\x1b[42m',
+    bgYellow: '\x1b[43m',
+    bgBlue: '\x1b[44m',
+    bgMagenta: '\x1b[45m',
+    bgCyan: '\x1b[46m',
+    bgBlack: '\x1b[40m',
+};
+const SEVERITY_COLORS = {
+    CRITICAL: COLORS.bgRed + COLORS.white,
+    HIGH: COLORS.bgRed + COLORS.black,
+    MEDIUM: COLORS.bgYellow + COLORS.black,
+    LOW: COLORS.bgBlue + COLORS.white,
+};
+const style = {
+    reset: () => COLORS.reset,
+    bold: (s) => COLORS.bold + s + COLORS.reset,
+    red: (s) => COLORS.red + s + COLORS.reset,
+    green: (s) => COLORS.green + s + COLORS.reset,
+    yellow: (s) => COLORS.yellow + s + COLORS.reset,
+    cyan: (s) => COLORS.cyan + s + COLORS.reset,
+    bgRed: (s) => COLORS.bgRed + s + COLORS.reset,
+    bgGreen: (s) => COLORS.bgGreen + s + COLORS.reset,
+    bgYellow: (s) => COLORS.bgYellow + s + COLORS.reset,
+    bgBlue: (s) => COLORS.bgBlue + s + COLORS.reset,
+    critical: (s) => COLORS.bgRed + COLORS.white + s + COLORS.reset,
+    high: (s) => COLORS.bgRed + COLORS.black + s + COLORS.reset,
+    medium: (s) => COLORS.bgYellow + COLORS.black + s + COLORS.reset,
+    dim: (s) => COLORS.dim + s + COLORS.reset,
+};
+// ============================================================================
+// Severity Weight Map (for threshold gating)
+// ============================================================================
 const SEVERITY_WEIGHT = {
     CRITICAL: 4,
     HIGH: 3,
     MEDIUM: 2,
     LOW: 1,
 };
-// Built-in Static Rules for Local Scanning (Zero-External Dependency)
 const RULES = [
     {
         id: 'SEC-SQLI-01',
@@ -103,7 +153,7 @@ const RULES = [
     },
 ];
 // ============================================================================
-// .gitignore Parsing
+// .gitignore Parsing (no external deps)
 // ============================================================================
 function parseGitIgnore(gitignorePath) {
     const rules = [];
@@ -132,7 +182,7 @@ function parseGitIgnore(gitignorePath) {
         }
     }
     catch {
-        // File doesn't exist or unreadable
+        // File doesn't exist or unreadable — graceful degradation
     }
     return rules;
 }
@@ -174,7 +224,10 @@ function generateSarif(result, toolVersion) {
                 id: finding.id,
                 name: finding.title,
                 shortDescription: { text: finding.title },
-                fullDescription: { text: finding.description },
+                fullDescription: {
+                    text: finding.description,
+                    markdown: `**Remediation:** ${finding.remediation}`,
+                },
                 help: {
                     text: finding.remediation,
                     markdown: `**Remediation:** ${finding.remediation}`,
@@ -188,7 +241,11 @@ function generateSarif(result, toolVersion) {
         }
         const sarifRuleIndex = ruleMap.get(finding.id);
         const level = finding.severity === 'CRITICAL' || finding.severity === 'HIGH' ? 'error' : 'warning';
-        const lineHash = crypto.createHash('sha256').update(`${finding.file}:${finding.line || 1}`).digest('hex').slice(0, 16);
+        const lineHash = crypto
+            .createHash('sha256')
+            .update(`${finding.file}:${finding.line || 1}`)
+            .digest('hex')
+            .slice(0, 16);
         results.push({
             ruleId: finding.id,
             ruleIndex: sarifRuleIndex,
@@ -344,16 +401,20 @@ function createZipBuffer(rootDir, gitIgnoreRules = []) {
     return zip.toBuffer();
 }
 async function runRemoteAudit(config, targetDir, gitIgnoreRules) {
-    const zipBuffer = createZipBuffer(targetDir, gitIgnoreRules);
     const formData = new FormData();
+    const zipBuffer = createZipBuffer(targetDir, gitIgnoreRules);
     formData.append('zip', new Blob([new Uint8Array(zipBuffer)]), 'project.zip');
+    const abortCtrl = new AbortController();
+    const timeoutId = setTimeout(() => abortCtrl.abort(), 30000);
     const response = await fetch(`${config.remoteUrl}/api/audit`, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${config.apiKey}`,
+            Authorization: `Bearer ${config.apiKey}`,
         },
         body: formData,
+        signal: abortCtrl.signal,
     });
+    clearTimeout(timeoutId);
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Remote audit failed: ${response.status} ${response.statusText} - ${errorText}`);
@@ -389,41 +450,50 @@ async function runRemoteAudit(config, targetDir, gitIgnoreRules) {
 // Report Printers
 // ============================================================================
 function printTextReport(result, failOn) {
-    const line = '─'.repeat(74);
+    const LINE = '─'.repeat(74);
     const isPass = result.verdict === 'APPROVED_FOR_SHIP';
+    const failColor = isPass ? style.green : style.red;
+    const failText = isPass ? 'APPROVED FOR SHIP' : 'REJECTED - SHIP BLOCKED';
     console.log('');
-    console.log('┌' + line + '┐');
-    console.log(`│ SHIPSAFE SECURITY DOCKET // VERDICT: ${isPass ? '[APPROVED FOR SHIP]' : '[REJECTED - SHIP BLOCKED]'}`.padEnd(74) + '│');
-    console.log('├' + line + '┤');
-    console.log(`│ Target Directory: ${path.resolve(result.targetDir)}`.slice(0, 74).padEnd(74) + '│');
-    console.log(`│ Scanned Files   : ${result.scannedFiles} source files verified`.padEnd(74) + '│');
-    console.log(`│ Critical: ${result.counts.critical}  |  High: ${result.counts.high}  |  Medium: ${result.counts.medium}  |  Low: ${result.counts.low}`.padEnd(74) + '│');
-    console.log('└' + line + '┘');
+    // Header docket
+    console.log(`┌${style.bold(LINE)}┐`);
+    console.log(`│ ${style.bold('SHIPSAFE SECURITY DOCKET')} // VERDICT: ${failColor(failText)} ${style.reset().padEnd(74 - 25 - failText.length)}│`);
+    console.log(`├${style.bold(LINE)}┤`);
+    console.log(`│ ${style.dim('Target Directory:')} ${path.resolve(result.targetDir).slice(0, 70).padEnd(70)} │`);
+    console.log(`│ ${style.dim('Scanned Files   :')} ${result.scannedFiles} source files verified ${style.reset().padEnd(74 - 28 - String(result.scannedFiles).length)}│`);
+    console.log(`│ ${style.dim('Critical: ')} ${result.counts.critical}  ${style.bgRed(' HIGH: ' + result.counts.high)}  ${style.bgYellow(' MEDIUM: ' + result.counts.medium)}  ${style.bgBlue(' LOW: ' + result.counts.low)} ${style.reset().padEnd(74)} │`);
+    console.log(`└${style.bold(LINE)}┘`);
     console.log('');
     if (result.findings.length === 0) {
-        console.log('✓ All AST/regex perimeter checks passed. No high-risk vectors detected.');
+        console.log(style.green('✓ All AST/regex perimeter checks passed. No high-risk vectors detected.'));
         console.log('');
         return;
     }
-    console.log('FLAGGED FINDINGS:');
-    console.log(line);
+    // Findings table
+    console.log(style.bold('FLAGGED FINDINGS:'));
+    console.log(LINE);
     for (const f of result.findings) {
-        const loc = f.line ? `${f.file}:${f.line}` : f.file;
-        console.log(`[${f.severity}] ${f.id}: ${f.title}`);
+        const loc = f.line ? `${style.cyan(f.file)}:${style.dim(String(f.line))}` : style.cyan(f.file);
+        const sevStyle = style[f.severity.toLowerCase()];
+        console.log(sevStyle(`[${f.severity}]`) + ' ' + style.bold(f.id + ': ' + f.title));
         console.log(`  Location : ${loc}`);
         console.log(`  Threat   : ${f.category}`);
         console.log(`  Remedy   : ${f.remediation}`);
         console.log('');
     }
-    console.log(line);
-    console.log(`Gatekeeper rule active: Fail on severity >= ${failOn.toUpperCase()}`);
+    console.log(LINE);
+    console.log(style.dim(`Gatekeeper rule active: Fail on severity >= ${style.bold(failOn.toUpperCase())}`));
     console.log('');
 }
 function printJsonReport(result) {
     console.log(JSON.stringify(result, null, 2));
 }
+function printSarifReport(result, toolVersion) {
+    const sarif = generateSarif(result, toolVersion);
+    console.log(JSON.stringify(sarif, null, 2));
+}
 // ============================================================================
-// Main CLI Entry
+// Main CLI Entry Point
 // ============================================================================
 const PACKAGE_VERSION = '1.0.0';
 async function runCli() {
@@ -443,29 +513,51 @@ async function runCli() {
     });
     if (values.help) {
         console.log(`
-ShipSafe CLI - Pre-Deployment Security Gatekeeper
+================================================================================
+                     SHIPSAFE SECURITY GATEKEEPER CLI
+================================================================================
 
 USAGE:
   shipsafe scan [dir] [options]
 
 COMMANDS:
-  scan [dir]         Scan target directory (default: current directory '.')
+  scan [dir]       Scan target directory (default: current directory '.')
 
 OPTIONS:
-  --fail-on=<level>     Minimum severity to return exit code 1 (critical|high|medium|low) [default: high]
-  --format=<type>       Output format: text, json, sarif [default: text]
-  --ignore=<dirs>       Comma-separated directories to ignore [default: node_modules,dist,.git]
-  --remote-url=<url>    ShipSafe VPS endpoint for remote audit (e.g., https://api.shipsafe.dev)
-  --api-key=<key>       API key for remote authentication
-  --no-gitignore        Disable .gitignore parsing (respect only --ignore dirs)
-  -h, --help            Show this help docket
-  -v, --version         Display CLI version
+  --fail-on=<level>    Minimum severity to return exit code 1
+                     (critical|high|medium|low) [default: high]
+  --format=<type>      Output format: text, json, sarif [default: text]
+  --ignore=<dirs>      Comma-separated directories to ignore
+                     [default: node_modules,dist,.git]
+  --remote-url=<url>   ShipSafe VPS endpoint for remote audit
+                     (e.g., https://api.shipsafe.dev)
+  --api-key=<key>      API key for remote authentication
+  --no-gitignore       Disable .gitignore parsing (respect only --ignore dirs)
+  -h, --help         Show this help docket and exit
+  -v, --version      Display CLI version
 
 EXAMPLES:
+  # Local scan with ASCII docket output
   shipsafe scan .
-  shipsafe scan . --format=sarif --fail-on=critical
-  shipsafe scan . --remote-url=https://api.shipsafe.dev --api-key=sk_...
-  shipsafe scan . --no-gitignore --ignore=vendor,tmp
+
+  # JSON output for CI parsing
+  shipsafe scan . --format=json
+
+  # SARIF for GitHub Code Scanning
+  shipsafe scan . --format=sarif
+
+  # Remote audit to VPS (both flags required)
+  shipsafe scan . \
+    --remote-url=https://api.shipsafe.dev \
+    --api-key=sk_live_...
+
+  # Ignore specific directories
+  shipsafe scan . --ignore=vendor,tmp,build
+
+  # Bypass .gitignore, use only --ignore dirs
+  shipsafe scan . --no-gitignore --ignore=node_modules,dist
+
+================================================================================
 `);
         process.exit(0);
     }
@@ -497,7 +589,7 @@ EXAMPLES:
     }
     // Load .gitignore rules
     const gitIgnoreRules = noGitignore ? [] : loadGitIgnoreRules(path.resolve(targetDir));
-    // Execute scan (async for remote audit support)
+    // Execute scan
     let result;
     if (remoteUrl && apiKey) {
         // Remote audit mode
@@ -505,7 +597,7 @@ EXAMPLES:
             result = await runRemoteAudit({ remoteUrl, apiKey }, targetDir, gitIgnoreRules);
         }
         catch (error) {
-            console.error(`Error: ${error instanceof Error ? error.message : 'Remote audit failed'}`);
+            console.error(`Error: ${error.message ?? 'Remote audit failed — check URL, API key, and network'}`);
             process.exit(2);
         }
     }
@@ -518,13 +610,13 @@ EXAMPLES:
         printJsonReport(result);
     }
     else if (format === 'sarif') {
-        const sarif = generateSarif(result, PACKAGE_VERSION);
-        console.log(JSON.stringify(sarif, null, 2));
+        printSarifReport(result, PACKAGE_VERSION);
     }
     else {
+        // Text format — the Customs Docket
         printTextReport(result, failOn);
     }
-    // Determine exit code
+    // Determine exit code based on threshold
     const thresholdWeight = SEVERITY_WEIGHT[failOn.toUpperCase()] || 3;
     const hasFailingViolation = result.findings.some((f) => SEVERITY_WEIGHT[f.severity] >= thresholdWeight);
     if (hasFailingViolation) {
@@ -534,7 +626,10 @@ EXAMPLES:
         process.exit(0);
     }
 }
-if (process.env.NODE_ENV !== 'test' && typeof require !== 'undefined' && require.main === module) {
+// Entry point when running `node dist/index.js` directly
+if (process.env.NODE_ENV !== 'test' &&
+    typeof require !== 'undefined' &&
+    require.main === module) {
     runCli().catch((err) => {
         console.error(err);
         process.exit(2);

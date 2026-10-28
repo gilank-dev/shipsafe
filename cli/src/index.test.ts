@@ -59,13 +59,13 @@ describe('ShipSafe CLI', () => {
     it('should show help with -h flag', async () => {
       const code = await runCliWithArgs(['-h'])
       expect(code).toBe(0)
-      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('ShipSafe CLI'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('SHIPSAFE SECURITY GATEKEEPER CLI'))
     })
 
     it('should show help with --help flag', async () => {
       const code = await runCliWithArgs(['--help'])
       expect(code).toBe(0)
-      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('ShipSafe CLI'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('SHIPSAFE SECURITY GATEKEEPER CLI'))
     })
 
     it('should show version with -v flag', async () => {

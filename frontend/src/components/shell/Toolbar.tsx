@@ -70,11 +70,12 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
                   window.dispatchEvent(new PopStateEvent('popstate'))
                 }
               }}
-              className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-ink font-bold border border-rule hover:border-rule-strong bg-surface hover:bg-raised px-2.5 py-1 rounded-sm cursor-pointer transition-colors shadow-xs"
+              className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-ink font-bold border border-rule hover:border-rule-strong bg-surface hover:bg-raised px-2 py-1 rounded-sm cursor-pointer transition-colors shadow-xs shrink-0"
               title="Return to Landing Page & System Overview"
             >
               <span>←</span>
-              <span>Landing Page</span>
+              <span className="hidden sm:inline">Landing Page</span>
+              <span className="sm:hidden">Home</span>
             </button>
             <div className="hidden sm:flex items-center gap-1.5 font-mono text-[11px]">
               <button
@@ -105,11 +106,11 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
             <span className="hidden text-small text-ink-3 lg:inline">Pre-deployment security gate</span>
           </div>
 
-          <div className="flex items-center gap-1.5 md:hidden">
+          <div className="flex items-center gap-1.5 md:hidden shrink-0">
             <button
               type="button"
               onClick={() => openEcosystemModal('mcp')}
-              className="px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
+              className="hidden sm:inline-block px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
               title="MCP Server"
             >
               MCP
@@ -117,7 +118,7 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
             <button
               type="button"
               onClick={() => openEcosystemModal('cli')}
-              className="px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
+              className="hidden sm:inline-block px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
               title="CLI Gatekeeper"
             >
               CLI

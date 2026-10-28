@@ -204,7 +204,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <button
               type="button"
               onClick={onLaunchConsole}
-              className="flex items-center gap-1.5 rounded-md bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] px-3.5 py-1.5 text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-md bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] px-3.5 py-1.5 text-xs font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all shadow-xs active:scale-98 cursor-pointer"
             >
               <span>Launch Console</span>
               <span aria-hidden="true">&rarr;</span>
@@ -218,7 +218,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         <section className="pt-20 pb-20 sm:pt-28 sm:pb-24">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.06] max-w-4xl text-neutral-900 dark:text-neutral-50 mb-6">
             The Customs Desk for <br className="hidden sm:inline" />
-            <span className="text-neutral-400 dark:text-neutral-500 font-normal">Vibe-Coded Web Apps</span>.
+            <span className="text-neutral-400 dark:text-neutral-500 font-normal">
+              Vibe-Coded Web Apps.
+            </span>
           </h1>
 
           <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed mb-10 font-normal">

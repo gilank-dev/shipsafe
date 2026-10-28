@@ -175,6 +175,7 @@ export const useStore = create<ShipSafeState>()((set) => ({
   setTheme: (theme) => {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', theme)
+      document.documentElement.classList.toggle('dark', theme === 'dark')
     }
     try {
       window.localStorage.setItem('shipsafe.theme', theme)
@@ -188,6 +189,7 @@ export const useStore = create<ShipSafeState>()((set) => ({
       const next: Theme = s.theme === 'dark' ? 'light' : 'dark'
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute('data-theme', next)
+        document.documentElement.classList.toggle('dark', next === 'dark')
       }
       try {
         window.localStorage.setItem('shipsafe.theme', next)
