@@ -8,7 +8,7 @@
       "nav": {
         "brand": {
           "name": "ShipSafe",
-          "desk": "// CUSTOMS DESK",
+          "desk": "// SECURITY GATEKEEPER",
           "versionBadge": "v2.4-STABLE",
           "monogram": "SS"
         },
@@ -48,7 +48,7 @@
           "subtitle": "Automated AST & Regex Security Barrier"
         },
         "headline": {
-          "prefix": "The Customs Desk for",
+          "prefix": "The Pre-Deployment Security Gatekeeper for",
           "highlight": "Vibe-Coded Web Apps.",
           "suffix": "Inspect before you ship."
         },
@@ -75,7 +75,7 @@
         "console": {
           "tag": "PILLAR 01 // CONSOLE",
           "title": "Web Audit Console",
-          "description": "Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and official customs docket clearance stamps directly in your browser.",
+          "description": "Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and official security clearance stamps directly in your browser.",
           "action": "Launch Console ->"
         },
         "mcp": {
@@ -137,9 +137,9 @@
           },
           "step3": {
             "number": "03",
-            "title": "Customs Clearance & 1-Click Fixes",
+            "title": "Security Clearance & 1-Click Fixes",
             "subtitle": "Actionable AI Prompts",
-            "description": "Receive an unambiguous Customs Docket verdict stamp (Approved for Ship or Quarantined). If vulnerabilities are detected, get line-specific remediation prompts tailored for Cursor, Claude Code, and Windsurf."
+            "description": "Receive an unambiguous security clearance verdict stamp (Approved for Ship or Quarantined). If vulnerabilities are detected, get line-specific remediation prompts tailored for Cursor, Claude Code, and Windsurf."
           }
         }
       },
@@ -151,7 +151,7 @@
         },
         "columns": {
           "metric": "Capability / Metric",
-          "shipsafe": "ShipSafe Customs Desk",
+          "shipsafe": "ShipSafe Gatekeeper",
           "legacySast": "Legacy Enterprise SAST (SonarQube, Snyk)",
           "linters": "Standard Linters (ESLint, Prettier)"
         },
@@ -420,7 +420,7 @@
       "nav": {
         "brand": {
           "name": "ShipSafe",
-          "desk": "// MEJA BEA CUKAI KODE",
+          "desk": "// GERBANG KEAMANAN KODE",
           "versionBadge": "v2.4-STABIL",
           "monogram": "SS"
         },
@@ -460,7 +460,7 @@
           "subtitle": "Palang Pintu Keamanan Otomatis Berbasis AST & Regex"
         },
         "headline": {
-          "prefix": "Meja Pemeriksaan Bea Cukai untuk",
+          "prefix": "Gerbang Keamanan Pra-Deploy untuk",
           "highlight": "Aplikasi Web Vibe-Coding.",
           "suffix": "Periksa menyeluruh sebelum rilis ke publik."
         },
@@ -487,7 +487,7 @@
         "console": {
           "tag": "PILLAR 01 // KONSOL WEB",
           "title": "Konsol Web Audit",
-          "description": "Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan stempel putusan resmi bea cukai langsung di peramban Anda.",
+          "description": "Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan stempel kelayakan keamanan resmi langsung di peramban Anda.",
           "action": "Buka Konsol Web ->"
         },
         "mcp": {
@@ -563,7 +563,7 @@
         },
         "columns": {
           "metric": "Kapabilitas / Metrik",
-          "shipsafe": "ShipSafe Customs Desk",
+          "shipsafe": "ShipSafe Gatekeeper",
           "legacySast": "SAST Korporat Lawas (SonarQube, Snyk)",
           "linters": "Linter Kode Biasa (ESLint, Prettier)"
         },

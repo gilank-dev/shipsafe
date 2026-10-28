@@ -4,7 +4,7 @@ export const idContent: LandingContentSchema = {
   nav: {
     brand: {
       name: 'ShipSafe',
-      desk: '// MEJA BEA CUKAI KODE',
+      desk: '// GERBANG KEAMANAN KODE',
       versionBadge: 'v2.4-STABIL',
       monogram: 'SS',
     },
@@ -45,7 +45,7 @@ export const idContent: LandingContentSchema = {
       subtitle: 'Palang Pintu Keamanan Otomatis Berbasis AST & Regex',
     },
     headline: {
-      prefix: 'Meja Pemeriksaan Bea Cukai untuk',
+      prefix: 'Gerbang Keamanan Pra-Deploy untuk',
       highlight: 'Aplikasi Web Vibe-Coding.',
       suffix: 'Periksa menyeluruh sebelum rilis ke publik.',
     },
@@ -76,7 +76,7 @@ export const idContent: LandingContentSchema = {
       tag: 'PILLAR 01 // KONSOL WEB',
       title: 'Konsol Web Audit',
       description:
-        'Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan stempel putusan resmi bea cukai langsung di peramban Anda.',
+        'Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan stempel kelayakan keamanan resmi langsung di peramban Anda.',
       action: 'Buka Konsol Web ->',
     },
     mcp: {
@@ -169,7 +169,7 @@ export const idContent: LandingContentSchema = {
     },
     columns: {
       metric: 'Kapabilitas / Metrik',
-      shipsafe: 'ShipSafe Customs Desk',
+      shipsafe: 'ShipSafe Gatekeeper',
       legacySast: 'SAST Korporat Lawas (SonarQube, Snyk)',
       linters: 'Linter Kode Biasa (ESLint, Prettier)',
     },

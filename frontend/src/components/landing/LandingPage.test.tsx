@@ -3,14 +3,14 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { LandingPage } from './LandingPage'
 
 describe('LandingPage', () => {
-  it('renders Customs Desk branding, hero section, and launch button', () => {
+  it('renders Security Gatekeeper branding, hero section, and launch button', () => {
     const onLaunch = vi.fn()
     render(<LandingPage onLaunchConsole={onLaunch} />)
 
     const brandingElements = screen.getAllByText(/ShipSafe/i)
     expect(brandingElements.length).toBeGreaterThan(0)
-    expect(screen.getByText(/\/\/ CUSTOMS DESK/i)).toBeInTheDocument()
-    expect(screen.getByText(/The Customs Desk for/i)).toBeInTheDocument()
+    expect(screen.getByText(/\/\/ SECURITY GATEKEEPER/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/The Pre-Deployment Security Gatekeeper for/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/Vibe-Coded Web Apps/i)).toBeInTheDocument()
 
     const launchButtons = screen.getAllByRole('button', { name: /Launch Console/i })
@@ -116,14 +116,14 @@ describe('LandingPage', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
     // Initial state is English
-    expect(screen.getByText(/The Customs Desk for/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/The Pre-Deployment Security Gatekeeper for/i).length).toBeGreaterThan(0)
 
     // Switch to Indonesian
     const idButton = screen.getByRole('button', { name: /Ganti bahasa ke Bahasa Indonesia/i })
     fireEvent.click(idButton)
 
     // Verify Indonesian content
-    expect(screen.getByText(/Meja Bea Cukai Kode untuk/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Gerbang Keamanan Pra-Deploy untuk/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/Aplikasi Web Vibe-Coding/i)).toBeInTheDocument()
     expect(screen.getByText(/Cara ShipSafe Mengamankan Kode Anda dalam 3 Detik/i)).toBeInTheDocument()
     expect(screen.getByText(/Mengapa ShipSafe Lebih Unggul untuk Pengembang Vibe-Coding/i)).toBeInTheDocument()
@@ -134,7 +134,7 @@ describe('LandingPage', () => {
     fireEvent.click(enButton)
 
     // Verify English content restored
-    expect(screen.getByText(/The Customs Desk for/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/The Pre-Deployment Security Gatekeeper for/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/How ShipSafe Secures Your Code in 3 Seconds/i)).toBeInTheDocument()
   })
 })

@@ -200,7 +200,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
   en: {
     nav: {
       brandName: 'ShipSafe',
-      tagline: '// CUSTOMS DESK',
+      tagline: '// SECURITY GATEKEEPER',
       console: 'Console',
       howItWorks: 'How It Works',
       comparison: 'Comparison',
@@ -216,7 +216,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     hero: {
       eyebrowBadge: '// PRE-DEPLOYMENT GATEKEEPER',
       eyebrowSub: 'Automated AST & Regex Security Barrier',
-      headlineMain: 'The Customs Desk for',
+      headlineMain: 'The Pre-Deployment Security Gatekeeper for',
       headlineHighlight: 'Vibe-Coded Web Apps.',
       subheadline:
         'Built for developers and founders shipping at the speed of thought. Catch leaked service keys, unauthenticated endpoints, exposed database tables, and prompt injection surfaces in 3 seconds before you push to production.',
@@ -259,7 +259,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           pillarId: 'PILLAR 01 // CONSOLE',
           title: 'Instant Web Audit',
           description:
-            'Upload a ZIP archive or link a GitHub repository for a 3-second AST analysis and an authoritative customs docket verdict.',
+            'Upload a ZIP archive or link a GitHub repository for a 3-second AST analysis and an authoritative security clearance verdict.',
           actionLabel: 'Launch Console',
         },
         {
@@ -325,7 +325,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           title: 'Clear Verdict & Agent Prompts',
           tagline: 'Self-Healing Remediation',
           description:
-            'Receive an authoritative Customs Docket status (Approved or Action Required). For every finding, copy an exact line-specific remediation prompt formatted specifically for your AI coding assistant to resolve the issue in 60 seconds.',
+            'Receive an authoritative security clearance status (Approved or Action Required). For every finding, copy an exact line-specific remediation prompt formatted specifically for your AI coding assistant to resolve the issue in 60 seconds.',
           badge: 'Tailored for 5 coding agents',
         },
       ],
@@ -599,7 +599,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
   id: {
     nav: {
       brandName: 'ShipSafe',
-      tagline: '// MEJA BEA CUKAI KODE',
+      tagline: '// GERBANG KEAMANAN KODE',
       console: 'Konsol Web',
       howItWorks: 'Cara Kerja',
       comparison: 'Perbandingan',
@@ -615,7 +615,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     hero: {
       eyebrowBadge: '// GERBANG KEAMANAN PRA-DEPLOY',
       eyebrowSub: 'Barikade Keamanan AST & Regex Otomatis',
-      headlineMain: 'Meja Bea Cukai Kode untuk',
+      headlineMain: 'Gerbang Keamanan Pra-Deploy untuk',
       headlineHighlight: 'Aplikasi Web Vibe-Coding.',
       subheadline:
         'Dibuat khusus untuk developer dan founder yang membangun aplikasi secepat prompt AI. Tangkap kebocoran service key, endpoint tanpa autentikasi, tabel database terekspos, dan celah prompt injection dalam 3 detik sebelum kode meluncur ke produksi.',
@@ -658,7 +658,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           pillarId: 'PILAR 01 // KONSOL WEB',
           title: 'Audit Web Seketika',
           description:
-            'Unggah arsip ZIP atau masukkan tautan repositori GitHub untuk analisis AST 3 detik di memori dengan stempel putusan resmi.',
+            'Unggah arsip ZIP atau masukkan tautan repositori GitHub untuk analisis AST 3 detik di memori dengan stempel kelayakan keamanan resmi.',
           actionLabel: 'Buka Konsol',
         },
         {
@@ -724,7 +724,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           title: 'Stempel Putusan & Prompt AI',
           tagline: 'Remediasi Mandiri Seketika',
           description:
-            'Terima status resmi Doket Bea Cukai (Passed atau Action Required). Untuk setiap temuan, salin prompt perbaikan presisi per-baris yang dirancang khusus bagi asisten koding AI Anda agar celah tuntas diperbaiki dalam 60 detik.',
+            'Terima status resmi Kelayakan Keamanan (Passed atau Action Required). Untuk setiap temuan, salin prompt perbaikan presisi per-baris yang dirancang khusus bagi asisten koding AI Anda agar celah tuntas diperbaiki dalam 60 detik.',
           badge: 'Diformat untuk 5 coding agent',
         },
       ],

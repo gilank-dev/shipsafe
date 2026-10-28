@@ -4,7 +4,7 @@ export const enContent: LandingContentSchema = {
   nav: {
     brand: {
       name: 'ShipSafe',
-      desk: '// CUSTOMS DESK',
+      desk: '// SECURITY GATEKEEPER',
       versionBadge: 'v2.4-STABLE',
       monogram: 'SS',
     },
@@ -45,7 +45,7 @@ export const enContent: LandingContentSchema = {
       subtitle: 'Automated AST & Regex Security Barrier',
     },
     headline: {
-      prefix: 'The Customs Desk for',
+      prefix: 'The Pre-Deployment Security Gatekeeper for',
       highlight: 'Vibe-Coded Web Apps.',
       suffix: 'Inspect before you ship.',
     },
@@ -76,7 +76,7 @@ export const enContent: LandingContentSchema = {
       tag: 'PILLAR 01 // CONSOLE',
       title: 'Web Audit Console',
       description:
-        'Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and official customs docket clearance stamps directly in your browser.',
+        'Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and official security clearance stamps directly in your browser.',
       action: 'Launch Console ->',
     },
     mcp: {
@@ -152,10 +152,10 @@ export const enContent: LandingContentSchema = {
       },
       step3: {
         number: '03',
-        title: 'Customs Clearance & 1-Click Fixes',
+        title: 'Security Clearance & 1-Click Fixes',
         subtitle: 'Actionable AI Prompts',
         description:
-          'Receive an unambiguous Customs Docket verdict stamp (Approved for Ship or Quarantined). If vulnerabilities are detected, get line-specific remediation prompts tailored for Cursor, Claude Code, and Windsurf.',
+          'Receive an unambiguous security clearance verdict stamp (Approved for Ship or Quarantined). If vulnerabilities are detected, get line-specific remediation prompts tailored for Cursor, Claude Code, and Windsurf.',
       },
     },
   },
@@ -169,7 +169,7 @@ export const enContent: LandingContentSchema = {
     },
     columns: {
       metric: 'Capability / Metric',
-      shipsafe: 'ShipSafe Customs Desk',
+      shipsafe: 'ShipSafe Gatekeeper',
       legacySast: 'Legacy Enterprise SAST (SonarQube, Snyk)',
       linters: 'Standard Linters (ESLint, Prettier)',
     },

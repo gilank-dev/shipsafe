@@ -813,7 +813,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   </button>
                 </div>
                 <p className="text-xs text-neutral-500 mt-2.5 leading-relaxed font-sans">
-                  Parses <code className="text-neutral-700 dark:text-neutral-300 font-mono">.gitignore</code> automatically and outputs Customs Docket ASCII table.
+                  Parses <code className="text-neutral-700 dark:text-neutral-300 font-mono">.gitignore</code> automatically and outputs security scorecard ASCII table.
                 </p>
               </div>
 
@@ -857,7 +857,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div className="rounded-lg border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50 dark:bg-black p-4 text-neutral-800 dark:text-neutral-200 overflow-x-auto">
                 <pre className="text-[11px] leading-relaxed">
 {`┌──────────────────────────────────────────────────────────────────────────┐
-│ SHIPSAFE SECURITY DOCKET // VERDICT: [APPROVED FOR SHIP]                 │
+│ SHIPSAFE SECURITY AUDIT // VERDICT: [APPROVED FOR SHIP]                  │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ Target Directory: C:\\Users\\Developer\\Projects\\my-vibe-saas               │
 │ Scanned Files   : 84 source files verified (Node / Python / Docker)      │

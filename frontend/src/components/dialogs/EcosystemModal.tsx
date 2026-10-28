@@ -205,7 +205,7 @@ export function EcosystemModal() {
               </span>
             </div>
             <p className="text-small text-ink-2 mt-1">
-              Run audits on local directories before committing. Zero dependencies, offline-ready, outputs Customs Docket ASCII table.
+              Run audits on local directories before committing. Zero dependencies, offline-ready, outputs security scorecard ASCII table.
             </p>
           </div>
 
