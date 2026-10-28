@@ -26,7 +26,6 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
   const statusLine = useStatusLine()
   const user = useStore((s) => s.auth.user)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
-  const setHistoryModalOpen = useStore((s) => s.setHistoryModalOpen)
   const openEcosystemModal = useStore((s) => s.openEcosystemModal)
   const setAuthUser = useStore((s) => s.setAuthUser)
   const clerk = useClerk()
@@ -126,14 +125,6 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  className="btn text-small px-2.5 min-h-[44px]"
-                  onClick={() => setHistoryModalOpen(true)}
-                  title="View saved audit history"
-                >
-                  History
-                </button>
                 <button type="button" className="btn text-small px-2.5 min-h-[44px]" onClick={handleSignOut}>
                   Sign out
                 </button>
@@ -175,14 +166,6 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="btn btn-outline text-small"
-                  onClick={() => setHistoryModalOpen(true)}
-                  title="View saved audit history"
-                >
-                  History
-                </button>
                 <div className="flex items-center gap-2 max-w-[180px] pl-1">
                   {user.avatarUrl ? (
                     <img

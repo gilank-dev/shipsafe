@@ -4,7 +4,6 @@ import { AppShell } from './components/shell/AppShell'
 import { ReportArea } from './components/run/ReportArea'
 import { SubmissionPanel } from './components/submission/SubmissionPanel'
 import { AuthModal } from './components/dialogs/AuthModal'
-import { HistoryModal } from './components/dialogs/HistoryModal'
 import { EcosystemModal } from './components/dialogs/EcosystemModal'
 import { ToastContainer } from './components/ui/Toast'
 import { NotFoundPage } from './components/shell/NotFoundPage'
@@ -149,7 +148,6 @@ export default function App() {
       <>
         <AppShell submission={<SubmissionPanel />} report={<ReportArea />} />
         <AuthModal />
-        <HistoryModal />
         <EcosystemModal />
         <ToastContainer />
         <Analytics />

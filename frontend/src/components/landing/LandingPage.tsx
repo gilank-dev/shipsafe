@@ -98,6 +98,16 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 }`,
   }
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (typeof window !== 'undefined') {
+        window.history.pushState(null, '', `#${id}`)
+      }
+    }
+  }
+
   return (
     <div className="min-h-[100dvh] bg-canvas text-ink font-sans selection:bg-ink selection:text-canvas transition-colors duration-200">
       {/* 1. TOP NAVIGATION BAR */}
@@ -125,16 +135,44 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             >
               Console
             </button>
-            <a href="#mcp" className="hover:text-ink transition-colors">
+            <a
+              href="#mcp"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('mcp')
+              }}
+              className="hover:text-ink transition-colors cursor-pointer"
+            >
               MCP Server
             </a>
-            <a href="#cli" className="hover:text-ink transition-colors">
+            <a
+              href="#cli"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('cli')
+              }}
+              className="hover:text-ink transition-colors cursor-pointer"
+            >
               CLI
             </a>
-            <a href="#threat-matrix" className="hover:text-ink transition-colors">
+            <a
+              href="#threat-matrix"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('threat-matrix')
+              }}
+              className="hover:text-ink transition-colors cursor-pointer"
+            >
               10 Vectors
             </a>
-            <a href="#faq" className="hover:text-ink transition-colors">
+            <a
+              href="#faq"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('faq')
+              }}
+              className="hover:text-ink transition-colors cursor-pointer"
+            >
               FAQ
             </a>
           </nav>
@@ -331,7 +369,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 3. KEY USE CASES */}
-        <section id="use-cases" className="py-16 border-b border-rule">
+        <section id="use-cases" className="py-16 border-b border-rule scroll-mt-20">
           <div className="mb-2 font-mono text-caption uppercase tracking-wider text-ink-3">Target Archetypes</div>
           <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-tight mb-8 text-ink">
             Who Needs a Pre-Ship Customs Desk?
@@ -383,7 +421,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 4. EXTREME EASE OF USE */}
-        <section id="3-second-protocol" className="py-16 border-b border-rule">
+        <section id="3-second-protocol" className="py-16 border-b border-rule scroll-mt-20">
           <div className="mb-2 font-mono text-caption uppercase tracking-wider text-ink-3">Speed &amp; Frictionless Experience</div>
           <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-tight mb-8 text-ink">
             The 3-Second Inspection Protocol
@@ -423,7 +461,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 5. 10 THREAT VECTORS & STRENGTHS */}
-        <section id="threat-matrix" className="py-16 border-b border-rule">
+        <section id="threat-matrix" className="py-16 border-b border-rule scroll-mt-20">
           <div className="mb-2 font-mono text-caption uppercase tracking-wider text-ink-3">Comprehensive Coverage</div>
           <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-tight mb-4 text-ink">
             10 Critical Threat Vectors Audited
@@ -486,7 +524,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 6. DEDICATED MCP SERVER SHOWCASE */}
-        <section id="mcp" className="py-16 border-b border-rule">
+        <section id="mcp" className="py-16 border-b border-rule scroll-mt-20">
           <div className="mb-2 font-mono text-caption uppercase tracking-wider text-ink-3">
             Pillar 02 // Model Context Protocol (MCP) Server
           </div>
@@ -586,7 +624,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 7. DEDICATED TERMINAL CLI SHOWCASE */}
-        <section id="cli" className="py-16 border-b border-rule">
+        <section id="cli" className="py-16 border-b border-rule scroll-mt-20">
           <div className="mb-2 font-mono text-caption uppercase tracking-wider text-ink-3">
             Pillar 03 // Pre-Commit &amp; CI/CD Barrier
           </div>
@@ -676,7 +714,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 8. HONEST LIMITATIONS (RADICAL TRANSPARENCY) */}
-        <section id="limitations" className="py-16 border-b border-rule">
+        <section id="limitations" className="py-16 border-b border-rule scroll-mt-20">
           <div className="rounded-sm border border-warn-edge bg-warn-bg/25 p-6 sm:p-8 shadow-xs">
             <div className="flex items-center gap-2 font-mono text-caption font-bold text-status-warn-fg uppercase tracking-widest mb-3">
               <span className="size-2 rounded-full bg-status-warn-fg inline-block" />
@@ -718,7 +756,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 9. COMMUNITY & DIRECT DEVELOPER ASSISTANCE */}
-        <section id="developer-support" className="py-14 border-b border-rule">
+        <section id="developer-support" className="py-14 border-b border-rule scroll-mt-20">
           <div className="rounded-sm border border-rule-strong bg-surface p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xs">
             <div>
               <div className="flex items-center gap-2 font-mono text-caption font-bold text-pass uppercase mb-2">
@@ -809,7 +847,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 11. INTERACTIVE FAQ ACCORDION */}
-        <section id="faq" className="py-16 border-b border-rule">
+        <section id="faq" className="py-16 border-b border-rule scroll-mt-20">
           <div className="mb-2 font-mono text-caption uppercase tracking-wider text-ink-3">Documentation &amp; Answers</div>
           <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-tight mb-8 text-ink">
             Frequently Asked Questions

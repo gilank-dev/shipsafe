@@ -1,0 +1,19 @@
+{
+  "name": "shipsafe-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "cli",
+    "mcp",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix frontend run dev",
+    "test": "npm --prefix frontend test"
+  },
+  "devDependencies": {
+    "vite": "^7.3.7"
+  }
+}
