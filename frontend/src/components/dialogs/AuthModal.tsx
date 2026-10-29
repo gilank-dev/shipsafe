@@ -52,23 +52,23 @@ export function AuthModal() {
       }
 
       setOauthLoading(null)
-      setError(`Tidak dapat menghubungi layanan autentikasi ${providerName}. Silakan coba lagi.`)
+      setError(`Unable to connect to ${providerName} authentication service. Please try again.`)
     } catch {
       setOauthLoading(null)
-      setError(`Gagal melakukan autentikasi dengan ${providerName}.`)
+      setError(`Failed to authenticate with ${providerName}.`)
     }
   }
 
   return (
-    <Dialog title="Autentikasi Akun ShipSafe" onClose={handleClose}>
+    <Dialog title="ShipSafe Account Authentication" onClose={handleClose}>
       <div className="space-y-4">
         {/* Security Notice */}
         <div className="border border-rule bg-surface p-3.5 text-small text-ink-2 rounded-xs">
           <div className="flex items-center gap-1.5 font-semibold text-ink mb-1">
             <IconLock width={14} height={14} />
-            <span>Autentikasi Terverifikasi (OAuth Only)</span>
+            <span>Verified Authentication (OAuth Only)</span>
           </div>
-          Masuk atau daftar secara aman menggunakan akun GitHub atau Google Anda. Akun Anda digunakan untuk mengakses audit keamanan pre-deployment dan token terminal CLI.
+          Sign in or register securely using your GitHub or Google account. Your credentials are used strictly for accessing pre-deployment security audits and CLI terminal tokens.
         </div>
 
         {error && (
@@ -86,7 +86,7 @@ export function AuthModal() {
             onClick={() => handleOAuth('github')}
           >
             <IconGitHub width={20} height={20} />
-            <span>{oauthLoading === 'github' ? 'Menghubungkan ke GitHub...' : 'Lanjutkan dengan GitHub'}</span>
+            <span>{oauthLoading === 'github' ? 'Connecting to GitHub...' : 'Continue with GitHub'}</span>
           </button>
 
           <button
@@ -96,13 +96,14 @@ export function AuthModal() {
             onClick={() => handleOAuth('google')}
           >
             <IconGoogle width={20} height={20} />
-            <span>{oauthLoading === 'google' ? 'Menghubungkan ke Google...' : 'Lanjutkan dengan Google'}</span>
+            <span>{oauthLoading === 'google' ? 'Connecting to Google...' : 'Continue with Google'}</span>
           </button>
+
         </div>
 
         {/* Security Assurance Footer */}
         <div className="pt-2 text-center text-xs text-ink-3 leading-relaxed border-t border-rule font-mono">
-          <span>Privasi Terjamin: Zero Code Retention / Kredensial OAuth Dikelola Aman</span>
+          <span>Privacy Guaranteed: Zero Code Retention / OAuth Credentials Managed Securely</span>
         </div>
       </div>
     </Dialog>

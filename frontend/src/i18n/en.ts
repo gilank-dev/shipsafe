@@ -73,14 +73,14 @@ export const enContent: LandingContentSchema = {
         'Whether you audit in your browser, trigger scans from terminal hooks, or let AI coding agents self-heal vulnerabilities via MCP.',
     },
     console: {
-      tag: 'PILLAR 01 · CONSOLE',
+      tag: 'PILLAR 01 / CONSOLE',
       title: 'Web Audit Console',
       description:
         'Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and verified security clearance directly in your browser.',
       action: 'Launch Console ->',
     },
     mcp: {
-      tag: 'PILLAR 02 · MCP',
+      tag: 'PILLAR 02 / MCP',
       title: 'Autonomous Agent Bridge',
       description:
         'Connect ShipSafe directly to Cursor, Claude Desktop, Windsurf, OpenCode, and Hermes via standard stdio JSON-RPC 2.0. Allow coding agents to audit and remediate findings autonomously.',
@@ -346,7 +346,7 @@ export const enContent: LandingContentSchema = {
       tag: 'DEVELOPER PRICING',
       title: 'Simple, Predictable Security Pricing',
       subtitle:
-        'Start auditing code for free. Upgrade when you need team collaboration, priority queues, and official compliance certificates.',
+        'Start auditing code for free. Upgrade when you need CI/CD automation, priority queues, and official compliance certificates.',
     },
     tiers: {
       community: {
@@ -387,12 +387,12 @@ export const enContent: LandingContentSchema = {
         price: 'Custom',
         period: 'Bespoke Agreement',
         description:
-          'For fast engineering teams, software agencies, and organizations requiring custom AST rules and dedicated SLAs.',
+          'For high-velocity developers, agencies, and enterprise deployments requiring custom AST rules and dedicated SLAs.',
         features: [
           'On-premises Docker self-hosted deployment',
-          'Custom organizational AST & regex rulesets',
+          'Custom AST & regex rulesets for private repositories',
           'Private GitHub pull request bot integration',
-          'Team seat management & multi-tenant RLS',
+          'Custom scan concurrency limits & dedicated runner allocation',
           'BCA, Mandiri, and Corporate Bank Transfer invoices',
           'Dedicated Slack/WhatsApp channel & 99.9% uptime SLA',
         ],
@@ -407,7 +407,7 @@ export const enContent: LandingContentSchema = {
     title: 'Need Custom Audit Rules or Dedicated Guidance?',
     subtitle:
       'Connect directly with the creator of ShipSafe. Get assistance on integrating custom regex rulesets, configuring CI/CD pipelines, or auditing specialized web architectures.',
-    badge: '● MAINTAINER ONLINE // AVERAGE RESPONSE TIME < 15 MINUTES',
+    badge: 'MAINTAINER ONLINE // AVERAGE RESPONSE TIME < 15 MINUTES',
     whatsapp: {
       label: 'Talk on WhatsApp',
       url: 'https://wa.me/6282124153732?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya',
@@ -475,7 +475,7 @@ export const enContent: LandingContentSchema = {
       privacy: 'Privacy Protocol',
       terms: 'Terms of Clearance',
     },
-    compliance: 'GDPR ZERO-PERSISTENCE COMPLIANT • WCAG 2.1 AA ACCESSIBLE • NO CODE RETENTION',
+    compliance: 'GDPR ZERO-PERSISTENCE COMPLIANT / WCAG 2.1 AA ACCESSIBLE / NO CODE RETENTION',
     copyright: `© ${new Date().getFullYear()} ShipSafe. Built by LankDev & AI Agents.`,
   },
 }

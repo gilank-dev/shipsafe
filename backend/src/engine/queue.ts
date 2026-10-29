@@ -68,7 +68,7 @@ export class AuditQueue {
     // Check if the waiting queue is saturated
     if (this.queue.length >= this.maxQueueLength) {
       const err: any = new Error(
-        `Server antrean penuh (${this.maxConcurrent} proses aktif, ${this.queue.length} menunggu). Silakan coba sesaat lagi.`
+        `Server queue is full (${this.maxConcurrent} active tasks, ${this.queue.length} waiting). Please try again shortly.`
       );
       err.code = 'QUEUE_FULL';
       err.statusCode = 429;
@@ -85,7 +85,7 @@ export class AuditQueue {
         if (idx !== -1) {
           this.queue.splice(idx, 1);
           const timeoutErr: any = new Error(
-            'Batas waktu antrean terlampaui (60s). Server sedang memproses audit pengguna lain.'
+            'Queue timeout exceeded (60s). The server is currently processing audits for other users.'
           );
           timeoutErr.code = 'QUEUE_TIMEOUT';
           timeoutErr.statusCode = 504;
@@ -110,7 +110,7 @@ export class AuditQueue {
         this.queue.splice(insertIdx, 0, newItem);
       }
 
-      console.log(`[ShipSafe Queue] Request masuk antrean [${id}] (Priority: ${priority}). Posisi antrean: ${this.queue.length}. Pekerja aktif: ${this.activeCount}/${this.maxConcurrent}`);
+      console.log(`[ShipSafe Queue] Request enqueued [${id}] (Priority: ${priority}). Queue position: ${this.queue.length}. Active workers: ${this.activeCount}/${this.maxConcurrent}`);
     });
   }
 
@@ -125,7 +125,7 @@ export class AuditQueue {
     clearTimeout(nextItem.timeoutTimer);
     this.activeCount++;
 
-    console.log(`[ShipSafe Queue] Menjalankan antrean [${nextItem.id}]. Pekerja aktif: ${this.activeCount}/${this.maxConcurrent}. Sisa antrean: ${this.queue.length}`);
+    console.log(`[ShipSafe Queue] Executing queued task [${nextItem.id}]. Active workers: ${this.activeCount}/${this.maxConcurrent}. Remaining in queue: ${this.queue.length}`);
 
     nextItem.task()
       .then(res => nextItem.resolve(res))

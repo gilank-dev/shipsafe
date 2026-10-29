@@ -10,7 +10,6 @@ import { NotFoundPage } from './components/shell/NotFoundPage'
 import { LandingPage } from './components/landing/LandingPage'
 import { PaywallModal } from './components/pricing/PaywallModal'
 import { SuperAdminDashboard } from './components/admin/SuperAdminDashboard'
-import { TeamManagementPage } from './components/team/TeamManagementPage'
 import { onAuthStateChange } from './lib/supabase'
 import { useStore } from './state/store'
 import { Analytics } from '@vercel/analytics/react'
@@ -205,27 +204,10 @@ export default function App() {
     )
   }
 
-  // Enterprise Team Route
-  const authUser = useStore((s) => s.auth.user)
-  const quotaState = useStore((s) => s.quota)
-  const effectiveUserTier = authUser?.organizationId ? 'enterprise' : (authUser?.tier || quotaState?.tier || 'free')
-  const isTeamUser = Boolean(authUser && (authUser.organizationId || authUser.organizationName || effectiveUserTier === 'enterprise' || authUser.isSuperAdmin))
-
-  const isTeamRoute = currentPath === '/dashboard/team' || currentPath === '/team'
-  if (isTeamRoute) {
-    if (!isTeamUser) {
-      navigateTo('/console')
-      return null
-    }
-    return (
-      <>
-        <TeamManagementPage onNavigate={navigateTo} />
-        <AuthModal />
-        <PaywallModal />
-        <ToastContainer />
-        <Analytics />
-      </>
-    )
+  // Deprecated team routes redirect to console
+  if (currentPath === '/dashboard/team' || currentPath === '/team') {
+    navigateTo('/console')
+    return null
   }
 
   // Security Console Routes & Aliases

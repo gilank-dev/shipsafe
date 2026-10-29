@@ -33,11 +33,11 @@ describe('PricingSection Component', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Upgrade ke Pro Sekarang' })).toBeInTheDocument()
 
-    // Tier 3: Enterprise (Team / Agency)
-    expect(screen.getByText('Enterprise (Team / Agency)')).toBeInTheDocument()
+    // Tier 3: Enterprise (Custom SLA)
+    expect(screen.getByText('Enterprise (Custom SLA)')).toBeInTheDocument()
     expect(screen.getByText('Kustom')).toBeInTheDocument()
     expect(
-      screen.getByText('Untuk software house, agensi, dan tim engineering yang butuh otomatisasi CI/CD dan laporan white-label.')
+      screen.getByText('Untuk proyek skala besar dengan dedicated sandbox dan SLA khusus.')
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Hubungi Admin' })).toBeInTheDocument()
   })
@@ -52,11 +52,11 @@ describe('PricingSection Component', () => {
 
     // Modal should appear
     expect(screen.getByText('Konsultasi Kebutuhan Enterprise')).toBeInTheDocument()
-    expect(screen.getByLabelText('Nama Perusahaan / Agensi')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nama Perusahaan / Proyek')).toBeInTheDocument()
     expect(screen.getByLabelText('Estimasi Deployment / Scan per Bulan')).toBeInTheDocument()
 
     // Fill Form
-    const companyInput = screen.getByLabelText('Nama Perusahaan / Agensi')
+    const companyInput = screen.getByLabelText('Nama Perusahaan / Proyek')
     fireEvent.change(companyInput, { target: { value: 'Acme Security Tech' } })
 
     const volumeSelect = screen.getByLabelText('Estimasi Deployment / Scan per Bulan')

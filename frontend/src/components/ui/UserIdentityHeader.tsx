@@ -1,7 +1,7 @@
 import React from 'react'
 import { TierBadge } from './TierBadge'
 import type { UserProfile, QuotaState } from '../../state/store'
-import { Building2, AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 
 interface UserIdentityHeaderProps {
   user: UserProfile | null
@@ -18,7 +18,7 @@ export const UserIdentityHeader: React.FC<UserIdentityHeaderProps> = ({
 }) => {
   if (!user) return null
 
-  const effectiveTier = user.organizationId ? 'enterprise' : (user.tier || quota?.tier || 'free')
+  const effectiveTier = user.tier || quota?.tier || 'free'
   const initial = ((user.fullName || user.email || 'U')[0] || 'U').toUpperCase()
   const isSuspended = user.accountStatus === 'suspended'
 
@@ -57,18 +57,7 @@ export const UserIdentityHeader: React.FC<UserIdentityHeaderProps> = ({
           {/* Tier Badge */}
           <TierBadge tier={effectiveTier} isSuperAdmin={user.isSuperAdmin} size="xs" />
 
-          {/* Organization Badge if applicable */}
-          {(user.organizationName || effectiveTier === 'enterprise') && (
-            <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[9px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/30"
-              title={`Organisasi: ${user.organizationName || 'ShipSafe Core Security'} (${(user.orgRole || 'OWNER').toUpperCase()})`}
-            >
-              <Building2 className="size-2.5 shrink-0" strokeWidth={1.5} />
-              <span className="truncate max-w-[120px]">
-                {user.organizationName || 'ShipSafe Core Security'} : {(user.orgRole || 'OWNER').toUpperCase()}
-              </span>
-            </span>
-          )}
+
 
           {/* Suspension Alert if applicable */}
           {isSuspended && (
@@ -84,7 +73,7 @@ export const UserIdentityHeader: React.FC<UserIdentityHeaderProps> = ({
           {user.email && <span className="truncate max-w-[180px]">{user.email}</span>}
           {showQuota && quota && (
             <>
-              <span className="text-zinc-600">•</span>
+              <span className="text-zinc-600">/</span>
               <span className="text-zinc-300">
                 Audit: {quota.used} / {quota.limit >= 999999 ? '∞' : quota.limit}
               </span>

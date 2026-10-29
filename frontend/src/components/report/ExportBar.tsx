@@ -29,7 +29,7 @@ export function ExportBar({ findings }: ExportBarProps) {
   const quota = useStore((s) => s.quota)
   const openPaywallModal = useStore((s) => s.openPaywallModal)
 
-  const effectiveTier = user?.organizationId ? 'enterprise' : (user?.tier || quota?.tier || 'free')
+  const effectiveTier = user?.tier || quota?.tier || 'free'
   const isFree = effectiveTier === 'free'
   const isEnterprise = effectiveTier === 'enterprise'
 
@@ -52,8 +52,8 @@ export function ExportBar({ findings }: ExportBarProps) {
       return
     }
 
-    const whiteLabel = isEnterprise && user?.organizationName
-      ? { companyName: user.organizationName }
+    const whiteLabel = isEnterprise
+      ? { companyName: user?.organizationName || user?.fullName || 'Enterprise Security' }
       : undefined
 
     const mdContent = buildFullReportMarkdown(report, fileName, whiteLabel)
@@ -100,16 +100,16 @@ export function ExportBar({ findings }: ExportBarProps) {
       return
     }
 
-    const whiteLabel = isEnterprise && user?.organizationName
-      ? { companyName: user.organizationName }
+    const whiteLabel = isEnterprise
+      ? { companyName: user?.organizationName || user?.fullName || 'Enterprise Security' }
       : undefined
 
     const success = exportReportAsPdf(report, fileName, whiteLabel)
     if (success) {
       announce('Opened printable PDF report window')
-      toast.success(isEnterprise ? 'Membuka White-Label PDF Report...' : 'Membuka PDF Report...')
+      toast.success(isEnterprise ? 'Opening White-Label PDF Report...' : 'Opening PDF Report...')
     } else {
-      toast.error('Gagal membuka jendela cetak PDF. Pastikan pop-up diizinkan di browser Anda.')
+      toast.error('Failed to open PDF print window. Please ensure pop-ups are allowed in your browser.')
     }
   }
 

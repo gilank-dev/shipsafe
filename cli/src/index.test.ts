@@ -305,23 +305,21 @@ describe('ShipSafe CLI', () => {
   })
 
   describe('Authentication and Session Gateway', () => {
-    it('should reject scan with exit code 2 when unauthenticated', async () => {
+    it('should scan without login and without any token', async () => {
       delete process.env.SHIPSAFE_TOKEN
       const code = await runCliWithArgs(['scan', testDir])
-      expect(code).toBe(2)
-      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Authentication required'))
-      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('shipsafe login --token='))
+      expect(code).not.toBe(2)
+      expect(mockError).not.toHaveBeenCalledWith(expect.stringContaining('Authentication required'))
     })
 
-    it('should reject scan when token is expired', async () => {
+    it('should still scan when a stored token is expired', async () => {
       const expiredPayload = Buffer.from(
         JSON.stringify({ v: 1, sub: 'user_1', email: 'expired@shipsafe.dev', exp: Math.floor(Date.now() / 1000) - 100 })
       ).toString('base64url')
       process.env.SHIPSAFE_TOKEN = `sk_shipsafe_${expiredPayload}.fakesig`
 
       const code = await runCliWithArgs(['scan', testDir])
-      expect(code).toBe(2)
-      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Authentication required'))
+      expect(code).not.toBe(2)
     })
 
     it('should save credentials and succeed on shipsafe login', async () => {

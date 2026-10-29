@@ -256,21 +256,21 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     bentoPillars: {
       pillars: [
         {
-          pillarId: 'PILLAR 01 · CONSOLE',
+          pillarId: 'PILLAR 01 / CONSOLE',
           title: 'Instant Web Audit',
           description:
             'Upload a ZIP archive or link a GitHub repository for a 3-second AST analysis and an authoritative security clearance verdict.',
           actionLabel: 'Launch Console',
         },
         {
-          pillarId: 'PILLAR 02 · MCP',
+          pillarId: 'PILLAR 02 / MCP',
           title: 'Autonomous Agent Bridge',
           description:
             'Connect Cursor, Claude Desktop, Windsurf, and Hermes via native stdio JSON-RPC 2.0 tools for self-healing codebases.',
           actionLabel: 'Explore MCP',
         },
         {
-          pillarId: 'PILLAR 03 · CLI',
+          pillarId: 'PILLAR 03 / CLI',
           title: 'Pre-Commit Gatekeeper',
           description:
             'Audit locally with zero dependencies or install a 1-click git hook that blocks vulnerable commits before code leaves your machine.',
@@ -279,7 +279,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       ],
     },
     telemetry: {
-      windowTitle: 'Inspection Telemetry · repo-vibe-saas.bundle.zip (4.8MB)',
+      windowTitle: 'Inspection Telemetry - repo-vibe-saas.bundle.zip (4.8MB)',
       reportTab: 'Inspection Report',
       promptTab: '1-Click Agent Prompt',
       astScanStatus: '[00:01.04] AST parsing 42 source files... OK (0.8s)',
@@ -379,7 +379,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         {
           feature: 'Pricing Accessibility',
           shipsafe: 'Free solo tier with transparent, predictable developer plans',
-          legacyEnterprise: 'Aggressive sales walls starting at $100+ per seat each month',
+          legacyEnterprise: 'Aggressive sales walls starting at $100+ each month',
           basicLinters: 'Open source / Free',
         },
       ],
@@ -475,7 +475,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       eyebrow: 'TRANSPARENT VALUE',
       title: 'Predictable, Developer-First Pricing',
       subtitle:
-        'No hidden per-seat sales calls. Start free during development, upgrade when your project requires continuous team gatekeeping and audit persistence.',
+        'No hidden per-seat sales calls. Start free during development, upgrade when your project requires continuous CI/CD gatekeeping and audit persistence.',
       tiers: [
         {
           id: 'free',
@@ -499,11 +499,11 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         {
           id: 'pro',
           badge: 'MOST POPULAR',
-          name: 'Pro Team',
+          name: 'Pro Developer',
           price: '$19',
           period: '/ month',
           description:
-            'For indie founders and fast teams shipping production SaaS with zero tolerance for leaked keys or broken RLS.',
+            'For indie founders and fast developers shipping production SaaS with zero tolerance for leaked keys or broken RLS.',
           features: [
             'Everything in Free Solo, plus:',
             'Unlimited web console and CLI audits',
@@ -521,11 +521,11 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           badge: 'CUSTOM INFRASTRUCTURE',
           name: 'Enterprise Custom',
           price: 'Bespoke',
-          period: '/ organization',
+          period: '/ month',
           description:
-            'For organizations requiring air-gapped on-premises deployments, custom audit rule tailoring, and strict SLA compliance.',
+            'For custom deployments requiring air-gapped on-premises environments, tailored audit rules, and strict SLA compliance.',
           features: [
-            'Everything in Pro Team, plus:',
+            'Everything in Pro Developer, plus:',
             'Self-hosted Docker container for air-gapped environments',
             'Custom regex and AST rule tailored to internal frameworks',
             'Private GitHub App pull-request blocking bot',
@@ -547,7 +547,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         'Connect directly with the creator of ShipSafe. Get hands-on guidance on custom AST rulesets, CI/CD pipeline automation, or auditing bespoke fullstack architectures.',
       whatsappButton: 'Talk on WhatsApp',
       telegramButton: 'Talk on Telegram',
-      statusBadge: '● ADMIN ONLINE · AVERAGE RESPONSE < 15 MINUTES',
+      statusBadge: 'ADMIN ONLINE / AVERAGE RESPONSE < 15 MINUTES',
     },
     faq: {
       eyebrow: 'DOCUMENTATION & ANSWERS',
@@ -579,9 +579,9 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
             'Every finding is paired with an explicit confidence rating (Confirmed, Likely verify, or Not enough info) and a deterministic verification command (such as npm audit, curl header check, or test suite execution). You always have the context needed to confirm or dismiss an alert before blocking a build.',
         },
         {
-          question: 'Can I use ShipSafe for commercial client projects or startup teams?',
+          question: 'Can I use ShipSafe for commercial client projects or production workflows?',
           answer:
-            'Yes. The Free Solo tier covers individual development workflows. For commercial teams and agencies needing audit trail persistence, team dashboards, and automated CI/CD PR gatekeeping, the Pro Team tier and Enterprise options offer complete commercial peace of mind.',
+            'Yes. The Free Solo tier covers individual development workflows. For developers and agencies needing audit trail persistence, priority queues, and automated CI/CD PR gatekeeping, the Pro Developer tier and Enterprise options offer complete commercial peace of mind.',
         },
       ],
     },
@@ -592,7 +592,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       consoleLink: '[ENTER CONSOLE ->]',
       docsLink: 'DOCUMENTATION',
       repoLink: 'GITHUB REPO',
-      complianceNotice: 'GDPR ZERO-PERSISTENCE COMPLIANT • WCAG 2.1 AA ACCESSIBLE • NO CODE RETENTION',
+      complianceNotice: 'GDPR ZERO-PERSISTENCE COMPLIANT / WCAG 2.1 AA ACCESSIBLE / NO CODE RETENTION',
       copyrightNotice: `© ${new Date().getFullYear()} ShipSafe. Built by LankDev & AI Agents.`,
     },
   },
@@ -655,21 +655,21 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     bentoPillars: {
       pillars: [
         {
-          pillarId: 'PILAR 01 · KONSOL WEB',
+          pillarId: 'PILAR 01 / KONSOL WEB',
           title: 'Audit Web Seketika',
           description:
             'Unggah arsip ZIP atau masukkan tautan repositori GitHub untuk analisis AST 3 detik di memori dengan putusan audit resmi.',
           actionLabel: 'Buka Konsol',
         },
         {
-          pillarId: 'PILAR 02 · SERVER MCP',
+          pillarId: 'PILAR 02 / SERVER MCP',
           title: 'Jembatan AI Agent Otonom',
           description:
             'Hubungkan Cursor, Claude Desktop, Windsurf, dan Hermes melalui tool standar stdio JSON-RPC 2.0 untuk perbaikan kode mandiri.',
           actionLabel: 'Pelajari MCP',
         },
         {
-          pillarId: 'PILAR 03 · CLI TERMINAL',
+          pillarId: 'PILAR 03 / CLI TERMINAL',
           title: 'Penjaga Pre-Commit Lokal',
           description:
             'Audit kode secara lokal tanpa dependensi atau pasang git hook 1-klik yang memblokir commit berbahaya sebelum keluar dari laptop.',
@@ -678,7 +678,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       ],
     },
     telemetry: {
-      windowTitle: 'Telemetri Inspeksi · repo-vibe-saas.bundle.zip (4.8MB)',
+      windowTitle: 'Telemetri Inspeksi - repo-vibe-saas.bundle.zip (4.8MB)',
       reportTab: 'Laporan Inspeksi',
       promptTab: 'Prompt Remediasi AI',
       astScanStatus: '[00:01.04] Parsing AST 42 berkas kode sumber... OK (0.8s)',
@@ -777,8 +777,8 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         },
         {
           feature: 'Transparansi Biaya',
-          shipsafe: 'Tingkat gratis selamanya dengan paket tim yang terjangkau dan transparan',
-          legacyEnterprise: 'Penjualan korporat tertutup mulai dari ratusan dolar per pengguna per bulan',
+          shipsafe: 'Tingkat gratis selamanya dengan paket pengembang yang terjangkau dan transparan',
+          legacyEnterprise: 'Penjualan korporat tertutup mulai dari ratusan dolar per bulan',
           basicLinters: 'Sumber terbuka / Gratis',
         },
       ],
@@ -874,7 +874,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       eyebrow: 'HARGA TRANSPARAN',
       title: 'Biaya Terjangkau, Dibuat untuk Pengembang',
       subtitle:
-        'Tanpa panggilan sales tersembunyi. Mulai gratis selama masa eksplorasi dan pembuatan prototipe, tingkatkan saat proyek membutuhkan penjaga keamanan tim yang konsisten.',
+        'Tanpa panggilan sales tersembunyi. Mulai gratis selama masa eksplorasi dan pembuatan prototipe, tingkatkan saat proyek membutuhkan penjaga keamanan CI/CD yang konsisten.',
       tiers: [
         {
           id: 'free',
@@ -898,11 +898,11 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         {
           id: 'pro',
           badge: 'PALING POPULER',
-          name: 'Pro Team',
+          name: 'Pro Developer',
           price: 'Rp 190.000',
           period: '/ bulan',
           description:
-            'Untuk indie founder dan tim gesit yang merilis produk SaaS ke publik tanpa toleransi kebocoran kunci atau celah database.',
+            'Untuk indie founder dan developer gesit yang merilis produk SaaS ke publik tanpa toleransi kebocoran kunci atau celah database.',
           features: [
             'Semua fitur pada paket Free Solo, ditambah:',
             'Audit konsol web dan CLI tanpa batas kuota',
@@ -920,11 +920,11 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           badge: 'INFRASTRUKTUR KHUSUS',
           name: 'Enterprise Custom',
           price: 'Kustom',
-          period: '/ organisasi',
+          period: '/ bulan',
           description:
-            'Untuk organisasi yang memerlukan instalasi kontainer tertutup on-premises, kustomisasi aturan audit, dan jaminan SLA ketat.',
+            'Untuk instalasi kontainer tertutup on-premises, kustomisasi aturan audit, dan jaminan SLA ketat.',
           features: [
-            'Semua fitur pada paket Pro Team, ditambah:',
+            'Semua fitur pada paket Pro Developer, ditambah:',
             'Kontainer Docker mandiri untuk jaringan tertutup (air-gapped)',
             'Aturan regex dan AST khusus disesuaikan dengan arsitektur internal',
             'Bot privat GitHub App untuk pemblokiran otomatis Pull Request',
@@ -946,7 +946,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         'Terhubung langsung dengan kreator inti ShipSafe. Dapatkan panduan integrasi aturan AST khusus, otomatisasi pipeline CI/CD, atau audit arsitektur fullstack spesifik.',
       whatsappButton: 'Konsultasi via WhatsApp',
       telegramButton: 'Diskusi via Telegram',
-      statusBadge: '● PENGEMBANG ONLINE · RATA-RATA RESPON < 15 MENIT',
+      statusBadge: 'PENGEMBANG ONLINE / RATA-RATA RESPON < 15 MENIT',
     },
     faq: {
       eyebrow: 'DOKUMENTASI & JAWABAN',
@@ -978,9 +978,9 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
             'Setiap temuan dilengkapi tingkat kepastian yang jelas (Confirmed, Likely verify, atau Not enough info) serta perintah verifikasi deterministik (seperti npm audit atau pengujian curl). Anda selalu memegang kendali penuh untuk memverifikasi atau mengabaikan temuan secara objektif sebelum memblokir proses rilis.',
         },
         {
-          question: 'Bolehkah ShipSafe digunakan untuk proyek klien komersial atau tim rintisan?',
+          question: 'Bolehkah ShipSafe digunakan untuk proyek klien komersial atau deployment produksi?',
           answer:
-            'Tentu saja. Paket Free Solo dapat digunakan bebas untuk kebutuhan pengembang individu. Untuk tim komersial dan agensi yang membutuhkan rekam jejak audit tersimpan, dasbor tim, dan penjaga Pull Request di CI/CD, paket Pro Team dan Enterprise siap memberikan ketenangan operasional penuh.',
+            'Tentu saja. Paket Free Solo dapat digunakan bebas untuk kebutuhan pengembang individu. Untuk pengembang dan agensi yang membutuhkan rekam jejak audit tersimpan, prioritas antrean, dan penjaga Pull Request di CI/CD, paket Pro Developer dan Enterprise siap memberikan ketenangan operasional penuh.',
         },
       ],
     },
@@ -991,7 +991,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       consoleLink: '[BUKA KONSOL ->]',
       docsLink: 'DOKUMENTASI',
       repoLink: 'REPOSITORI GITHUB',
-      complianceNotice: 'KEPATUHAN GDPR ZERO-PERSISTENCE • AKSESIBEL WCAG 2.1 AA • TANPA RETENSI KODE',
+      complianceNotice: 'KEPATUHAN GDPR ZERO-PERSISTENCE / AKSESIBEL WCAG 2.1 AA / TANPA RETENSI KODE',
       copyrightNotice: `© ${new Date().getFullYear()} ShipSafe. Dikembangkan oleh LankDev & AI Agents.`,
     },
   },

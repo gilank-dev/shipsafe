@@ -148,9 +148,9 @@ function isTestOrDocFile(relativePath: string): boolean {
           threatCategory: 'sqli',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
           what: `SQL query string is dynamically assembled via concatenation or template interpolation with user-controllable input.`,
-          why: `Penyerang dapat memasukkan perintah SQL arbitrer untuk mencuri seluruh basis data, mem-bypass autentikasi (misal ' OR '1'='1), atau menghapus tabel.`,
-          recommendedFix: `Gunakan parameterized queries ($1, ?, :param) atau ORM query builder berorientasi objek yang aman.`,
-          verifyWith: `Uji endpoint dengan karakter kutip (') atau payload SQL injection untuk memvalidasi sanitasi query`,
+          why: `Attackers can inject arbitrary SQL commands to extract database contents, bypass authentication (e.g. ' OR '1'='1), or alter database structure.`,
+          recommendedFix: `Use parameterized queries ($1, ?, :param) or an object-relational mapping (ORM) query builder.`,
+          verifyWith: `Test endpoints with single quotes (') or SQL injection payloads to verify query sanitization.`,
           confidence: 'Confirmed'
         });
       }
@@ -171,10 +171,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'xss',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Data masukan pengguna disisipkan langsung ke dalam HTML tanpa sanitasi (dangerouslySetInnerHTML / innerHTML / res.send).`,
-          why: `Penyerang dapat mengeksekusi JavaScript berbahaya pada browser korban untuk mencuri session cookies, token otorisasi, atau melakukan keylogging.`,
-          recommendedFix: `Gunakan DOMPurify atau sanitize-html sebelum merender HTML, atau gunakan binding teks polos (textContent / JSX).`,
-          verifyWith: `Kirim payload <script>alert(1)</script> atau <img src=x onerror=alert(1)> pada input terkait`,
+          what: `User input is inserted directly into the DOM/HTML response without proper escaping or sanitization (dangerouslySetInnerHTML / innerHTML / res.send).`,
+          why: `Attackers can execute malicious JavaScript in the victim's browser to hijack session cookies, steal authorization tokens, or perform keylogging.`,
+          recommendedFix: `Sanitize untrusted HTML using DOMPurify or sanitize-html before rendering, or rely on text-only binding (textContent / JSX).`,
+          verifyWith: `Send payloads like <script>alert(1)</script> or <img src=x onerror=alert(1)> to test input handling.`,
           confidence: 'Confirmed'
         });
       }
@@ -192,10 +192,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'brute_force',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Pengecekan kata sandi atau token menggunakan perbandingan string langsung (===) alih-alih fungsi hashing atau constant-time comparison.`,
-          why: `Perbandingan string biasa rentan terhadap timing attack dan menandakan kata sandi kemungkinan disimpan dalam bentuk teks polos (plaintext).`,
-          recommendedFix: `Gunakan bcrypt.compare() atau crypto.timingSafeEqual() dan pastikan kata sandi selalu di-hash (Argon2 / bcrypt).`,
-          verifyWith: `Periksa penyimpanan tabel users untuk memastikan kolom password berisi hash kriptografis yang aman`,
+          what: `Password or secret verification uses direct string equality (===) instead of a timing-safe hash comparison function.`,
+          why: `Plain string comparison is vulnerable to side-channel timing attacks and indicates passwords may be stored in plaintext.`,
+          recommendedFix: `Use bcrypt.compare() or crypto.timingSafeEqual() and verify passwords are hashed using Argon2 or bcrypt.`,
+          verifyWith: `Inspect database tables to confirm password credentials are securely hashed before storage.`,
           confidence: 'Confirmed'
         });
       }
@@ -217,10 +217,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'malware_shell',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Ditemukan pola web shell atau eksekusi perintah sistem langsung dari input pengguna (eval/passthru/child_process.exec).`,
-          why: `Celah ini memberikan Remote Code Execution (RCE) penuh kepada penyerang untuk mengambil alih kendali server dan merusak sistem.`,
-          recommendedFix: `Hapus segera script eksekusi dinamis ini dan lakukan audit forensik menyeluruh pada repository.`,
-          verifyWith: `Periksa riwayat komit file ini dan pastikan tidak ada backdoor tersisa`,
+          what: `Detected web shell signature or direct system command execution from user inputs (eval/passthru/child_process.exec).`,
+          why: `Provides full Remote Code Execution (RCE) capabilities allowing adversaries to compromise the host server.`,
+          recommendedFix: `Immediately remove dynamic shell execution scripts and perform a full repository forensic audit.`,
+          verifyWith: `Review commit history for this file and confirm no web shell or backdoor persistence remains.`,
           confidence: 'Confirmed'
         });
       }
@@ -237,10 +237,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'malware_shell',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Upload handler menyimpan file langsung ke folder publik dengan ekstensi asli file pengguna tanpa validasi tipe MIME.`,
-          why: `Penyerang dapat mengunggah file berbahaya (.php, .jsp, .html, .exe) dan mengeksekusinya secara langsung melalui web server.`,
-          recommendedFix: `1. Validasi ekstensi menggunakan whitelist ketat.\n2. Ganti nama file dengan UUID acak.\n3. Simpan file di luar webroot publik (misal S3 / private storage).`,
-          verifyWith: `Coba upload file berekstensi .php atau .html ke formulir upload terkait`,
+          what: `Upload handler saves uploaded files directly into a public webroot directory using original user filenames without MIME type validation.`,
+          why: `Adversaries can upload executable scripts (.php, .jsp, .exe, .html) and trigger them via direct web requests.`,
+          recommendedFix: `1. Enforce strict extension allowlists.\n2. Rename uploaded files using random UUIDs.\n3. Store uploaded assets outside the public webroot (e.g. S3 or isolated storage).`,
+          verifyWith: `Attempt uploading test files with executable extensions (.php, .html) to verify upload constraints.`,
           confidence: 'Likely, verify'
         });
       }
@@ -255,10 +255,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'mitm',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Verifikasi sertifikat TLS/SSL dimatikan secara eksplisit (rejectUnauthorized: false).`,
-          why: `Memungkinkan penyerang di jaringan yang sama melakukan penyadapan Man-in-the-Middle (MitM) dan membaca seluruh data sensitif.`,
-          recommendedFix: `Aktifkan verifikasi TLS standar dan pasang certificate authority (CA) yang valid.`,
-          verifyWith: `Pastikan konfigurasi rejectUnauthorized bernilai true atau dihilangkan`,
+          what: `TLS/SSL certificate validation is explicitly disabled (rejectUnauthorized: false or NODE_TLS_REJECT_UNAUTHORIZED=0).`,
+          why: `Allows attackers positioned on the network path to perform Man-in-the-Middle (MitM) inspection and credential interception.`,
+          recommendedFix: `Enable standard TLS certificate verification and install valid Certificate Authority (CA) certificates.`,
+          verifyWith: `Ensure rejectUnauthorized is set to true or omitted in network transport configurations.`,
           confidence: 'Confirmed'
         });
       }
@@ -271,10 +271,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'mitm',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Endpoint autentikasi atau API dipanggil menggunakan protokol tidak terenkripsi (http://).`,
-          why: `Data kredensial dan token otorisasi dapat disadap oleh penyerang pada jaringan perantara (Wi-Fi publik, ISP).`,
-          recommendedFix: `Gunakan HTTPS secara mutlak untuk seluruh komunikasi API eksternal dan internal.`,
-          verifyWith: `Periksa seluruh URL pemanggilan API agar menggunakan skema https://`,
+          what: `Authentication or API endpoints are invoked over unencrypted HTTP (http://).`,
+          why: `Credentials and access tokens can be sniffed in transit across public or intermediate networks.`,
+          recommendedFix: `Enforce HTTPS for all internal and external service communications.`,
+          verifyWith: `Verify that all endpoint URLs specify the https:// scheme.`,
           confidence: 'Confirmed'
         });
       }
@@ -287,10 +287,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'HTTP',
           threatCategory: 'mitm',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Cookie dibuat tanpa atribut Secure, HttpOnly, atau SameSite.`,
-          why: `Cookie rentan disadap saat transit HTTP biasa dan dapat dieksploitasi untuk Cross-Site Request Forgery (CSRF).`,
-          recommendedFix: `Setel opsi cookie: { secure: true, httpOnly: true, sameSite: 'lax' | 'strict' }.`,
-          verifyWith: `Periksa header Set-Cookie menggunakan curl -I`,
+          what: `Cookies are issued without Secure, HttpOnly, or SameSite attributes.`,
+          why: `Insecure cookies can be intercepted over unencrypted HTTP and exploited in Cross-Site Request Forgery (CSRF) attacks.`,
+          recommendedFix: `Configure cookie attributes: { secure: true, httpOnly: true, sameSite: 'lax' | 'strict' }.`,
+          verifyWith: `Inspect Set-Cookie headers using curl -I or browser developer tools.`,
           confidence: 'Likely, verify'
         });
       }
@@ -308,10 +308,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'phishing',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Aplikasi melakukan pengalihan (redirect) ke URL eksternal yang diambil langsung dari input pengguna tanpa validasi domain.`,
-          why: `Penyerang dapat membuat link resmi website Anda untuk menjebak korban ke website tiruan (phishing) pencuri kredensial.`,
-          recommendedFix: `Validasi URL pengalihan hanya mengarah ke relative path internal (dimulai dengan /) atau gunakan domain whitelist ketat.`,
-          verifyWith: `Buka /login?redirect=https://evil-phishing-site.com dan periksa apakah browser diarahkan ke luar`,
+          what: `Application redirects users to an external URL obtained directly from user input without hostname validation.`,
+          why: `Adversaries can craft legitimate-looking links that redirect users to credential-harvesting phishing pages.`,
+          recommendedFix: `Restrict redirect destinations to relative paths (starting with /) or enforce a strict domain allowlist.`,
+          verifyWith: `Test /login?redirect=https://evil-phishing-site.com to ensure external redirects are rejected.`,
           confidence: 'Confirmed'
         });
       }
@@ -329,10 +329,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'deface',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Terdapat kode yang memodifikasi berkas template atau index halaman publik tanpa verifikasi sesi autentikasi yang jelas.`,
-          why: `Celah ini memungkinkan penyerang mengubah tampilan utama website (deface) atau menyisipkan konten palsu.`,
-          recommendedFix: `Kunci seluruh operasi penulisan file statis, lindungi dengan role-based access control (RBAC), dan gunakan immutable storage.`,
-          verifyWith: `Uji endpoint yang menulis ke disk dengan request tanpa token otorisasi`,
+          what: `Code modifies public template or webroot files without explicit session or role authentication checks.`,
+          why: `Allows unauthenticated users to overwrite public site assets or inject unauthorized content (website defacement).`,
+          recommendedFix: `Restrict webroot file modification behind role-based access control (RBAC) and use immutable storage.`,
+          verifyWith: `Send unauthenticated HTTP requests to file-writing endpoints to verify access controls.`,
           confidence: 'Likely, verify'
         });
       }
@@ -350,10 +350,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'lfi_rfi',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Operasi pembacaan file lokal langsung menerima parameter input pengguna tanpa sanitasi batas direktori.`,
-          why: `Penyerang dapat membaca berkas sensitif server seperti /etc/passwd, .env, konfigurasi database, atau source code rahasia.`,
-          recommendedFix: `Gunakan path.basename() dan validasi bahwa path.resolve() tetap berada di dalam direktori penyimpanan yang aman.`,
-          verifyWith: `Coba akses endpoint dengan parameter ../../../../etc/passwd atau ../../.env`,
+          what: `File read operations accept user input directly into file paths without path traversal sanitization.`,
+          why: `Adversaries can traverse directories to read sensitive files such as /etc/passwd, .env, or database configs.`,
+          recommendedFix: `Use path.basename() and verify path.resolve() remains constrained within intended root directories.`,
+          verifyWith: `Test endpoints with path traversal payloads like ../../../../etc/passwd or ../../.env.`,
           confidence: 'Confirmed'
         });
       }
@@ -369,10 +369,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'lfi_rfi',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Server melakukan HTTP request ke URL yang diberikan langsung oleh pengguna tanpa validasi host atau IP.`,
-          why: `Penyerang dapat memaksa server menghubungi jaringan internal privat (127.0.0.1, metadata cloud 169.254.169.254) atau memuat payload RFI.`,
-          recommendedFix: `Gunakan whitelist domain yang diizinkan dan blokir akses ke alamat IP privat/loopback.`,
-          verifyWith: `Kirim permintaan dengan URL http://169.254.169.254/latest/meta-data/ atau http://localhost:8080`,
+          what: `Server makes outbound HTTP requests to user-supplied URLs without host or IP validation.`,
+          why: `Adversaries can force the server to query internal networks (127.0.0.1, cloud metadata 169.254.169.254) or fetch remote payloads.`,
+          recommendedFix: `Implement host allowlists and block requests targeting private/loopback IP address ranges.`,
+          verifyWith: `Test requests using targets like http://169.254.169.254/latest/meta-data/ or http://localhost:8080.`,
           confidence: 'Likely, verify'
         });
       }
@@ -391,10 +391,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'zero_day',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Penggunaan fungsi eksekusi JavaScript dinamis (eval / new Function) pada input variabel runtime.`,
-          why: `Fungsi dinamis ini membuka celah zero-day di mana penyerang dapat mengeksekusi sembarang kode JavaScript di server.`,
-          recommendedFix: `Hindari penggunaan eval() atau new Function(). Gunakan parser aman seperti JSON.parse() atau pustaka math expression terisolasi.`,
-          verifyWith: `Periksa seluruh penggunaan eval dalam kode dan ganti dengan pendekatan statis`,
+          what: `Dynamic JavaScript code execution (eval / new Function) is invoked on runtime inputs.`,
+          why: `Dynamic code evaluation allows arbitrary code execution in the application context.`,
+          recommendedFix: `Avoid eval() or new Function(). Use safe parsers such as JSON.parse() or dedicated expression engines.`,
+          verifyWith: `Review all dynamic evaluation calls and refactor to static or schema-validated parsing.`,
           confidence: 'Confirmed'
         });
       }
@@ -410,10 +410,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'zero_day',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Penggabungan objek dinamis langsung dari req.body tanpa memfilter atribut __proto__ atau constructor.`,
-          why: `Dapat memanipulasi prototype objek global JavaScript dan memicu perilaku tak terduga atau bypass autentikasi.`,
-          recommendedFix: `Gunakan skema validasi tipe data ketat (Zod, Joi) dan cegah merging kunci __proto__ atau prototype.`,
-          verifyWith: `Kirim payload JSON berisi {"__proto__": {"polluted": true}}`,
+          what: `Unchecked object merging directly accepts request payload bodies without sanitizing prototype attributes.`,
+          why: `Adversaries can tamper with global Object prototypes to alter application behavior or bypass security checks.`,
+          recommendedFix: `Use schema validation (e.g. Zod or Joi) and strip keys like __proto__ or constructor during merge operations.`,
+          verifyWith: `Send JSON payloads containing {"__proto__": {"polluted": true}} to test object sanitization.`,
           confidence: 'Likely, verify'
         });
       }
@@ -430,10 +430,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'zero_day',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Deserialisasi objek untrusted menggunakan pickle atau yaml.load tanpa SafeLoader.`,
-          why: `Format pickle dan PyYAML unsafe loader mengizinkan instansiasi objek arbitrer yang dapat memicu eksekusi kode biner berbahaya (RCE).`,
-          recommendedFix: `Gunakan format serialisasi aman seperti JSON atau gunakan yaml.safe_load(). Jangan pernah men-deserialize data pickle dari pihak luar.`,
-          verifyWith: `Periksa pemanggilan pickle.loads() dan ganti dengan json.loads()`,
+          what: `Untrusted object deserialization using pickle or yaml.load without SafeLoader.`,
+          why: `Unsafe pickle and PyYAML loaders allow arbitrary object instantiation that can lead to Remote Code Execution (RCE).`,
+          recommendedFix: `Use safe serialization formats like JSON or yaml.safe_load(). Never deserialize untrusted pickle data.`,
+          verifyWith: `Audit pickle.loads() calls and replace them with json.loads() where possible.`,
           confidence: 'Confirmed'
         });
       }
@@ -447,10 +447,10 @@ function isTestOrDocFile(relativePath: string): boolean {
             area: 'Secrets',
             threatCategory: 'mitm',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `Kredensial atau secret sensitif didefinisikan secara statis pada instruksi ENV Dockerfile.`,
-            why: `Nilai ENV akan tersimpan permanen dalam metadata image Docker dan dapat diekstrak oleh siapa saja yang memiliki akses pull image.`,
-            recommendedFix: `Gunakan Docker BuildKit secrets (--secret id=mysecret) atau inject secret pada saat runtime via environment container.`,
-            verifyWith: `docker history <image-name> untuk melihat layer yang mengekspos environment variable`,
+            what: `Sensitive credentials or tokens are statically defined in Dockerfile ENV instructions.`,
+            why: `ENV variables are stored permanently in Docker image layer metadata and can be extracted via image inspection.`,
+            recommendedFix: `Use Docker BuildKit secrets (--secret id=mysecret) or inject credentials at container runtime via environment variables.`,
+            verifyWith: `Run docker history <image-name> to inspect layers for exposed environment variables.`,
             confidence: 'Confirmed'
           });
         }
@@ -470,9 +470,9 @@ function isTestOrDocFile(relativePath: string): boolean {
             threatCategory: 'sqli',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
             what: `Python query built via string interpolation or f-strings with user input, allows arbitrary SQL execution.`,
-            why: `String formatting dalam query SQL langsung mengekspos basis data terhadap injeksi.`,
-            recommendedFix: `Gunakan parameterized queries ($1, ?) atau ORM query builder berorientasi objek.`,
-            verifyWith: `Pastikan tidak ada format f"SELECT ... {var}" atau cursor.execute("..." + var)`,
+            why: `String formatting in SQL queries directly exposes the database to injection attacks.`,
+            recommendedFix: `Use parameterized queries ($1, ?) or an object-relational mapping (ORM) query builder.`,
+            verifyWith: `Confirm queries avoid f"SELECT ... {var}" or cursor.execute("..." + var) patterns.`,
             confidence: 'Confirmed'
           });
         }
@@ -491,10 +491,10 @@ function isTestOrDocFile(relativePath: string): boolean {
             area: 'Code',
             threatCategory: 'zero_day',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `Deserialisasi objek tidak terpercaya atau eksekusi kode dinamis dapat memicu RCE.`,
-            why: `Format pickle dan fungsi eval/exec mengizinkan instansiasi objek arbitrer yang dapat memicu eksekusi kode biner berbahaya.`,
-            recommendedFix: `Gunakan JSON atau yaml.safe_load(). Jangan pernah men-deserialize data pickle dari pihak luar.`,
-            verifyWith: `Periksa pemanggilan pickle.loads() dan ganti dengan json.loads()`,
+            what: `Untrusted object deserialization or dynamic code execution can trigger Remote Code Execution (RCE).`,
+            why: `Pickle deserialization and eval/exec allow arbitrary object/code execution under process privileges.`,
+            recommendedFix: `Use JSON or yaml.safe_load(). Never deserialize pickle payloads from external sources.`,
+            verifyWith: `Replace pickle.loads() and eval() calls with safe parsers.`,
             confidence: 'Confirmed'
           });
         }
@@ -509,10 +509,10 @@ function isTestOrDocFile(relativePath: string): boolean {
             area: 'Code',
             threatCategory: 'mitm',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `Penggunaan requests.get() / httpx.get() langsung dari input pengguna tanpa validasi hostname/IP privat.`,
-            why: `Server-Side Request Forgery memungkinkan penyerang memaksa server membuat request ke sistem internal privat.`,
-            recommendedFix: `Validasi hostname hanya menerima domain internasional atau gunakan allowlist domain ketat.`,
-            verifyWith: `Pastikan request hanya mengarah ke domain tepercaya; gunakan allowlist hostname`,
+            what: `Direct invocations of requests.get() or httpx.get() using user-supplied URLs without host/IP validation.`,
+            why: `Server-Side Request Forgery allows attackers to force the server to issue requests to internal networks or private IP ranges.`,
+            recommendedFix: `Validate hostnames against an allowlist and restrict access to private/loopback IP ranges.`,
+            verifyWith: `Ensure requests target trusted hosts only and enforce hostname allowlists.`,
             confidence: 'Likely, verify'
           });
         }
@@ -525,10 +525,10 @@ function isTestOrDocFile(relativePath: string): boolean {
             area: 'Code',
             threatCategory: 'mitm',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `FastAPI menggunakan allow_origins=["*"] yang memungkinkan origin manapun mengakses API.`,
-            why: `Konfigurasi CORS yang longgar membuka celah Cross-Origin Resource Sharing.`,
-            recommendedFix: `Gunakan allow_origins yang dikonfigurasi ketat dan nonaktifkan allow_credentials jika tidak diperlukan.`,
-            verifyWith: `Pastikan konfigurasi FastAPI tidak memiliki allow_origins=["*"]`,
+            what: `FastAPI CORS configuration uses allow_origins=["*"] alongside credentials.`,
+            why: `Overly permissive CORS settings expose endpoints to unauthorized cross-origin requests.`,
+            recommendedFix: `Specify explicit allowed origins and disable allow_credentials unless explicitly required.`,
+            verifyWith: `Verify FastAPI CORS middleware does not use wildcard origins.`,
             confidence: 'Likely, verify'
           });
         }
@@ -546,10 +546,10 @@ function isTestOrDocFile(relativePath: string): boolean {
             area: 'Code',
             threatCategory: 'ddos',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `Dockerfile menggunakan USER root sebagai user utama container.`,
-            why: `Container yang berjalan sebagai root memungkinkan penyerang mendapatkan akses penuh ke sistem host jika terjadi kompromi.`,
-            recommendedFix: `Gunakan user non-root dan praktik terbaik Dockerfile: ADD USER sebelum menjalankan aplikasi.`,
-            verifyWith: `Inspect Dockerfile dan pastikan perintah USER ditempatkan sebelum CMD`,
+            what: `Dockerfile uses USER root as the primary runtime user.`,
+            why: `Running containers as root grants root privileges inside the container and increases host exposure during container escapes.`,
+            recommendedFix: `Create and switch to a non-root user before application entrypoint instructions.`,
+            verifyWith: `Inspect Dockerfile to confirm non-root USER directive precedes CMD/ENTRYPOINT.`,
             confidence: 'Confirmed'
           });
         }
@@ -568,10 +568,10 @@ function isTestOrDocFile(relativePath: string): boolean {
             area: 'Code',
             threatCategory: 'ddos',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `Instruksi ADD/COPY dalam Dockerfile tanpa .dockerignore akan menyalin file-file yang tidak perlu ke image.`,
-            why: `Tanpa .dockerignore, file-file sensitif (seperti .env, README, paket tambahan) akan termasuk ke image Docker dan memperbesar ukuran image.`,
-            recommendedFix: `Buat file .dockerignore untuk mengabaikan file-file yang tidak diperlukan di image.`,
-            verifyWith: `Cek apakah file .dockerignore ada di root repository`,
+            what: `Dockerfile ADD/COPY directives used without a .dockerignore file.`,
+            why: `Without .dockerignore, sensitive local files (.env, documentation, build artifacts) may be copied into the final image.`,
+            recommendedFix: `Add a .dockerignore file to exclude unnecessary and sensitive assets from docker context builds.`,
+            verifyWith: `Check that a .dockerignore file exists in the repository root directory.`,
             confidence: 'Likely, verify'
           });
         }
@@ -584,10 +584,10 @@ function isTestOrDocFile(relativePath: string): boolean {
             area: 'Code',
             threatCategory: 'ddos',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `Port debug atau SSH diekspos di dalam Dockerfile tanpa pembatasan akses.`,
-            why: `Port diekspos (khususnya 22/SSH dan port VNC) membuat container rentan terhadap akses tidak otorisasi dari luar.`,
-            recommendedFix: `Hapus perintah EXPOSE untuk port sensitif atau gunakan network antar-container saja.`,
-            verifyWith: `Cek daftar port yang diekspos dan pastikan hanya port aplikasi yang diekspos`,
+            what: `Debug or management ports (e.g. SSH, VNC) are exposed in Dockerfile directives without restriction.`,
+            why: `Exposing management or debug ports increases container attack surface and risk of unauthorized remote access.`,
+            recommendedFix: `Remove EXPOSE directives for management ports and restrict container network exposure.`,
+            verifyWith: `Verify that EXPOSE directives include only necessary application service ports.`,
             confidence: 'Confirmed'
           });
         }
@@ -601,11 +601,11 @@ function isTestOrDocFile(relativePath: string): boolean {
           area: 'Code',
           threatCategory: 'ddos',
           location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-          what: `Ditemukan ekspresi reguler dengan kuantifier bersarang (nested quantifiers) yang memicu bencana backtracking.`,
-          why: `Penyerang dapat mengirimkan string khusus yang menyebabkan CPU server bekerja 100% (Denial of Service).`,
-          recommendedFix: `Sederhanakan pola regex atau gunakan engine regex non-backtracking (seperti Google RE2).`,
-          verifyWith: `Uji regex dengan input berulang 50+ karakter yang tidak cocok`,
-          confidence: 'Confirmed'
+            what: `Regular expression contains nested quantifiers susceptible to catastrophic backtracking.`,
+            why: `Attackers can supply crafted input strings that cause 100% CPU utilization and Denial of Service (ReDoS).`,
+            recommendedFix: `Simplify regex patterns or use non-backtracking regular expression engines (e.g. RE2).`,
+            verifyWith: `Test regular expressions against repeated non-matching string patterns to verify execution performance.`,
+            confidence: 'Confirmed'
         });
       }
     });

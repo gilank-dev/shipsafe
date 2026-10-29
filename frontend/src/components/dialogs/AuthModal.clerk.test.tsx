@@ -27,11 +27,11 @@ describe('AuthModal Clerk OAuth integration', () => {
     } as unknown as ReturnType<typeof clerkReact.useSignIn>)
   })
 
-  it('triggers Clerk OAuth with oauth_google strategy when Lanjutkan dengan Google is clicked', async () => {
+  it('triggers Clerk OAuth with oauth_google strategy when Continue with Google is clicked', async () => {
     const user = userEvent.setup()
     render(<AuthModal />)
 
-    const googleBtn = screen.getByRole('button', { name: /Lanjutkan dengan Google/i })
+    const googleBtn = screen.getByRole('button', { name: /Continue with Google/i })
     await user.click(googleBtn)
 
     expect(authenticateWithRedirectMock).toHaveBeenCalledWith(
@@ -42,11 +42,11 @@ describe('AuthModal Clerk OAuth integration', () => {
     )
   })
 
-  it('triggers Clerk OAuth with oauth_github strategy when Lanjutkan dengan GitHub is clicked', async () => {
+  it('triggers Clerk OAuth with oauth_github strategy when Continue with GitHub is clicked', async () => {
     const user = userEvent.setup()
     render(<AuthModal />)
 
-    const githubBtn = screen.getByRole('button', { name: /Lanjutkan dengan GitHub/i })
+    const githubBtn = screen.getByRole('button', { name: /Continue with GitHub/i })
     await user.click(githubBtn)
 
     expect(authenticateWithRedirectMock).toHaveBeenCalledWith(

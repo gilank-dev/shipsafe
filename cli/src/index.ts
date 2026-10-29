@@ -961,9 +961,9 @@ USAGE:
   shipsafe <command> [options]
 
 COMMANDS:
-  scan [dir]       Scan target directory (default: current directory '.')
+  scan [dir]       Scan target directory (default: current directory '.'), no login needed
   diff <base> [target]  Compare two scan results (before/after fix verification)
-  login            Authenticate CLI with token from ShipSafe Console
+  login            Optional: link CLI to your ShipSafe account
   logout           Clear saved credentials from ~/.shipsafe/credentials.json
   whoami           Display current authenticated identity and token status
 OPTIONS:
@@ -991,7 +991,7 @@ EXAMPLES:
   # Verify current authentication status
   shipsafe whoami
 
-  # Local scan with ASCII docket output (requires login)
+  # Local scan with ASCII docket output (no login needed)
   shipsafe scan .
 
   # Compare two directories for fix verification
@@ -1161,27 +1161,14 @@ EXAMPLES:
     process.exit(2)
   }
 
-  // Enforce authentication for scan command
+  // Local scans need no login. Auth is optional and only used for remote audits.
   const auth = getEffectiveAuth()
-  if (!auth) {
-    console.error(style.red('Error: Authentication required to run ShipSafe security scans.'))
-    console.error('')
-    console.error('To authenticate:')
-    console.error('  1. Open the ShipSafe Console: https://shipsafe.lankdev.my.id/console')
-    console.error('  2. Click on "CLI Access" and copy your access token command:')
-    console.error(style.cyan('     shipsafe login --token=<your_token>'))
-    console.error('')
-    console.error('For CI/CD pipelines, configure the environment variable:')
-    console.error(style.dim('     export SHIPSAFE_TOKEN=<your_token>'))
-    console.error('')
-    process.exit(2)
-  }
 
   const targetDir = positionals[1] || '.'
   const failOn: Severity = (values['fail-on'] as string).toLowerCase() as Severity
   const format = values.format as string
   const remoteUrl = values['remote-url'] as string | undefined
-  const apiKey = (values['api-key'] as string | undefined) || auth.token
+  const apiKey = (values['api-key'] as string | undefined) || auth?.token || ''
   const noGitignore = values['no-gitignore'] as boolean
 
   const userIgnores = values.ignore ? (values.ignore as string).split(',') : []
@@ -1232,7 +1219,7 @@ EXAMPLES:
     printSarifReport(result, PACKAGE_VERSION)
   } else {
     // Text format — the Customs Docket
-    printTextReport(result, failOn, auth.email)
+    printTextReport(result, failOn, auth?.email)
   }
 
   // Determine exit code based on threshold

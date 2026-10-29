@@ -3,9 +3,9 @@ import { useClerk } from '@clerk/clerk-react'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { signOut } from '../../lib/supabase'
 import { useStore } from '../../state/store'
-import { fetchCliToken, type CliTokenResponse } from '../../api/client'
 import { BrandLogo } from '../ui/BrandLogo'
 import { PricingSection } from '../pricing/PricingSection'
+import { copyToClipboard } from '../../lib/clipboard'
 import { TierBadge } from '../ui/TierBadge'
 
 export type CodingAgentKey =
@@ -364,8 +364,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   const [copiedCli, setCopiedCli] = useState(false)
   const [copiedMcp, setCopiedMcp] = useState(false)
   const [copiedPrompt, setCopiedPrompt] = useState(false)
-  const [copiedHook, setCopiedHook] = useState(false)
-  const [copiedToken, setCopiedToken] = useState(false)
   const [gatedNotice, setGatedNotice] = useState<string | null>(null)
 
   const [selectedAgentId, setSelectedAgentId] = useState<CodingAgentKey>('cursor')
@@ -374,15 +372,13 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   const [activeTab, setActiveTab] = useState<'report' | 'prompt'>('report')
   const [openFaq, setOpenFaq] = useState<number | null>(0)
 
-  const [cliTokenInfo, setCliTokenInfo] = useState<CliTokenResponse | null>(null)
-
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
   const setAuthUser = useStore((s) => s.setAuthUser)
   const user = useStore((s) => s.auth.user)
   const quota = useStore((s) => s.quota)
   const clerk = useClerk()
 
-  const effectiveTier = user?.organizationId ? 'enterprise' : (user?.tier || quota?.tier || 'free')
+  const effectiveTier = user?.tier || quota?.tier || 'free'
 
   const navigate = (path: string) => {
     if (typeof window !== 'undefined') {
@@ -393,35 +389,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
   const selectedAgent = CODING_AGENTS.find((a) => a.id === selectedAgentId) || CODING_AGENTS[0]!
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
-      setTimeout(() => {
-        const el = document.querySelector(window.location.hash)
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' })
-        }
-      }, 50)
-    }
-  }, [])
 
-  // If user is authenticated, fetch their personal CLI token command
-  useEffect(() => {
-    let isSubscribed = true
-    if (user) {
-      fetchCliToken(null)
-        .then((res) => {
-          if (isSubscribed) setCliTokenInfo(res)
-        })
-        .catch(() => {
-          if (isSubscribed) setCliTokenInfo(null)
-        })
-    }
-    return () => {
-      isSubscribed = false
-    }
-  }, [user])
 
-  const handleGatedCopy = (text: string, type: 'cli' | 'mcp' | 'prompt' | 'hook' | 'token') => {
+  const handleGatedCopy = (text: string, type: 'mcp' | 'prompt') => {
     if (!user) {
       setGatedNotice('Authentication required. Please sign in to copy snippets.')
       setAuthModalOpen(true)
@@ -430,22 +400,21 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
     }
 
     void navigator.clipboard.writeText(text)
-    if (type === 'cli') {
-      setCopiedCli(true)
-      setTimeout(() => setCopiedCli(false), 2000)
-    } else if (type === 'mcp') {
+    if (type === 'mcp') {
       setCopiedMcp(true)
       setTimeout(() => setCopiedMcp(false), 2000)
     } else if (type === 'prompt') {
       setCopiedPrompt(true)
       setTimeout(() => setCopiedPrompt(false), 2000)
-    } else if (type === 'hook') {
-      setCopiedHook(true)
-      setTimeout(() => setCopiedHook(false), 2000)
-    } else if (type === 'token') {
-      setCopiedToken(true)
-      setTimeout(() => setCopiedToken(false), 2000)
     }
+  }
+
+  // The CLI command is public and needs no login, so copying it is never gated.
+  const handleCopyCli = async () => {
+    const ok = await copyToClipboard('npx @lankdev/shipsafe-cli scan .')
+    if (!ok) return
+    setCopiedCli(true)
+    setTimeout(() => setCopiedCli(false), 2000)
   }
 
   const handleSignOut = async () => {
@@ -466,13 +435,37 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      if (typeof window !== 'undefined') {
-        window.history.pushState(null, '', `#${id}`)
-      }
+    if (!el) return
+
+    const header = document.querySelector('header')
+    const headerHeight = header ? header.getBoundingClientRect().height : 64
+    const rect = el.getBoundingClientRect()
+    const elementCurrentAbsoluteTop = rect.top + window.scrollY
+
+    // Clean top alignment right below the sticky header with 16px buffer
+    // Ensures the section header starts immediately in full view without previous sections peeking in
+    const targetScrollY = elementCurrentAbsoluteTop - headerHeight - 16
+
+    window.scrollTo({
+      top: Math.max(0, Math.round(targetScrollY)),
+      behavior: 'smooth',
+    })
+
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', `#${id}`)
     }
   }
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashId = window.location.hash.replace('#', '')
+      if (hashId) {
+        setTimeout(() => {
+          scrollToSection(hashId)
+        }, 100)
+      }
+    }
+  }, [])
 
   return (
     <div className="min-h-[100dvh] bg-[#FAFAFA] dark:bg-[#090A0B] text-[#18181B] dark:text-[#F4F4F5] font-sans antialiased selection:bg-[#18181B] selection:text-white dark:selection:bg-white dark:selection:text-black transition-colors duration-200">
@@ -494,7 +487,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
       )}
 
       {/* 1. TOP NAVIGATION BAR */}
-      <header className="sticky top-0 z-40 border-b border-[#E4E4E7]/80 dark:border-[#27272A]/80 bg-[#FAFAFA]/85 dark:bg-[#090A0B]/85 backdrop-blur-md transition-colors duration-200">
+      <header className="fixed top-0 left-0 right-0 z-40 border-b border-[#E4E4E7]/80 dark:border-[#27272A]/80 bg-[#FAFAFA]/90 dark:bg-[#090A0B]/90 backdrop-blur-md transition-colors duration-200">
         <div className="mx-auto flex h-16 w-full max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-12">
           <button
             type="button"
@@ -576,14 +569,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   {user.email || user.fullName}
                 </span>
                 <TierBadge tier={effectiveTier} isSuperAdmin={user.isSuperAdmin} size="xs" />
-                <button
-                  type="button"
-                  onClick={() => navigate('/dashboard/team')}
-                  className="text-xs px-2.5 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.12] bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all cursor-pointer font-medium shrink-0"
-                  title="Enterprise Team & Organisasi"
-                >
-                  Team
-                </button>
                 {user.isSuperAdmin && (
                   <button
                     type="button"
@@ -625,21 +610,22 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1440px] px-4 sm:px-6 lg:px-8 xl:px-12">
+      <main className="mx-auto w-full max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1440px] px-4 sm:px-6 lg:px-8 xl:px-12 pt-16">
         {/* 2. HERO SECTION - CENTERED DEVELOPER TOOLING STANDARD */}
-        <section className="pt-16 pb-14 sm:pt-24 sm:pb-20 text-center flex flex-col items-center">
-          <h1 className="text-4xl sm:text-6xl lg:text-[76px] font-bold tracking-tight leading-[1.05] max-w-5xl text-neutral-900 dark:text-neutral-50 mb-6 mx-auto">
+        <section className="pb-10 text-center flex flex-col items-center">
+          <div className="w-full min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center pb-4">
+          <h1 className="text-[clamp(2rem,min(10vh,7.2vw),5.5rem)] font-bold tracking-tight leading-[1.05] max-w-6xl text-neutral-900 dark:text-neutral-50 mb-5 mx-auto">
             Pre-Deployment Security Gatekeeper for <br className="hidden sm:inline" />
             <span className="text-neutral-400 dark:text-neutral-500 font-normal">
               Web Apps &amp; Vibe-Coded Projects.
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-300 max-w-3xl leading-relaxed mb-8 font-normal mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-neutral-600 dark:text-neutral-300 max-w-3xl leading-relaxed mb-6 font-normal mx-auto">
             Catch leaked API keys, unauthenticated routes, broken RLS, and prompt injection surfaces before pushing to production.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-3.5 mb-8 mx-auto">
+          <div className="flex flex-wrap items-center justify-center gap-3.5 mb-6 mx-auto">
             <button
               type="button"
               onClick={onLaunchConsole}
@@ -666,19 +652,19 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
 
           {/* Quick CLI Copy Strip - Hero Grade & Centered */}
-          <div className="mb-14 w-full flex justify-center">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-2.5 sm:p-3 w-full max-w-2xl shadow-sm hover:border-neutral-300 dark:hover:border-neutral-700 transition-all text-left">
+          <div className="w-full flex justify-center">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-3 sm:p-3.5 w-full max-w-3xl shadow-sm hover:border-neutral-300 dark:hover:border-neutral-700 transition-all text-left">
               <div className="flex items-center gap-3 px-3 py-1.5 sm:py-0 overflow-x-auto scrollbar-none min-w-0">
                 <span className="text-neutral-900 dark:text-neutral-100 font-mono text-base sm:text-lg font-bold select-none shrink-0">
                   $
                 </span>
-                <span className="font-mono text-sm sm:text-base font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight truncate select-all">
+                <span className="font-mono text-sm sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight truncate select-all">
                   npx @lankdev/shipsafe-cli scan .
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => handleGatedCopy('npx @lankdev/shipsafe-cli scan .', 'cli')}
+                onClick={handleCopyCli}
                 className="font-mono text-xs sm:text-sm font-semibold px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center justify-center gap-2 active:scale-98"
               >
                 {copiedCli ? (
@@ -701,8 +687,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             </div>
           </div>
 
+          </div>
+
           {/* 3 Feature Cards - Core Value Hooks */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 mb-16 text-left">
             <button
               type="button"
               onClick={onLaunchConsole}
@@ -724,8 +712,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
                   Launch Web Audit
                 </div>
-                <div className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Upload a ZIP archive (≤10MB) or import any GitHub repository for instant AST security analysis with 0 YAML setup.
+                <div className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
+                  Upload a ZIP archive (&lt;= 10MB) or import any GitHub repository for instant AST security analysis with 0 YAML setup.
                 </div>
               </div>
             </button>
@@ -756,7 +744,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <div className="font-semibold text-lg text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
                   10 Coding Agents Bridge
                 </div>
-                <div className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                <div className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                   Connect Cursor, Claude Code, Windsurf, Copilot, Cline, and Roo Code directly via standard stdio JSON-RPC 2.0 tools.
                 </div>
               </div>
@@ -777,15 +765,15 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       <polyline points="4 17 10 11 4 5" />
                       <line x1="12" y1="19" x2="20" y2="19" />
                     </svg>
-                    <span>Terminal Pre-Commit CLI</span>
+                    <span>Terminal CLI</span>
                   </div>
                   <span className="transition-transform group-hover:translate-x-0.5 text-neutral-400">&rarr;</span>
                 </div>
                 <div className="font-semibold text-lg text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
-                  Pre-Commit Gatekeeper
+                  One-Command CLI
                 </div>
-                <div className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Audit locally with deterministic exit codes or install a git hook that blocks vulnerable commits with SARIF 2.1.0 output.
+                <div className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
+                  Run one command inside your project folder. Get a clear verdict and exit code. No login, no token, no setup.
                 </div>
               </div>
             </a>
@@ -801,7 +789,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   <span className="size-2 rounded-full bg-neutral-300 dark:bg-neutral-700" />
                 </div>
                 <span className="font-mono text-xs text-neutral-600 dark:text-neutral-400 truncate">
-                  Inspection Telemetry · repo-vibe-saas.bundle.zip (4.8MB)
+                  Inspection Telemetry / repo-vibe-saas.bundle.zip (4.8MB)
                 </span>
               </div>
               <div className="flex items-center gap-1.5 mt-2 sm:mt-0">
@@ -873,19 +861,19 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </section>
 
         {/* 2.5 HOW IT WORKS SECTION */}
-        <section id="how-it-works" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
+        <section id="how-it-works" className="min-h-[calc(100dvh-4rem)] flex flex-col justify-center py-6 sm:py-8 lg:py-10 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-16">
           <div className="max-w-4xl mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               How ShipSafe Secures Your Code in 3 Seconds
             </h2>
-            <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-base sm:text-lg">
+            <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-base sm:text-lg max-w-3xl">
               Zero complex setup. Zero long-running background daemons. Go from an uninspected codebase to verified clearance in three deterministic steps.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Step 1 */}
-            <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all">
+            <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all min-h-[360px]">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
@@ -901,17 +889,17 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight mb-2.5">
                   Zero-Config Ingestion
                 </h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Drop your project ZIP archive (≤10MB) or import any GitHub repository in the web console, execute <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">npx @lankdev/shipsafe-cli scan .</code> in your terminal, or trigger <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">audit_codebase</code> directly inside Cursor and Claude Code.
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
+                  Drop your project ZIP archive (&lt;= 10MB) or import any GitHub repository in the web console, execute <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">npx @lankdev/shipsafe-cli scan .</code> in your terminal, or trigger <code className="font-mono text-xs px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200">audit_codebase</code> directly inside Cursor and Claude Code.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-xs text-neutral-400">
-                Web Dropzone · CLI · MCP Tool
+                Web Dropzone / CLI / MCP Tool
               </div>
             </div>
 
             {/* Step 2 */}
-            <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all">
+            <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all min-h-[360px]">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
@@ -927,17 +915,17 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight mb-2.5">
                   Isolated Ephemeral Sandbox
                 </h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                   The core engine parses Abstract Syntax Trees and evaluates regex signatures across 10 critical threat vectors inside isolated temporary RAM. Your code is never persisted to disk, never indexed, and never used to train machine learning models.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-xs text-neutral-400">
-                Instant Memory Wipe · Zero Retention
+                Instant Memory Wipe / Zero Retention
               </div>
             </div>
 
             {/* Step 3 */}
-            <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all">
+            <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all min-h-[360px]">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
@@ -953,7 +941,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight mb-2.5">
                   Clear Verdict &amp; Agent Fixes
                 </h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                   Receive an authoritative clearance verdict (Approved or Action Required). For every finding, copy an exact line-specific remediation prompt formatted specifically for your AI coding assistant (Cursor, Claude, Windsurf, etc.) to resolve the issue in 60 seconds.
                 </p>
               </div>
@@ -1048,29 +1036,29 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs">
                 <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">ZERO-PERSISTENCE</div>
                 <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Ephemeral RAM Sandbox</h4>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                   Seluruh berkas kode diekstrak ke dalam partisi RAM sementara terisolasi (<code className="text-neutral-800 dark:text-neutral-200 font-mono">/tmp/shipsafe-*</code>) dan langsung dimusnahkan seketika proses analisis selesai (<code className="text-neutral-800 dark:text-neutral-200 font-mono">finally &#123; cleanupTempDir() &#125;</code>). Tidak ada kode yang dipertahankan di database atau digunakan melatih LLM.
                 </p>
               </div>
               <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs">
                 <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">STATIC AST ENGINE</div>
                 <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">10 Threat Vectors Scanner</h4>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                   Pohon sintaksis abstrak (AST) dipindai dalam 3 detik untuk mendeteksi kerentanan kritis web: SQL Injection, XSS, SSRF, kebocoran kunci Stripe/OpenAI, ketiadaan session RLS Supabase, ReDoS, dan eksekusi dinamis berbahaya tanpa pernah menjalankan kode pengguna.
                 </p>
               </div>
               <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs">
                 <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">SELF-HEALING PROMPTS</div>
                 <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">1-Click Agent Remediation</h4>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                   Alih-alih menyodorkan kode CVE abstrak yang membingungkan developer, ShipSafe merangkum prompt perbaikan per baris kode yang siap ditempel langsung ke Cursor Composer, Claude Code, Windsurf Cascade, GitHub Copilot, Cline, atau Roo Code.
                 </p>
               </div>
               <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs">
-                <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">CI/CD GATEKEEPER</div>
-                <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">SARIF 2.1.0 &amp; Git Hook</h4>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Dilengkapi pre-commit hook otomatis dan generator laporan OASIS SARIF 2.1.0 standar industri yang terintegrasi secara mulus dengan tab GitHub Code Scanning untuk memblokir rilis rentan sebelum masuk ke branch utama.
+                <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">REPORT EXPORT</div>
+                <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">SARIF 2.1.0 Export</h4>
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
+                  Butuh laporan standar industri? Tambahkan satu flag, --format=sarif, dan hasilnya siap dibuka di GitHub Code Scanning.
                 </p>
               </div>
             </div>
@@ -1085,16 +1073,16 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               Setiap berkas yang masuk melalui konsol web, terminal CLI, atau protokol MCP diproses melalui alur karantina deterministik berikut:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">TAHAP 01</div>
                   <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Ingestion &amp; Guard</h4>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                    Verifikasi magic byte <code className="font-mono text-[11px]">PK\x03\x04</code>, validasi ukuran ≤10MB, proteksi Zip-Slip, dan pencegahan rasio kompresi Zip-Bomb 100:1.
+                    Verifikasi magic byte <code className="font-mono text-[11px]">PK\x03\x04</code>, validasi ukuran &lt;= 10MB, proteksi Zip-Slip, dan pencegahan rasio kompresi Zip-Bomb 100:1.
                   </p>
                 </div>
               </div>
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">TAHAP 02</div>
                   <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-2">RAM Quarantine</h4>
@@ -1103,7 +1091,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   </p>
                 </div>
               </div>
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">TAHAP 03</div>
                   <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-2">AST &amp; Heuristics</h4>
@@ -1112,7 +1100,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   </p>
                 </div>
               </div>
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">TAHAP 04</div>
                   <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Verdict &amp; Wipe</h4>
@@ -1121,7 +1109,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   </p>
                 </div>
               </div>
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-400 dark:text-neutral-500 mb-2">TAHAP 05</div>
                   <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Remediation Delivery</h4>
@@ -1141,13 +1129,13 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6 max-w-3xl">
               Pilih mode penggunaan yang paling sesuai dengan alur kerja Anda:
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mb-1">MODE A</div>
                   <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Web Console</h4>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-                    Buka konsol browser, unggah file ZIP (≤10MB) atau masukkan URL repositori GitHub publik, lalu klik "Run Security Audit".
+                    Buka konsol browser, unggah file ZIP (&lt;= 10MB) atau masukkan URL repositori GitHub publik, lalu klik "Run Security Audit".
                   </p>
                 </div>
                 <button
@@ -1159,12 +1147,12 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 </button>
               </div>
 
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mb-1">MODE B</div>
                   <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Terminal CLI</h4>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-                    Jalankan perintah lokal di direktori proyek Anda untuk mendapatkan docket ASCII berwarna dan deterministic exit code.
+                    Jalankan satu perintah di folder proyek Anda. Tanpa login dan tanpa token. Hasilnya langsung tampil di terminal.
                   </p>
                 </div>
                 <div className="bg-neutral-50 dark:bg-neutral-900 p-2 rounded border border-neutral-200 dark:border-neutral-800 font-mono text-[11px] truncate">
@@ -1172,22 +1160,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
+              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mb-1">MODE C</div>
-                  <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Git Pre-Commit Hook</h4>
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-                    Pasang barrier otomatis lokal untuk membatalkan git commit jika ada kebocoran kunci rahasia atau celah kritis.
-                  </p>
-                </div>
-                <div className="bg-neutral-50 dark:bg-neutral-900 p-2 rounded border border-neutral-200 dark:border-neutral-800 font-mono text-[11px] truncate">
-                  node cli/scripts/install-hook.js --install
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mb-1">MODE D</div>
                   <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">MCP Autonomous Agent</h4>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
                     Tambahkan server MCP ke Cursor, Claude Code, atau Windsurf agar agen dapat memanggil <code className="font-mono text-[11px]">audit_codebase</code> secara mandiri.
@@ -1201,10 +1176,36 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
 
           {/* SUB-SECTION 4: DEDICATED 10 CODING AGENTS & MCP PROTOCOL */}
-          <div id="mcp" className="scroll-mt-24 mb-20 pt-8 border-t border-neutral-200 dark:border-neutral-800">
+          <div id="mcp" className="min-h-[calc(100dvh-4rem)] flex flex-col justify-center py-6 sm:py-8 lg:py-10 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-16">
             <div className="max-w-4xl mb-10">
-              <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
-                Autonomous AI Agent Security Bridge
+              <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3 flex items-center gap-3">
+                <svg
+                  className="size-7 sm:size-8 shrink-0 text-neutral-900 dark:text-neutral-100"
+                  viewBox="0 0 180 180"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M18 84.8528L85.8822 16.9706C95.2548 7.59798 110.451 7.59798 119.823 16.9706V16.9706C129.196 26.3431 129.196 41.5391 119.823 50.9117L68.5581 102.177"
+                    stroke="currentColor"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M69.2652 101.47L119.823 50.9117C129.196 41.5391 144.392 41.5391 153.765 50.9117L154.118 51.2652C163.491 60.6378 163.491 75.8338 154.118 85.2063L92.7248 146.6C89.6006 149.724 89.6006 154.789 92.7248 157.913L105.331 170.52"
+                    stroke="currentColor"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M102.853 33.9411L52.6482 84.1457C43.2756 93.5183 43.2756 108.714 52.6482 118.087V118.087C62.0208 127.459 77.2167 127.459 86.5893 118.087L136.794 67.8822"
+                    stroke="currentColor"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span>ShipSafe MCP</span>
               </h3>
               <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-sm sm:text-base">
                 Connect Cursor, Claude Code, Windsurf, Copilot, OpenCode, Hermes, Aider, Cline, Roo Code, or any custom MCP agent. ShipSafe generates ready-to-use configuration blocks and line-by-line remediation prompts.
@@ -1221,7 +1222,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     key={agent.id}
                     type="button"
                     onClick={() => setSelectedAgentId(agent.id)}
-                    className={`shrink-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer border ${
+                    className={`shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer border ${
                       isSelected
                         ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white shadow-xs'
                         : 'bg-white dark:bg-[#121316] text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600'
@@ -1301,7 +1302,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     <span className="font-semibold text-neutral-800 dark:text-neutral-200 truncate">
                       {agentViewMode === 'config' ? selectedAgent.name : selectedAgent.promptTitle}
                     </span>
-                    <span className="text-neutral-400">·</span>
+                    <span className="text-neutral-400">/</span>
                     <span className="text-neutral-500 underline truncate">{selectedAgent.configFilename}</span>
                   </div>
                   <span className="text-[10px] uppercase tracking-wider text-neutral-400 shrink-0">{selectedAgent.category}</span>
@@ -1365,71 +1366,29 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         </div>
 
         {/* SUB-SECTION 5: DEDICATED TERMINAL CLI SHOWCASE & AUTHENTICATED ACCESS */}
-        <div id="cli" className="scroll-mt-24 mb-20 pt-8 border-t border-neutral-200 dark:border-neutral-800">
+        <div id="cli" className="min-h-[calc(100dvh-4rem)] flex flex-col justify-center py-6 sm:py-8 lg:py-10 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-16">
           <div className="max-w-4xl mb-12">
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
-              ShipSafe Terminal CLI &amp; Git Hook Gatekeeper
+              ShipSafe Terminal CLI
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-sm sm:text-base">
-              Block dangerous commits locally before code leaves your machine. Generates SARIF 2.1.0 reports for GitHub Code Scanning.
+              Scan your project from the terminal with one command. No login, no token, no setup. Your code stays on your machine.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-6 space-y-4">
-              {/* Authenticated CLI Access Strip */}
-              {user && (
-                <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-mono text-xs text-neutral-400 uppercase">CLI Authentication</div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-                      Authenticated
-                    </span>
-                  </div>
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed mb-3">
-                    Run in terminal to authenticate your local CLI session:
-                  </p>
-                  <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
-                    <code className="text-neutral-900 dark:text-neutral-100 font-medium truncate max-w-[280px]">
-                      {cliTokenInfo?.command || 'shipsafe login --token=sk_shipsafe_...'}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => handleGatedCopy(cliTokenInfo?.command || 'shipsafe login --token=sk_shipsafe_session', 'token')}
-                      className="px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-mono hover:border-neutral-400 transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1"
-                    >
-                      {copiedToken ? (
-                        <>
-                          <svg className="size-3 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                          <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="size-3 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                          </svg>
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* Audit Directory */}
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs">
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs">
                 <div className="font-mono text-xs text-neutral-400 mb-2">Audit Directory</div>
                 <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
                   <div className="flex items-center gap-2 truncate">
                     <span className="text-neutral-400 select-none">$</span>
-                    <code className="text-neutral-900 dark:text-neutral-100 font-medium truncate">npx @lankdev/shipsafe-cli scan .</code>
+                    <code className="text-neutral-900 dark:text-neutral-100 font-semibold text-sm sm:text-base truncate">npx @lankdev/shipsafe-cli scan .</code>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleGatedCopy('npx @lankdev/shipsafe-cli scan .', 'cli')}
+                    onClick={handleCopyCli}
                     className="ml-2 px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-mono hover:border-neutral-400 transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
                   >
                     {copiedCli ? (
@@ -1450,44 +1409,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-neutral-500 mt-2.5 leading-relaxed font-sans">
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-3 leading-relaxed font-sans">
                   Parses <code className="text-neutral-700 dark:text-neutral-300 font-mono">.gitignore</code> automatically and outputs formatted Security Docket ASCII scorecard.
-                </p>
-              </div>
-
-              {/* Pre-Commit Hook */}
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-5 shadow-xs">
-                <div className="font-mono text-xs text-neutral-400 mb-2">Pre-Commit Hook</div>
-                <div className="flex items-center justify-between bg-neutral-50 dark:bg-neutral-900 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 font-mono text-xs">
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="text-neutral-400 select-none">$</span>
-                    <code className="text-neutral-900 dark:text-neutral-100 font-medium truncate">node cli/scripts/install-hook.js --install</code>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleGatedCopy('node cli/scripts/install-hook.js --install', 'hook')}
-                    className="ml-2 px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-mono hover:border-neutral-400 transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
-                  >
-                    {copiedHook ? (
-                      <>
-                        <svg className="size-3.5 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="size-3.5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                        </svg>
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                <p className="text-xs text-neutral-500 mt-2.5 leading-relaxed font-sans">
-                  Installs local git pre-commit barrier hook that blocks any commit containing <span className="text-rose-600 dark:text-rose-400 font-medium">CRITICAL</span> or <span className="text-rose-600 dark:text-rose-400 font-medium">HIGH</span> vulnerabilities.
                 </p>
               </div>
 
@@ -1588,7 +1511,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
       </section>
 
       {/* 5. 10 THREAT VECTORS AUDITED */}
-      <section id="threat-matrix" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-24">
+      <section id="threat-matrix" className="min-h-[calc(100dvh-4rem)] flex flex-col justify-center py-6 sm:py-8 lg:py-10 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-16">
           <div className="max-w-4xl mb-12">
             <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               10 Critical Threat Vectors Audited
@@ -1630,7 +1553,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
                 Ephemeral Sandbox Processing
               </h3>
-              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+              <p className="text-xs sm:text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                 Raw source code is extracted strictly to an isolated temporary sandbox directory. Once analysis finishes, the directory is immediately wiped from memory. Your proprietary code is never persisted, never indexed, and never used to train machine learning models.
               </p>
             </div>
@@ -1639,89 +1562,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <h3 className="text-lg font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
                 Multi-Agent Prompt Formatter
               </h3>
-              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+              <p className="text-xs sm:text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                 Instead of leaving you with abstract CVE codes, ShipSafe formats exact, line-specific remediation prompts tailored for Cursor, Claude Code, GitHub Copilot, Windsurf, Cline, and Roo Code with verification instructions.
               </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. RADICAL TRANSPARENCY & BOUNDARIES */}
-        <section id="limitations" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-24">
-          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 sm:p-10 shadow-xs">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-3 text-neutral-900 dark:text-neutral-100">
-              What ShipSafe Does Not Do
-            </h2>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-3xl mb-8 leading-relaxed font-normal">
-              We believe in honest developer tooling without misleading security marketing. Please note the deliberate engineering boundaries:
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
-                  10MB Archive Upper Limit
-                </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Engineered specifically for web applications, frontend single-page apps, and microservice APIs. It is not designed to ingest multi-gigabyte monolithic repositories or binary assets.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
-                  Purely Static AST Analysis
-                </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  ShipSafe scans configurations and AST structures statically. It does not spin up runtime containers, execute fuzzing network probes, or inspect dynamic heap memory allocations.
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-5">
-                <div className="font-semibold text-sm mb-1.5 text-neutral-900 dark:text-neutral-100 tracking-tight">
-                  Not a Human Pentest Replacement
-                </div>
-                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
-                  Eliminates 95% of common vibe-coding blunders (leaked keys, missing CORS/RLS, unauthed routes), but does not replace a manual SOC2 compliance human penetration audit.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 7. DIRECT DEVELOPER ASSISTANCE */}
-        <section id="developer-support" className="py-16 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-24">
-          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xs">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
-                Need Custom Audit Rules or Dedicated Guidance?
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed font-normal">
-                Connect directly with the creator of ShipSafe. Get assistance on integrating custom regex rulesets, configuring CI/CD pipelines, or auditing specialized web architectures.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <a
-                href="https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya"
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] text-xs font-medium px-4 py-2.5 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all inline-flex items-center gap-2 shadow-xs active:scale-98"
-              >
-                <svg className="size-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.761.884 2.796.885h.005c3.179 0 5.767-2.587 5.768-5.766 0-3.18-2.588-5.769-5.773-5.772zm3.374 8.211c-.147.418-.749.775-1.042.825-.294.05-.67.07-1.085-.064-.265-.086-.607-.207-1.053-.401-1.895-.824-3.128-2.739-3.223-2.865-.094-.125-.769-1.023-.769-1.95 0-.927.487-1.383.66-1.573.174-.189.38-.237.507-.237.127 0 .253.002.364.007.118.005.276-.045.432.329.162.391.554 1.349.602 1.448.048.099.08.214.016.34-.063.125-.095.203-.189.314-.095.111-.2.247-.286.332-.095.095-.195.198-.084.388.111.19.493.813 1.057 1.316.726.647 1.339.848 1.53.943.19.095.302.079.414-.048.111-.126.475-.554.602-.744.126-.19.253-.158.428-.095.174.064 1.109.523 1.3.618.19.095.317.143.364.222.048.079.048.459-.099.877z" />
-                </svg>
-                <span>Talk on WhatsApp</span>
-              </a>
-              <a
-                href="https://t.me/gilankdev"
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 text-xs font-medium px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all inline-flex items-center gap-2 shadow-xs active:scale-98"
-              >
-                <svg className="size-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-                </svg>
-                <span>Talk on Telegram</span>
-              </a>
             </div>
           </div>
         </section>
@@ -1730,7 +1573,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         <PricingSection />
 
         {/* 8. INTERACTIVE FAQ ACCORDION */}
-        <section id="faq" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-24">
+        <section id="faq" className="min-h-[calc(100dvh-4rem)] flex flex-col justify-center py-6 sm:py-8 lg:py-10 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-16">
           <div className="max-w-4xl mb-12">
             <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               Frequently Asked Questions
@@ -1772,12 +1615,92 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   </span>
                 </button>
                 {openFaq === idx && (
-                  <div className="pt-3 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                  <div className="pt-3 text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                     {item.a}
                   </div>
                 )}
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* RADICAL TRANSPARENCY & BOUNDARIES */}
+        <section id="limitations" className="py-16 sm:py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
+          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 sm:p-10 shadow-xs">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3 text-neutral-900 dark:text-neutral-100">
+              What ShipSafe Does Not Do
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-3xl mb-8 leading-relaxed font-normal">
+              We believe in honest developer tooling without misleading security marketing. Please note the deliberate engineering boundaries:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-6">
+                <div className="font-bold text-base mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+                  10MB Archive Upper Limit
+                </div>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                  Engineered specifically for web applications, frontend single-page apps, and microservice APIs. It is not designed to ingest multi-gigabyte monolithic repositories or binary assets.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-6">
+                <div className="font-bold text-base mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+                  Purely Static AST Analysis
+                </div>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                  ShipSafe scans configurations and AST structures statically. It does not spin up runtime containers, execute fuzzing network probes, or inspect dynamic heap memory allocations.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/40 p-6">
+                <div className="font-bold text-base mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+                  Not a Human Pentest Replacement
+                </div>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
+                  Eliminates 95% of common vibe-coding blunders (leaked keys, missing CORS/RLS, unauthed routes), but does not replace a manual SOC2 compliance human penetration audit.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* DIRECT DEVELOPER ASSISTANCE */}
+        <section id="developer-support" className="py-12 sm:py-16 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
+          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-8 sm:p-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xs">
+            <div>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-2 text-neutral-900 dark:text-neutral-100 tracking-tight">
+                Need Custom Audit Rules or Dedicated Guidance?
+              </h3>
+              <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed font-normal">
+                Connect directly with the creator of ShipSafe. Get assistance on integrating custom regex rulesets, configuring CI/CD pipelines, or auditing specialized web architectures.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <a
+                href="https://wa.me/6282124153732?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl bg-[#18181B] dark:bg-white text-white dark:text-[#18181B] text-sm font-semibold px-5 py-3 hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all inline-flex items-center gap-2.5 shadow-xs active:scale-98"
+              >
+                <svg className="size-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.761.884 2.796.885h.005c3.179 0 5.767-2.587 5.768-5.766 0-3.18-2.588-5.769-5.773-5.772zm3.374 8.211c-.147.418-.749.775-1.042.825-.294.05-.67.07-1.085-.064-.265-.086-.607-.207-1.053-.401-1.895-.824-3.128-2.739-3.223-2.865-.094-.125-.769-1.023-.769-1.95 0-.927.487-1.383.66-1.573.174-.189.38-.237.507-.237.127 0 .253.002.364.007.118.005.276-.045.432.329.162.391.554 1.349.602 1.448.048.099.08.214.016.34-.063.125-.095.203-.189.314-.095.111-.2.247-.286.332-.095.095-.195.198-.084.388.111.19.493.813 1.057 1.316.726.647 1.339.848 1.53.943.19.095.302.079.414-.048.111-.126.475-.554.602-.744.126-.19.253-.158.428-.095.174.064 1.109.523 1.3.618.19.095.317.143.364.222.048.079.048.459-.099.877z" />
+                </svg>
+                <span>Talk on WhatsApp</span>
+              </a>
+              <a
+                href="https://t.me/gilankdev"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 text-sm font-semibold px-5 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all inline-flex items-center gap-2.5 shadow-xs active:scale-98"
+              >
+                <svg className="size-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                </svg>
+                <span>Talk on Telegram</span>
+              </a>
+            </div>
           </div>
         </section>
 
@@ -1977,7 +1900,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             </div>
             <div className="flex items-center gap-3 font-mono">
               <span>Zero Code Retention</span>
-              <span>&middot;</span>
+              <span>/</span>
               <span>WCAG AA</span>
             </div>
           </div>

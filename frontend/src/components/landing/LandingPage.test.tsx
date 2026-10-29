@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+﻿import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { LandingPage } from './LandingPage'
 
@@ -105,10 +105,12 @@ describe('LandingPage', () => {
 
     // Dedicated showcase sections
     expect(screen.getByText(/How ShipSafe Secures Your Code in 3 Seconds/i)).toBeInTheDocument()
-    expect(screen.getByText(/Autonomous AI Agent Security Bridge/i)).toBeInTheDocument()
-    expect(screen.getByText(/ShipSafe Terminal CLI & Git Hook Gatekeeper/i)).toBeInTheDocument()
+    expect(screen.getByText(/^ShipSafe MCP$/i)).toBeInTheDocument()
+    expect(screen.getByText(/^ShipSafe Terminal CLI$/i)).toBeInTheDocument()
     expect(screen.getAllByText(/audit_codebase/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/node cli\/scripts\/install-hook.js --install/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/npx @lankdev\/shipsafe-cli scan \./i).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/install-hook/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/shipsafe login/i)).not.toBeInTheDocument()
   })
 
   it('renders clean desktop navbar and complete layout at 1280px and 1440px viewports without overlap', () => {
@@ -156,7 +158,7 @@ describe('LandingPage', () => {
     expect(bentoContainer).toBeInTheDocument()
     expect(screen.getByText('Launch Web Audit')).toBeInTheDocument()
     expect(screen.getByText('10 Coding Agents Bridge')).toBeInTheDocument()
-    expect(screen.getByText('Pre-Commit Gatekeeper')).toBeInTheDocument()
+    expect(screen.getByText('One-Command CLI')).toBeInTheDocument()
 
     // 6. Test at 1440px widescreen resolution
     window.innerWidth = 1440
@@ -166,8 +168,8 @@ describe('LandingPage', () => {
 
     // Verify sections remain solid on wide screens
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Pre-Deployment Security Gatekeeper/i)
-    expect(screen.getByText('Autonomous AI Agent Security Bridge')).toBeInTheDocument()
-    expect(screen.getByText('ShipSafe Terminal CLI & Git Hook Gatekeeper')).toBeInTheDocument()
+    expect(screen.getByText('ShipSafe MCP')).toBeInTheDocument()
+    expect(screen.getByText('ShipSafe Terminal CLI')).toBeInTheDocument()
     expect(screen.getByText('10 Critical Threat Vectors Audited')).toBeInTheDocument()
 
     // 7. Footer 4 columns on desktop
@@ -177,16 +179,14 @@ describe('LandingPage', () => {
     expect(footerGrid).toBeInTheDocument()
   })
 
-  it('gates copy actions and triggers auth modal when user is unauthenticated', () => {
+  it('copies the CLI command without requiring login', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    // Locate gated copy buttons
-    const copyButtons = screen.getAllByRole('button', { name: /^Copy$/i })
-    expect(copyButtons.length).toBeGreaterThan(0)
-
-    // Clicking copy should trigger notice banner
-    fireEvent.click(copyButtons[0]!)
-    expect(screen.getAllByText(/Authentication required/i).length).toBeGreaterThan(0)
+    // The CLI command is public: copying it must never ask for login
+    const cliCopyButtons = screen.getAllByRole('button', { name: /^Copy$/i })
+    expect(cliCopyButtons.length).toBeGreaterThan(0)
+    fireEvent.click(cliCopyButtons[0]!)
+    expect(screen.queryByText(/Authentication required/i)).not.toBeInTheDocument()
   })
 
   it('supports selecting among 10 coding agents and toggling config vs prompt', () => {

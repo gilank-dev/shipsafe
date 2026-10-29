@@ -73,19 +73,19 @@
           "subtitle": "Whether you audit in your browser, trigger scans from terminal hooks, or let AI coding agents self-heal vulnerabilities via MCP."
         },
         "console": {
-          "tag": "PILLAR 01 · CONSOLE",
+          "tag": "PILLAR 01 / CONSOLE",
           "title": "Web Audit Console",
           "description": "Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and verified security clearance directly in your browser.",
           "action": "Launch Console ->"
         },
         "mcp": {
-          "tag": "PILLAR 02 · MCP",
+          "tag": "PILLAR 02 / MCP",
           "title": "Autonomous Agent Bridge",
           "description": "Connect ShipSafe directly to Cursor, Claude Desktop, Windsurf, OpenCode, and Hermes via standard stdio JSON-RPC 2.0. Allow coding agents to audit and remediate findings autonomously.",
           "action": "Explore MCP Setup ->"
         },
         "cli": {
-          "tag": "PILLAR 03 · CLI",
+          "tag": "PILLAR 03 / CLI",
           "title": "Pre-Commit & CI Gatekeeper",
           "description": "Audit code locally in milliseconds or install a 1-click git hook that blocks vulnerable commits. Emits OASIS standard SARIF 2.1.0 telemetry for native GitHub Code Scanning integration.",
           "action": "Inspect CLI Specs ->"
@@ -93,7 +93,7 @@
       },
       "telemetry": {
         "window": {
-          "title": "telemetry · repo-vibe-saas.bundle.zip (4.8MB)",
+          "title": "telemetry - repo-vibe-saas.bundle.zip (4.8MB)",
           "statusActive": "SCANNING ACTIVE",
           "dotsAria": "Terminal window controls"
         },
@@ -297,7 +297,7 @@
         "header": {
           "tag": "DEVELOPER PRICING",
           "title": "Simple, Predictable Security Pricing",
-          "subtitle": "Start auditing code for free. Upgrade when you need team collaboration, priority queues, and official compliance certificates."
+          "subtitle": "Start auditing code for free. Upgrade when you need CI/CD automation, priority queues, and official compliance certificates."
         },
         "tiers": {
           "community": {
@@ -335,12 +335,12 @@
             "name": "Enterprise",
             "price": "Custom",
             "period": "Bespoke Agreement",
-            "description": "For fast engineering teams, software agencies, and organizations requiring custom AST rules and dedicated SLAs.",
+            "description": "For high-velocity developers, agencies, and enterprise deployments requiring custom AST rules and dedicated SLAs.",
             "features": [
               "On-premises Docker self-hosted deployment",
-              "Custom organizational AST & regex rulesets",
+              "Custom AST & regex rulesets for private repositories",
               "Private GitHub pull request bot integration",
-              "Team seat management & multi-tenant RLS",
+              "Custom scan concurrency limits & dedicated runner allocation",
               "BCA, Mandiri, and Corporate Bank Transfer invoices",
               "Dedicated Slack/WhatsApp channel & 99.9% uptime SLA"
             ],
@@ -352,7 +352,7 @@
       "support": {
         "title": "Need Custom Audit Rules or Dedicated Guidance?",
         "subtitle": "Connect directly with the creator of ShipSafe. Get assistance on integrating custom regex rulesets, configuring CI/CD pipelines, or auditing specialized web architectures.",
-        "badge": "● MAINTAINER ONLINE · AVERAGE RESPONSE TIME < 15 MINUTES",
+        "badge": "MAINTAINER ONLINE // AVERAGE RESPONSE TIME < 15 MINUTES",
         "whatsapp": {
           "label": "Talk on WhatsApp",
           "url": "https://wa.me/6282124153732?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya",
@@ -412,7 +412,7 @@
           "privacy": "Privacy Protocol",
           "terms": "Terms of Clearance"
         },
-        "compliance": "GDPR ZERO-PERSISTENCE COMPLIANT • WCAG 2.1 AA ACCESSIBLE • NO CODE RETENTION",
+        "compliance": "GDPR ZERO-PERSISTENCE COMPLIANT / WCAG 2.1 AA ACCESSIBLE / NO CODE RETENTION",
         "copyright": "© 2026 ShipSafe. Built by LankDev & AI Agents."
       }
     },
@@ -485,19 +485,19 @@
           "subtitle": "Lakukan audit instan di peramban, pasang palang pintu otomatis di terminal lokal, atau biarkan agen AI menambal celah secara mandiri melalui MCP."
         },
         "console": {
-          "tag": "PILLAR 01 · KONSOL WEB",
+          "tag": "PILLAR 01 / KONSOL WEB",
           "title": "Konsol Web Audit",
           "description": "Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan stempel kelayakan keamanan resmi langsung di peramban Anda.",
           "action": "Buka Konsol Web ->"
         },
         "mcp": {
-          "tag": "PILLAR 02 · MCP",
+          "tag": "PILLAR 02 / MCP",
           "title": "Jembatan Agen AI Otonom",
           "description": "Hubungkan ShipSafe langsung ke Cursor, Claude Desktop, Windsurf, OpenCode, dan Hermes melalui protokol standar stdio JSON-RPC 2.0. Biarkan agen AI mengaudit dan menambal celah secara mandiri.",
           "action": "Pelajari Konfigurasi MCP ->"
         },
         "cli": {
-          "tag": "PILLAR 03 · CLI",
+          "tag": "PILLAR 03 / CLI",
           "title": "Palang Pintu Pre-Commit & CI",
           "description": "Audit kode secara lokal dalam hitungan milidetik atau pasang git hook 1-klik yang memblokir commit berbahaya. Menghasilkan telemetri SARIF 2.1.0 standar OASIS untuk integrasi native GitHub Code Scanning integration.",
           "action": "Pelajari Perintah CLI ->"
@@ -505,7 +505,7 @@
       },
       "telemetry": {
         "window": {
-          "title": "telemetri · repo-vibe-saas.bundle.zip (4.8MB)",
+          "title": "telemetri - repo-vibe-saas.bundle.zip (4.8MB)",
           "statusActive": "PEMINDAIAN AKTIF",
           "dotsAria": "Kontrol jendela terminal"
         },
@@ -709,7 +709,7 @@
         "header": {
           "tag": "SKEMA BIAYA PENGEMBANG",
           "title": "Biaya Transparan Tanpa Komplikasi",
-          "subtitle": "Mulai audit keamanan secara gratis. Tingkatkan paket saat Anda membutuhkan kolaborasi tim, prioritas antrean, dan sertifikat kepatuhan resmi."
+          "subtitle": "Mulai audit keamanan secara gratis. Tingkatkan paket saat Anda membutuhkan otomatisasi CI/CD, prioritas antrean, dan sertifikat kepatuhan resmi."
         },
         "tiers": {
           "community": {
@@ -744,15 +744,15 @@
             "cta": "Tingkatkan ke Pro"
           },
           "enterprise": {
-            "name": "Organisasi & Custom",
+            "name": "Enterprise Custom",
             "price": "Kustom",
             "period": "Sesuai Kebutuhan",
-            "description": "Untuk tim rekayasa perangkat lunak, software house, dan korporat yang membutuhkan aturan kustom dan SLA terjamin.",
+            "description": "Untuk pengembang skala besar, software house, dan korporat yang membutuhkan aturan kustom dan SLA terjamin.",
             "features": [
               "Instalasi mandiri on-premises via Docker terisolasi",
-              "Kustomisasi aturan deteksi AST & regex internal organisasi",
+              "Kustomisasi aturan deteksi AST & regex repositori privat",
               "Integrasi bot Pull Request otomatis di repositori privat",
-              "Manajemen kursi anggota tim dengan isolasi multi-tenant",
+              "Batas konkurensi scan kustom dan alokasi runner terdedikasi",
               "Faktur transfer bank lokal (BCA/Mandiri) & invoice perusahaan resmi",
               "Saluran koordinasi privat (WhatsApp/Slack) & jaminan SLA 99,9%"
             ],
@@ -764,7 +764,7 @@
       "support": {
         "title": "Butuh Aturan Audit Kustom atau Konsultasi Langsung?",
         "subtitle": "Terhubung langsung dengan kreator dan tim inti ShipSafe. Dapatkan bantuan untuk merancang aturan regex kustom, mengonfigurasi pipeline CI/CD, atau mengaudit arsitektur sistem khusus.",
-        "badge": "● ADMIN AKTIF · RATA-RATA RESPON < 15 MENIT",
+        "badge": "ADMIN AKTIF // RATA-RATA RESPON < 15 MENIT",
         "whatsapp": {
           "label": "Konsultasi via WhatsApp",
           "url": "https://wa.me/6282124153732?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya",
@@ -824,7 +824,7 @@
           "privacy": "Protokol Privasi",
           "terms": "Syarat & Ketentuan"
         },
-        "compliance": "KEPATUHAN ZERO-PERSISTENCE GDPR • AKSESIBILITAS WCAG 2.1 AA • TANPA RETENSI KODE",
+        "compliance": "KEPATUHAN ZERO-PERSISTENCE GDPR / AKSESIBILITAS WCAG 2.1 AA / TANPA RETENSI KODE",
         "copyright": "© 2026 ShipSafe. Dikembangkan oleh LankDev & AI Agents."
       }
     }

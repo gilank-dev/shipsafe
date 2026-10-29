@@ -70,17 +70,17 @@ export function HistoryModal() {
     setLoadingAuditId(null)
 
     if (err || !report) {
-      toast.error(err?.message || 'Gagal memuat laporan audit.')
+      toast.error(err?.message || 'Failed to load audit report.')
       return
     }
 
     loadAuditFromHistory(report, projectName || item.projectName)
-    toast.info(`Laporan audit "${item.projectName}" berhasil dibuka.`)
+    toast.info(`Audit report "${item.projectName}" loaded successfully.`)
     handleClose()
   }
 
   const handleDelete = async (item: AuditHistoryItem) => {
-    if (!window.confirm(`Hapus riwayat audit untuk "${item.projectName}"? Tindakan ini tidak dapat dibatalkan.`)) {
+    if (!window.confirm(`Delete audit history for "${item.projectName}"? This action cannot be undone.`)) {
       return
     }
 
@@ -89,13 +89,13 @@ export function HistoryModal() {
     setDeletingAuditId(null)
 
     if (err) {
-      toast.error(`Gagal menghapus audit: ${err.message}`)
+      toast.error(`Failed to delete audit: ${err.message}`)
       return
     }
 
     setAudits((prev) => prev.filter((a) => a.id !== item.id))
     announce(`Audit ${item.projectName} deleted`)
-    toast.info(`Riwayat audit "${item.projectName}" berhasil dihapus.`)
+    toast.info(`Audit history "${item.projectName}" deleted successfully.`)
   }
 
   return (

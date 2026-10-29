@@ -1,6 +1,6 @@
 import React from 'react'
 import { useClerk } from '@clerk/clerk-react'
-import { Shield, BookOpen, Clock, Users, Terminal, ChevronLeft, CreditCard, LogOut } from 'lucide-react'
+import { Shield, BookOpen, Clock, Terminal, ChevronLeft, CreditCard, LogOut } from 'lucide-react'
 import { signOut } from '../../lib/supabase'
 import { announce } from '../../state/announcer'
 import { useStore } from '../../state/store'
@@ -27,8 +27,7 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
   const setAuthUser = useStore((s) => s.setAuthUser)
   const clerk = useClerk()
 
-  const effectiveTier = user?.organizationId ? 'enterprise' : (user?.tier || quota?.tier || 'free')
-  const isTeamUser = Boolean(user && (user.organizationId || user.organizationName || effectiveTier === 'enterprise'))
+  const effectiveTier = user?.tier || quota?.tier || 'free'
   const isSuperAdmin = Boolean(user?.isSuperAdmin)
 
   const handleSignOut = async () => {
@@ -160,36 +159,22 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
             )}
           </div>
 
-          {/* Enterprise & Admin Group (Strictly gated: ONLY shown if user is in team or super admin!) */}
-          {(isTeamUser || isSuperAdmin) && (
+          {/* Admin Group (Strictly gated: ONLY shown if user is super admin) */}
+          {isSuperAdmin && (
             <div className="space-y-1 border-t border-rule pt-4">
               <p className="px-2.5 text-[10px] font-mono uppercase tracking-wider text-ink-3 font-semibold mb-2">
                 Management
               </p>
 
-              {isTeamUser && (
-                <button
-                  type="button"
-                  onClick={() => handleNavigate('/dashboard/team')}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono text-ink-2 hover:text-ink hover:bg-surface transition-colors text-left cursor-pointer rounded-sm"
-                  title="Kelola anggota tim dan organisasi Enterprise"
-                >
-                  <Users className="size-4 shrink-0" strokeWidth={1.5} />
-                  <span className="truncate">Enterprise Team</span>
-                </button>
-              )}
-
-              {isSuperAdmin && (
-                <button
-                  type="button"
-                  onClick={() => handleNavigate('/admin')}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono text-ink hover:bg-surface border border-rule transition-colors text-left cursor-pointer rounded-sm"
-                  title="Super Admin Dashboard & System Ledger"
-                >
-                  <Terminal className="size-4 shrink-0" strokeWidth={1.5} />
-                  <span className="truncate">Admin Ledger</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => handleNavigate('/admin')}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono text-ink hover:bg-surface border border-rule transition-colors text-left cursor-pointer rounded-sm"
+                title="Super Admin Dashboard & System Ledger"
+              >
+                <Terminal className="size-4 shrink-0" strokeWidth={1.5} />
+                <span className="truncate">Admin Ledger</span>
+              </button>
             </div>
           )}
         </div>

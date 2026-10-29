@@ -45,9 +45,11 @@ describe('landingDictionary', () => {
     expect(landingDictionary.id.threatVectors.vectors).toHaveLength(10)
   })
 
-  it('contains transparent 3-tier pricing (Free Solo, Pro Team, Enterprise Custom)', () => {
+  it('contains transparent 3-tier pricing (Free Solo, Pro Developer, Enterprise Custom)', () => {
     expect(landingDictionary.en.pricing.tiers).toHaveLength(3)
     expect(landingDictionary.id.pricing.tiers).toHaveLength(3)
+    expect(landingDictionary.en.pricing.tiers[1]?.name).toBe('Pro Developer')
+    expect(landingDictionary.id.pricing.tiers[1]?.name).toBe('Pro Developer')
 
     const tierIds = ['free', 'pro', 'enterprise']
     landingDictionary.en.pricing.tiers.forEach((tier, idx) => {

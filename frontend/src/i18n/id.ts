@@ -73,21 +73,21 @@ export const idContent: LandingContentSchema = {
         'Lakukan audit instan di peramban, pasang palang pintu otomatis di terminal lokal, atau biarkan agen AI menambal celah secara mandiri melalui MCP.',
     },
     console: {
-      tag: 'PILLAR 01 · KONSOL WEB',
+      tag: 'PILLAR 01 / KONSOL WEB',
       title: 'Konsol Web Audit',
       description:
         'Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan putusan audit keamanan resmi langsung di peramban Anda.',
       action: 'Buka Konsol Web ->',
     },
     mcp: {
-      tag: 'PILLAR 02 · MCP',
+      tag: 'PILLAR 02 / MCP',
       title: 'Jembatan Agen AI Otonom',
       description:
         'Hubungkan ShipSafe langsung ke Cursor, Claude Desktop, Windsurf, OpenCode, dan Hermes melalui protokol standar stdio JSON-RPC 2.0. Biarkan agen AI mengaudit dan menambal celah secara mandiri.',
       action: 'Pelajari Konfigurasi MCP ->',
     },
     cli: {
-      tag: 'PILLAR 03 · CLI',
+      tag: 'PILLAR 03 / CLI',
       title: 'Palang Pintu Pre-Commit & CI',
       description:
         'Audit kode secara lokal dalam hitungan milidetik atau pasang git hook 1-klik yang memblokir commit berbahaya. Menghasilkan telemetri SARIF 2.1.0 standar OASIS untuk integrasi native GitHub Code Scanning.',
@@ -346,7 +346,7 @@ export const idContent: LandingContentSchema = {
       tag: 'SKEMA BIAYA PENGEMBANG',
       title: 'Biaya Transparan Tanpa Komplikasi',
       subtitle:
-        'Mulai audit keamanan secara gratis. Tingkatkan paket saat Anda membutuhkan kolaborasi tim, prioritas antrean, dan sertifikat kepatuhan resmi.',
+        'Mulai audit keamanan secara gratis. Tingkatkan paket saat Anda membutuhkan otomatisasi CI/CD, prioritas antrean, dan sertifikat kepatuhan resmi.',
     },
     tiers: {
       community: {
@@ -383,16 +383,16 @@ export const idContent: LandingContentSchema = {
         cta: 'Tingkatkan ke Pro',
       },
       enterprise: {
-        name: 'Organisasi & Custom',
+        name: 'Enterprise Custom',
         price: 'Kustom',
         period: 'Sesuai Kebutuhan',
         description:
-          'Untuk tim rekayasa perangkat lunak, software house, dan korporat yang membutuhkan aturan kustom dan SLA terjamin.',
+          'Untuk pengembang skala besar, software house, dan korporat yang membutuhkan aturan kustom dan SLA terjamin.',
         features: [
           'Instalasi mandiri on-premises via Docker terisolasi',
-          'Kustomisasi aturan deteksi AST & regex internal organisasi',
+          'Kustomisasi aturan deteksi AST & regex repositori privat',
           'Integrasi bot Pull Request otomatis di repositori privat',
-          'Manajemen kursi anggota tim dengan isolasi multi-tenant',
+          'Batas konkurensi scan kustom dan alokasi runner terdedikasi',
           'Faktur transfer bank lokal (BCA/Mandiri) & invoice perusahaan resmi',
           'Saluran koordinasi privat (WhatsApp/Slack) & jaminan SLA 99,9%',
         ],
@@ -407,7 +407,7 @@ export const idContent: LandingContentSchema = {
     title: 'Butuh Aturan Audit Kustom atau Konsultasi Langsung?',
     subtitle:
       'Terhubung langsung dengan kreator dan tim inti ShipSafe. Dapatkan bantuan untuk merancang aturan regex kustom, mengonfigurasi pipeline CI/CD, atau mengaudit arsitektur sistem khusus.',
-    badge: '● ADMIN AKTIF // RATA-RATA RESPON < 15 MENIT',
+    badge: 'ADMIN AKTIF // RATA-RATA RESPON < 15 MENIT',
     whatsapp: {
       label: 'Konsultasi via WhatsApp',
       url: 'https://wa.me/6282124153732?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya',
@@ -475,7 +475,7 @@ export const idContent: LandingContentSchema = {
       privacy: 'Protokol Privasi',
       terms: 'Syarat & Ketentuan',
     },
-    compliance: 'KEPATUHAN ZERO-PERSISTENCE GDPR • AKSESIBILITAS WCAG 2.1 AA • TANPA RETENSI KODE',
+    compliance: 'KEPATUHAN ZERO-PERSISTENCE GDPR / AKSESIBILITAS WCAG 2.1 AA / TANPA RETENSI KODE',
     copyright: `© ${new Date().getFullYear()} ShipSafe. Dikembangkan oleh LankDev & AI Agents.`,
   },
 }

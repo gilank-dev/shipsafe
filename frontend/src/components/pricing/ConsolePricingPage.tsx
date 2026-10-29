@@ -5,7 +5,6 @@ import { TierBadge } from '../ui/TierBadge'
 
 interface EnterpriseLeadForm {
   companyName: string
-  teamSize: '4 orang' | '10 orang' | '10+ orang'
   estimatedVolume: '< 100' | '100 - 500' | '500+'
   needs: {
     cicd: boolean
@@ -24,7 +23,6 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
   const [isEnterpriseModalOpen, setIsEnterpriseModalOpen] = useState(false)
   const [enterpriseForm, setEnterpriseForm] = useState<EnterpriseLeadForm>({
     companyName: '',
-    teamSize: '4 orang',
     estimatedVolume: '100 - 500',
     needs: {
       cicd: true,
@@ -33,7 +31,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
     },
   })
 
-  const effectiveTier = user?.organizationId ? 'enterprise' : (user?.tier || quota?.tier || 'free')
+  const effectiveTier = user?.tier || quota?.tier || 'free'
   const isFree = effectiveTier === 'free'
   const isPro = effectiveTier === 'pro'
   const isEnterprise = effectiveTier === 'enterprise'
@@ -63,14 +61,13 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
 
     const userEmail = user?.email ? ` (${user.email})` : ''
     const message = encodeURIComponent(
-      `Halo Admin ShipSafe, saya tertarik mengaktifkan Paket Enterprise ShipSafe untuk tim saya.\n\n` +
-      `Informasi Tim / Agensi:\n` +
-      `• Pengaju: ${user?.fullName || 'User ShipSafe'}${userEmail}\n` +
-      `• Perusahaan / Agensi: ${enterpriseForm.companyName || 'Belum diisi'}\n` +
-      `• Jumlah Anggota Tim: ${enterpriseForm.teamSize}\n` +
-      `• Estimasi Deployment / Scan: ${enterpriseForm.estimatedVolume} per bulan\n` +
-      `• Kebutuhan Utama: ${selectedNeeds.length > 0 ? selectedNeeds.join(', ') : 'Konsultasi Tim'}\n\n` +
-      `Mohon info aktivasi ruang tim dan penawaran teknisnya. Terima kasih.`
+      `Halo Admin ShipSafe, saya tertarik mengaktifkan Paket Enterprise ShipSafe.\n\n` +
+      `Informasi Proyek / Perusahaan:\n` +
+      `- Pengaju: ${user?.fullName || 'User ShipSafe'}${userEmail}\n` +
+      `- Perusahaan / Proyek: ${enterpriseForm.companyName || 'Belum diisi'}\n` +
+      `- Estimasi Deployment / Scan: ${enterpriseForm.estimatedVolume} per bulan\n` +
+      `- Kebutuhan Utama: ${selectedNeeds.length > 0 ? selectedNeeds.join(', ') : 'Konsultasi Enterprise'}\n\n` +
+      `Mohon info aktivasi dan penawaran teknisnya. Terima kasih.`
     )
 
     window.open(`https://wa.me/6282124153732?text=${message}`, '_blank')
@@ -89,7 +86,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
           >
             &larr; Kembali ke Audit Scanner
           </button>
-          <span className="text-xs font-mono text-ink-3">Console &bull; Pricing &amp; Plans</span>
+          <span className="text-xs font-mono text-ink-3">Console / Pricing &amp; Plans</span>
         </div>
       )}
 
@@ -108,7 +105,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
             </h2>
             <p className="text-xs text-ink-2 mt-1 font-sans max-w-xl leading-relaxed">
               {isEnterprise
-                ? 'Organisasi kamu aktif di paket Enterprise. Nikmati kuota audit unlimited, integrasi CI/CD terpusat, dan kolaborasi multi-user.'
+                ? 'Akun kamu aktif di paket Enterprise. Nikmati kuota audit unlimited, dedicated VPS sandbox, dan integrasi CI/CD terpusat.'
                 : isPro
                   ? 'Akun kamu aktif di paket Pro (50x audit per bulan). Seluruh prompt perbaikan instan dan ekspor laporan telah terbuka.'
                   : 'Kamu saat ini berada pada paket Free (3x audit per bulan). Upgrade ke Pro untuk membuka kapasitas 50x audit dan fitur ekspor.'}
@@ -319,7 +316,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
           </div>
         </div>
 
-        {/* Tier 3: Enterprise (Team / Agency) */}
+        {/* Tier 3: Enterprise (Custom SLA) */}
         <div
           className={`flex flex-col justify-between border bg-surface p-6 font-mono transition-all ${
             isEnterprise ? 'border-ink ring-2 ring-ink shadow-md' : 'border-rule hover:border-ink-2'
@@ -328,7 +325,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold uppercase tracking-wider text-ink-2">
-                Enterprise (Team / Agency)
+                Enterprise (Custom SLA)
               </span>
               {isEnterprise && (
                 <span className="px-2 py-0.5 border border-ink bg-ink text-canvas text-[10px] font-bold tracking-wide uppercase">
@@ -342,7 +339,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
             </div>
 
             <p className="text-xs text-ink-2 leading-relaxed mb-6 font-sans">
-              Untuk software house, agensi, dan tim engineering yang butuh otomatisasi CI/CD dan laporan white-label.
+              Untuk proyek skala besar dengan dedicated sandbox dan SLA khusus.
             </p>
 
             <div className="w-full h-px bg-rule mb-6" />
@@ -350,31 +347,23 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
             <ul className="space-y-2.5 text-xs text-ink-2 font-sans mb-8">
               <li className="flex items-start gap-2">
                 <Check className="size-3.5 text-ink shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span><strong>Unlimited</strong> audit (Subjek Fair Use Policy)</span>
+                <span><strong>Unlimited</strong> audit + dedicated VPS sandbox</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="size-3.5 text-ink shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span>Kustom kapasitas upload (Hingga <strong>500 MB+</strong>)</span>
+                <span>Kustom kapasitas upload (hingga <strong>500 MB+</strong>)</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="size-3.5 text-ink shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span>Deteksi 10 Kategori + <strong>Dedicated Sandbox</strong></span>
+                <span>Aturan kustom AST &amp; regex khusus arsitektur</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="size-3.5 text-ink shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span><strong>White-Label PDF</strong> (Logo &amp; Nama Agensi Anda)</span>
+                <span>Full integrasi otomatis CI/CD (GitHub &amp; GitLab)</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="size-3.5 text-ink shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span>Multi-User Organization (<strong>4+ Kursi Developer</strong>)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="size-3.5 text-ink shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span>Centralized CI/CD Key (GitHub Actions &amp; GitLab CI)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="size-3.5 text-ink shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span>Dukungan Teknis Langsung Admin via WhatsApp</span>
+                <span>White-label PDF &amp; SLA prioritas teknis 24/7</span>
               </li>
             </ul>
           </div>
@@ -390,7 +379,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
                 onClick={() => setIsEnterpriseModalOpen(true)}
                 className="w-full py-2.5 px-4 border border-rule bg-canvas hover:bg-surface text-ink font-mono font-medium text-xs transition-colors cursor-pointer uppercase tracking-wider text-center"
               >
-                Konsultasi Tim Enterprise
+                Konsultasi Enterprise
               </button>
             )}
           </div>
@@ -441,61 +430,44 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
 
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-rule bg-surface text-ink text-[11px] font-semibold mb-3 uppercase tracking-wider">
               <Building2 className="size-3.5" />
-              <span>Paket Enterprise</span>
+              <span>Solusi Enterprise (Custom SLA)</span>
             </div>
 
             <h3 id="enterprise-lead-title" className="text-xl font-bold tracking-tight text-ink mb-2">
-              Kustomisasi Solusi Tim &amp; Agensi
+              Konsultasi Kebutuhan Enterprise
             </h3>
             <p className="text-xs text-ink-2 leading-relaxed mb-6 font-sans">
-              Diskusikan kebutuhan volume audit, kapasitas kursi developer, dan integrasi CI/CD khusus dengan tim ShipSafe.
+              Diskusikan kebutuhan volume audit, dedicated sandbox, dan integrasi CI/CD khusus dengan engineer ShipSafe.
             </p>
 
             <form onSubmit={handleEnterpriseSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-ink mb-1.5 font-sans">
-                  Nama Perusahaan / Software House / Agensi
+                  Nama Perusahaan / Proyek
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Misal: PT Inovasi Digital Nusantara"
+                  placeholder="Misal: PT Inovasi Digital Nusantara / Proyek Produksi"
                   value={enterpriseForm.companyName}
                   onChange={(e) => setEnterpriseForm({ ...enterpriseForm, companyName: e.target.value })}
                   className="w-full px-3 py-2 text-xs border border-rule bg-surface text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-ink mb-1.5 font-sans">
-                    Jumlah Anggota Tim
-                  </label>
-                  <select
-                    value={enterpriseForm.teamSize}
-                    onChange={(e) => setEnterpriseForm({ ...enterpriseForm, teamSize: e.target.value as any })}
-                    className="w-full px-3 py-2 text-xs border border-rule bg-surface text-ink focus:border-ink focus:outline-none cursor-pointer"
-                  >
-                    <option value="4 orang">4 orang</option>
-                    <option value="10 orang">10 orang</option>
-                    <option value="10+ orang">10+ orang</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-ink mb-1.5 font-sans">
-                    Estimasi Scan / Bulan
-                  </label>
-                  <select
-                    value={enterpriseForm.estimatedVolume}
-                    onChange={(e) => setEnterpriseForm({ ...enterpriseForm, estimatedVolume: e.target.value as any })}
-                    className="w-full px-3 py-2 text-xs border border-rule bg-surface text-ink focus:border-ink focus:outline-none cursor-pointer"
-                  >
-                    <option value="< 100">&lt; 100 scan</option>
-                    <option value="100 - 500">100 - 500 scan</option>
-                    <option value="500+">500+ scan</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-ink mb-1.5 font-sans">
+                  Estimasi Scan / Bulan
+                </label>
+                <select
+                  value={enterpriseForm.estimatedVolume}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, estimatedVolume: e.target.value as any })}
+                  className="w-full px-3 py-2 text-xs border border-rule bg-surface text-ink focus:border-ink focus:outline-none cursor-pointer"
+                >
+                  <option value="< 100">&lt; 100 scan per bulan</option>
+                  <option value="100 - 500">100 - 500 scan per bulan</option>
+                  <option value="500+">500+ scan per bulan</option>
+                </select>
               </div>
 
               <div>
@@ -515,7 +487,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
                       }
                       className="size-3.5 border border-rule"
                     />
-                    <span>Kunci API CI/CD Terpusat (GitHub Actions / GitLab CI)</span>
+                    <span>Integrasi CI/CD (GitHub Actions / GitLab CI)</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -529,7 +501,7 @@ export const ConsolePricingPage: React.FC<ConsolePricingPageProps> = ({ onBackTo
                       }
                       className="size-3.5 border border-rule"
                     />
-                    <span>Laporan PDF White-Label dengan Logo Agensi</span>
+                    <span>Laporan PDF White-Label dengan Branding Kustom</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input

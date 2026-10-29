@@ -65,7 +65,7 @@ export interface AuthState {
   isHistoryModalOpen: boolean
 }
 
-export type PaywallReason = 'quota' | 'remediation' | 'export' | 'cli' | 'team'
+export type PaywallReason = 'quota' | 'remediation' | 'export' | 'cli'
 
 export interface QuotaState {
   tier: SubscriptionTier
