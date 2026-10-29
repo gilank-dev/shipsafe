@@ -77,7 +77,7 @@ export const DiffVerifierView: React.FC<DiffVerifierViewProps> = ({ currentRepor
       '',
       '#### Audit Verification Timestamp:',
       `- Date: ${new Date().toUTCString()}`,
-      `- Verified with: ShipSafe v4 Fix Verification Engine`,
+      `- Verified with: ShipSafe Fix Verification Engine`,
     ].join('\n')
 
     await copyToClipboard(cert)

@@ -5,6 +5,8 @@ import { signOut } from '../../lib/supabase'
 import { useStore } from '../../state/store'
 import { fetchCliToken, type CliTokenResponse } from '../../api/client'
 import { BrandLogo } from '../ui/BrandLogo'
+import { PricingSection } from '../pricing/PricingSection'
+import { TierBadge } from '../ui/TierBadge'
 
 export type CodingAgentKey =
   | 'cursor'
@@ -377,7 +379,17 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
   const setAuthUser = useStore((s) => s.setAuthUser)
   const user = useStore((s) => s.auth.user)
+  const quota = useStore((s) => s.quota)
   const clerk = useClerk()
+
+  const effectiveTier = user?.organizationId ? 'enterprise' : (user?.tier || quota?.tier || 'free')
+
+  const navigate = (path: string) => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    }
+  }
 
   const selectedAgent = CODING_AGENTS.find((a) => a.id === selectedAgentId) || CODING_AGENTS[0]!
 
@@ -535,6 +547,16 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               Threat Vectors
             </a>
             <a
+              href="#pricing"
+              onClick={(e) => {
+                e.preventDefault()
+                scrollToSection('pricing')
+              }}
+              className="hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer shrink-0"
+            >
+              Pricing
+            </a>
+            <a
               href="#faq"
               onClick={(e) => {
                 e.preventDefault()
@@ -553,6 +575,25 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <span className="hidden font-mono text-xs text-neutral-600 dark:text-neutral-400 sm:inline truncate max-w-[120px]">
                   {user.email || user.fullName}
                 </span>
+                <TierBadge tier={effectiveTier} isSuperAdmin={user.isSuperAdmin} size="xs" />
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard/team')}
+                  className="text-xs px-2.5 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.12] bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all cursor-pointer font-medium shrink-0"
+                  title="Enterprise Team & Organisasi"
+                >
+                  Team
+                </button>
+                {user.isSuperAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/admin')}
+                    className="text-xs px-2.5 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.12] bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-900 dark:text-white transition-all cursor-pointer font-mono font-medium shrink-0"
+                    title="Super Admin Dashboard"
+                  >
+                    Admin
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => void handleSignOut()}
@@ -628,7 +669,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           <div className="mb-14 w-full flex justify-center">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] p-2.5 sm:p-3 w-full max-w-2xl shadow-sm hover:border-neutral-300 dark:hover:border-neutral-700 transition-all text-left">
               <div className="flex items-center gap-3 px-3 py-1.5 sm:py-0 overflow-x-auto scrollbar-none min-w-0">
-                <span className="text-emerald-600 dark:text-emerald-400 font-mono text-base sm:text-lg font-bold select-none shrink-0">
+                <span className="text-neutral-900 dark:text-neutral-100 font-mono text-base sm:text-lg font-bold select-none shrink-0">
                   $
                 </span>
                 <span className="font-mono text-sm sm:text-base font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight truncate select-all">
@@ -642,10 +683,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               >
                 {copiedCli ? (
                   <>
-                    <svg className="size-4 text-emerald-400 dark:text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <svg className="size-4 text-neutral-900 dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    <span className="text-emerald-400 dark:text-emerald-600 font-bold">Copied</span>
+                    <span className="text-neutral-900 dark:text-white font-bold">Copied</span>
                   </>
                 ) : (
                   <>
@@ -793,7 +834,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               {activeTab === 'report' ? (
                 <div className="space-y-2.5 text-neutral-600 dark:text-neutral-400">
                   <div className="text-neutral-500">
-                    [00:01.04] AST parsing 42 source files... <span className="text-emerald-600 dark:text-emerald-400 font-medium">OK (0.8s)</span>
+                    [00:01.04] AST parsing 42 source files... <span className="text-neutral-900 dark:text-neutral-100 font-medium">OK (0.8s)</span>
                   </div>
                   <div className="text-rose-600 dark:text-rose-400">
                     [00:01.88] Vector: Secrets Scan [FAIL] Stripe live key exposed in <span className="underline">src/config/stripe.ts:8</span>
@@ -834,9 +875,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         {/* 2.5 HOW IT WORKS SECTION */}
         <section id="how-it-works" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-20">
           <div className="max-w-4xl mb-12">
-            <div className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
-              WORKFLOW &amp; VELOCITY
-            </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               How ShipSafe Secures Your Code in 3 Seconds
             </h2>
@@ -929,9 +967,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         {/* 3. MASTER DOCUMENTATION SECTION ENCLOSING MCP & CLI */}
         <section id="documentation" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-24">
           <div className="max-w-4xl mb-8">
-            <div className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
-              DOKUMENTASI &amp; INTEGRASI LENGKAP
-            </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               ShipSafe Documentation &amp; Architecture Guide
             </h2>
@@ -1006,9 +1041,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           {/* SUB-SECTION 1: FITUR UTAMA */}
           <div id="doc-fitur" className="scroll-mt-24 mb-20">
-            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-neutral-500 uppercase tracking-wider">
-              <span>01 CAPABILITIES</span>
-            </div>
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-6">
               Fitur Utama Arsitektur ShipSafe
             </h3>
@@ -1046,9 +1078,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           {/* SUB-SECTION 2: ALUR PENGGUNAAN */}
           <div id="doc-alur" className="scroll-mt-24 mb-20">
-            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-neutral-500 uppercase tracking-wider">
-              <span>02 PIPELINE FLOW</span>
-            </div>
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               Alur Kerja Pemrosesan Keamanan (End-to-End)
             </h3>
@@ -1106,9 +1135,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
           {/* SUB-SECTION 3: CARA PENGGUNAAN */}
           <div id="doc-cara" className="scroll-mt-24 mb-20">
-            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-neutral-500 uppercase tracking-wider">
-              <span>03 USAGE MODES</span>
-            </div>
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               Cara Penggunaan Berdasarkan Kebutuhan
             </h3>
@@ -1177,9 +1203,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           {/* SUB-SECTION 4: DEDICATED 10 CODING AGENTS & MCP PROTOCOL */}
           <div id="mcp" className="scroll-mt-24 mb-20 pt-8 border-t border-neutral-200 dark:border-neutral-800">
             <div className="max-w-4xl mb-10">
-              <div className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
-                04 10 CODING AGENTS &amp; MCP PROTOCOL
-              </div>
               <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
                 Autonomous AI Agent Security Bridge
               </h3>
@@ -1255,10 +1278,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   >
                     {(agentViewMode === 'config' ? copiedMcp : copiedPrompt) ? (
                       <>
-                        <svg className="size-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="size-3.5 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied</span>
+                        <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
                       </>
                     ) : (
                       <>
@@ -1344,9 +1367,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         {/* SUB-SECTION 5: DEDICATED TERMINAL CLI SHOWCASE & AUTHENTICATED ACCESS */}
         <div id="cli" className="scroll-mt-24 mb-20 pt-8 border-t border-neutral-200 dark:border-neutral-800">
           <div className="max-w-4xl mb-12">
-            <div className="text-xs font-mono uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
-              05 TERMINAL CLI &amp; GIT HOOK
-            </div>
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               ShipSafe Terminal CLI &amp; Git Hook Gatekeeper
             </h3>
@@ -1380,10 +1400,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     >
                       {copiedToken ? (
                         <>
-                          <svg className="size-3 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <svg className="size-3 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied</span>
+                          <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
                         </>
                       ) : (
                         <>
@@ -1414,10 +1434,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   >
                     {copiedCli ? (
                       <>
-                        <svg className="size-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="size-3.5 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied</span>
+                        <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
                       </>
                     ) : (
                       <>
@@ -1450,10 +1470,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   >
                     {copiedHook ? (
                       <>
-                        <svg className="size-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="size-3.5 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied</span>
+                        <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
                       </>
                     ) : (
                       <>
@@ -1476,7 +1496,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <div className="text-neutral-400 mb-2 font-medium">Exit Codes</div>
                 <div className="text-neutral-600 dark:text-neutral-400 space-y-1">
                   <div className="flex items-center gap-2">
-                    <code className="text-emerald-600 dark:text-emerald-400 font-semibold">0</code>
+                    <code className="text-neutral-900 dark:text-neutral-100 font-semibold">0</code>
                     <span>Scan passed cleanly</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1519,9 +1539,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
         {/* SUB-SECTION 6: SEMUA DOKUMENTASI & SPESIFIKASI TEKNIS */}
         <div id="doc-specs" className="scroll-mt-24 pt-8 border-t border-neutral-200 dark:border-neutral-800">
           <div className="max-w-4xl mb-8">
-            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-neutral-500 uppercase tracking-wider">
-              <span>06 TECHNICAL SPECIFICATIONS &amp; REFERENCES</span>
-            </div>
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               Dokumentasi Teknis &amp; Standar Kepatuhan
             </h3>
@@ -1533,7 +1550,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="font-mono text-xs text-neutral-400 mb-2">SPECIFICATION ID</div>
                 <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">DOCUMENTATION.md</h4>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                   Spesifikasi resmi berbahasa Indonesia mencakup arsitektur 3-tier, rincian 10 vektor ancaman, standar mitigasi, dan panduan operasional produksi.
@@ -1546,7 +1562,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
             <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="font-mono text-xs text-neutral-400 mb-2">INTEGRATION MCP</div>
                 <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">MCP.md &amp; docs/mcp.md</h4>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                   Panduan integrasi protokol Model Context Protocol (MCP) untuk 10 AI coding agent, payload skema JSON-RPC 2.0 stdio, dan implementasi 4 native tools.
@@ -1559,7 +1574,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
             <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="font-mono text-xs text-neutral-400 mb-2">COMPLIANCE AUDIT</div>
                 <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">SARIF 2.1.0 &amp; ASVS v4.0</h4>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                   Kepatuhan penuh pada standar OASIS SARIF v2.1.0 untuk integrasi otomatis CI/CD GitHub Actions dan validasi keamanan OWASP Application Security Verification Standard.
@@ -1576,9 +1590,6 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
       {/* 5. 10 THREAT VECTORS AUDITED */}
       <section id="threat-matrix" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-24">
           <div className="max-w-4xl mb-12">
-            <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
-              THREAT VECTORS
-            </div>
             <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               10 Critical Threat Vectors Audited
             </h2>
@@ -1715,12 +1726,12 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
         </section>
 
+        {/* 7.5 TIERED PRICING & FEATURE MATRIX */}
+        <PricingSection />
+
         {/* 8. INTERACTIVE FAQ ACCORDION */}
         <section id="faq" className="py-20 border-t border-neutral-200 dark:border-neutral-800 scroll-mt-24">
           <div className="max-w-4xl mb-12">
-            <div className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2">
-              DOCUMENTATION &amp; ANSWERS
-            </div>
             <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
               Frequently Asked Questions
             </h2>

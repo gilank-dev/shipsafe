@@ -190,7 +190,7 @@ export function HistoryModal() {
                           </div>
                         )}
                         {counts.Critical === 0 && counts.High === 0 && counts.Medium === 0 && counts.Low === 0 && (
-                          <span className="text-caption text-emerald-600 dark:text-emerald-400 font-semibold">
+                          <span className="text-caption text-ink font-semibold">
                             Clean (0 Issues)
                           </span>
                         )}

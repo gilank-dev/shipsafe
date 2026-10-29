@@ -456,6 +456,143 @@ function isTestOrDocFile(relativePath: string): boolean {
         }
       }
 
+      // Python Security Heuristics
+      if (file.relativePath.endsWith('.py')) {
+        // SQL Injection: string concatenation in raw queries
+        if (/cursor\.execute\s*\(\s*['"][^'"]*\$\{[^}]+\}/i.test(line) ||
+            /text\(f["']\s*\$\{/.test(line) ||
+            /(?:cursor|connection|conn)\.execute\s*\(\s*['"][^'"]*\{[^}]+\}/i.test(line)
+        ) {
+          addThreatFinding({
+            title: `SQL Injection (SQLi) via Python Dynamic Query`,
+            severity: 'Critical',
+            area: 'Code',
+            threatCategory: 'sqli',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `Python query built via string interpolation or f-strings with user input, allows arbitrary SQL execution.`,
+            why: `String formatting dalam query SQL langsung mengekspos basis data terhadap injeksi.`,
+            recommendedFix: `Gunakan parameterized queries ($1, ?) atau ORM query builder berorientasi objek.`,
+            verifyWith: `Pastikan tidak ada format f"SELECT ... {var}" atau cursor.execute("..." + var)`,
+            confidence: 'Confirmed'
+          });
+        }
+
+        // Dynamic Execution / Deserialization
+        if (
+          /\bpickle\.(?:loads|load)\s*\(/i.test(line) ||
+          /\b_pickle\.(?:loads|load)\s*\(/i.test(line) ||
+          /eval\s*\(/i.test(line) ||
+          /exec\s*\(/i.test(line) ||
+          /yaml\.(?:load|unsafe_load)\s*\([^)]*(?:Loader\s*=\s*(?:yaml\.)?(?:UnsafeLoader|CLoader|Loader)|\bLoader\b(?!\s*=\s*(?:yaml\.)?SafeLoader))/i.test(line)
+        ) {
+          addThreatFinding({
+            title: `Insecure Deserialization via Python pickle / eval / exec (RCE)`,
+            severity: 'Critical',
+            area: 'Code',
+            threatCategory: 'zero_day',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `Deserialisasi objek tidak terpercaya atau eksekusi kode dinamis dapat memicu RCE.`,
+            why: `Format pickle dan fungsi eval/exec mengizinkan instansiasi objek arbitrer yang dapat memicu eksekusi kode biner berbahaya.`,
+            recommendedFix: `Gunakan JSON atau yaml.safe_load(). Jangan pernah men-deserialize data pickle dari pihak luar.`,
+            verifyWith: `Periksa pemanggilan pickle.loads() dan ganti dengan json.loads()`,
+            confidence: 'Confirmed'
+          });
+        }
+
+        // SSRF: requests.get(user_url) / httpx.get(user_url)
+        if (/requests\.get\s*\(|httpx\.get\s*\(/i.test(line) ||
+            /fetch\s*\(\s*req\.(?:query|body)\.(?:url|target)/i.test(line)
+        ) {
+          addThreatFinding({
+            title: `SSRF via requests / httpx tanpa validasi hostname`,
+            severity: 'High',
+            area: 'Code',
+            threatCategory: 'mitm',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `Penggunaan requests.get() / httpx.get() langsung dari input pengguna tanpa validasi hostname/IP privat.`,
+            why: `Server-Side Request Forgery memungkinkan penyerang memaksa server membuat request ke sistem internal privat.`,
+            recommendedFix: `Validasi hostname hanya menerima domain internasional atau gunakan allowlist domain ketat.`,
+            verifyWith: `Pastikan request hanya mengarah ke domain tepercaya; gunakan allowlist hostname`,
+            confidence: 'Likely, verify'
+          });
+        }
+
+        // Insecure CORS in FastAPI
+        if (/fastapi.*Helmet|allow_origins\s*=\s*\["\*"/i.test(file.content)) {
+          addThreatFinding({
+            title: `Insecure CORS Configuration FastAPI`,
+            severity: 'High',
+            area: 'Code',
+            threatCategory: 'mitm',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `FastAPI menggunakan allow_origins=["*"] yang memungkinkan origin manapun mengakses API.`,
+            why: `Konfigurasi CORS yang longgar membuka celah Cross-Origin Resource Sharing.`,
+            recommendedFix: `Gunakan allow_origins yang dikonfigurasi ketat dan nonaktifkan allow_credentials jika tidak diperlukan.`,
+            verifyWith: `Pastikan konfigurasi FastAPI tidak memiliki allow_origins=["*"]`,
+            confidence: 'Likely, verify'
+          });
+        }
+      }
+
+      // ==========================================
+      // DOCKER & IaC HARDENING
+      // ==========================================
+      if (file.relativePath.endsWith('.dockerfile') || file.relativePath.endsWith('Dockerfile')) {
+        // Root user execution
+        if (/^USER\s+root/i.test(line) && !/^USER\s+\w+|^USER\s+\d{3,}/i.test(line)) {
+          addThreatFinding({
+            title: `Dockerfile Running as Root User`,
+            severity: 'High',
+            area: 'Code',
+            threatCategory: 'ddos',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `Dockerfile menggunakan USER root sebagai user utama container.`,
+            why: `Container yang berjalan sebagai root memungkinkan penyerang mendapatkan akses penuh ke sistem host jika terjadi kompromi.`,
+            recommendedFix: `Gunakan user non-root dan praktik terbaik Dockerfile: ADD USER sebelum menjalankan aplikasi.`,
+            verifyWith: `Inspect Dockerfile dan pastikan perintah USER ditempatkan sebelum CMD`,
+            confidence: 'Confirmed'
+          });
+        }
+
+        // EOL base images
+        if (/FROM\s+\w+:\s*\d+\.\d[^)]*$/i.test(line) && !/^FROM\s+\w+:\s*(?:latest|stable)/i.test(line)) {
+          // Check if tag is not latest/stable - already covered by regex above
+        }
+
+        // Missing .dockerignore
+        const fileContent = file.content;
+        if (/^ADD\s+|^COPY\s+/i.test(line) && !/\\.dockerignore/i.test(fileContent)) {
+          addThreatFinding({
+            title: `Missing .dockerignore File`,
+            severity: 'Medium',
+            area: 'Code',
+            threatCategory: 'ddos',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `Instruksi ADD/COPY dalam Dockerfile tanpa .dockerignore akan menyalin file-file yang tidak perlu ke image.`,
+            why: `Tanpa .dockerignore, file-file sensitif (seperti .env, README, paket tambahan) akan termasuk ke image Docker dan memperbesar ukuran image.`,
+            recommendedFix: `Buat file .dockerignore untuk mengabaikan file-file yang tidak diperlukan di image.`,
+            verifyWith: `Cek apakah file .dockerignore ada di root repository`,
+            confidence: 'Likely, verify'
+          });
+        }
+
+        // Exposed debug ports
+        if (/^EXPOSE\s+\d+/.test(line) && /(22|23|5900|6073|6074|6080|6081|6082|6083|6084|6085|6086|6087|6088|6089|6090)/i.test(line)) {
+          addThreatFinding({
+            title: `Dockerfile Exposed Debug Ports`,
+            severity: 'High',
+            area: 'Code',
+            threatCategory: 'ddos',
+            location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
+            what: `Port debug atau SSH diekspos di dalam Dockerfile tanpa pembatasan akses.`,
+            why: `Port diekspos (khususnya 22/SSH dan port VNC) membuat container rentan terhadap akses tidak otorisasi dari luar.`,
+            recommendedFix: `Hapus perintah EXPOSE untuk port sensitif atau gunakan network antar-container saja.`,
+            verifyWith: `Cek daftar port yang diekspos dan pastikan hanya port aplikasi yang diekspos`,
+            confidence: 'Confirmed'
+          });
+        }
+      }
+
       // ReDoS pattern
       if (/\/(?:[a-zA-Z0-9_]+\+)\+\/|\/(?:[a-zA-Z0-9_]+\*)\*\/|\/(?:[a-zA-Z0-9_]+\|)+\+/.test(line)) {
         addThreatFinding({

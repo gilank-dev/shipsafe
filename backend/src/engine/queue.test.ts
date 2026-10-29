@@ -65,4 +65,44 @@ describe('AuditQueue Concurrency Limiter', () => {
     releaseBlocker();
     await Promise.allSettled([task1, task2]);
   });
+
+  it('executes higher-priority tasks ahead of lower-priority tasks', async () => {
+    // 1 concurrent worker, 10 queue capacity
+    const queue = new AuditQueue(1, 10, 5000);
+    const executionOrder: string[] = [];
+
+    let releaseFirst: () => void = () => {};
+    const firstPromise = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+
+    // Task 1: occupies the 1 active worker slot immediately
+    const task1 = queue.run(async () => {
+      await firstPromise;
+      executionOrder.push('first');
+    }, 1);
+
+    // Now queue is empty and worker is busy.
+    // Add Free job (priority 1)
+    const taskFree = queue.run(async () => {
+      executionOrder.push('free-1');
+    }, 1);
+
+    // Add Pro job (priority 2)
+    const taskPro = queue.run(async () => {
+      executionOrder.push('pro-2');
+    }, 2);
+
+    // Add Enterprise job (priority 3)
+    const taskEnterprise = queue.run(async () => {
+      executionOrder.push('enterprise-3');
+    }, 3);
+
+    // Release the first blocker
+    releaseFirst();
+    await Promise.all([task1, taskFree, taskPro, taskEnterprise]);
+
+    // Order should be: 'first' -> 'enterprise-3' -> 'pro-2' -> 'free-1'
+    expect(executionOrder).toEqual(['first', 'enterprise-3', 'pro-2', 'free-1']);
+  });
 });

@@ -33,6 +33,12 @@ export interface DevUserProfile {
   email: string
   fullName: string
   avatarUrl: string
+  tier?: 'free' | 'pro' | 'enterprise'
+  isSuperAdmin?: boolean
+  accountStatus?: 'active' | 'suspended'
+  organizationId?: string | null
+  orgRole?: 'owner' | 'member' | null
+  organizationName?: string | null
 }
 
 export const DEV_USER_PROFILE: DevUserProfile = {
@@ -41,6 +47,12 @@ export const DEV_USER_PROFILE: DevUserProfile = {
   fullName: 'ShipSafe Lead Auditor',
   avatarUrl:
     'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" fill="%2318181b"/><path d="M16 6l8 3.5v7c0 5-3.5 8.5-8 9.5-4.5-1-8-4.5-8-9.5v-7L16 6z" stroke="%2322c55e" stroke-width="2"/><circle cx="16" cy="14" r="3" fill="%2322c55e"/><path d="M12 21c0-2.5 2-4 4-4s4 1.5 4 4" stroke="%2322c55e" stroke-width="2" stroke-linecap="round"/></svg>',
+  tier: 'enterprise',
+  isSuperAdmin: true,
+  accountStatus: 'active',
+  organizationId: 'org-shipsafe-hq',
+  orgRole: 'owner',
+  organizationName: 'ShipSafe Security HQ',
 }
 
 export const DEV_ACCESS_TOKEN = 'dev-token-developer@example.com'
@@ -98,6 +110,12 @@ export async function loginWithGoogle(): Promise<{ success: boolean; user: DevUs
     email: 'gilankdev@gmail.com',
     fullName: 'Gilank Dev (Google)',
     avatarUrl: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+    tier: 'enterprise',
+    isSuperAdmin: true,
+    accountStatus: 'active',
+    organizationId: 'org-shipsafe-hq',
+    orgRole: 'owner',
+    organizationName: 'ShipSafe Core Security',
   }
   const googleToken = 'google-token-gilankdev@gmail.com'
   saveDevSession(googleUser, googleToken)
@@ -141,6 +159,9 @@ export async function loginWithGitHub(): Promise<{ success: boolean; user: DevUs
     email: 'gilank-dev@gmail.com',
     fullName: 'Gilank Dev (GitHub)',
     avatarUrl: 'https://github.com/gilank-dev.png',
+    tier: 'pro',
+    isSuperAdmin: false,
+    accountStatus: 'active',
   }
   const githubToken = 'github-token-gilank-dev@gmail.com'
   saveDevSession(githubUser, githubToken)
@@ -542,3 +563,502 @@ export async function deleteAuditFromSupabase(auditId: string): Promise<{ error:
   const { error } = await supabase.from('audits').delete().eq('id', auditId)
   return { error: error ? new Error(error.message) : null }
 }
+
+// ==============================================================================
+// ENTERPRISE ORGANIZATION & TEAM MANAGEMENT TYPES & RPCs
+// ==============================================================================
+
+export interface OrganizationMember {
+  userId: string
+  email: string
+  fullName: string
+  role: 'owner' | 'member'
+  tier: 'enterprise'
+  auditsUsed: number
+  accountStatus: 'active' | 'suspended'
+  joinedAt: string
+}
+
+export interface OrganizationData {
+  id: string
+  name: string
+  ownerId: string
+  ownerEmail?: string
+  maxSeats: number
+  whitelabelCompanyName?: string
+  whitelabelLogoUrl?: string
+  apiKey?: string
+  createdAt?: string
+  members: OrganizationMember[]
+}
+
+const DEFAULT_DEV_ORG: OrganizationData = {
+  id: 'org-shipsafe-hq',
+  name: 'ShipSafe Core Security',
+  ownerId: 'usr-dev-auditor',
+  ownerEmail: 'developer@example.com',
+  maxSeats: 5,
+  whitelabelCompanyName: 'ShipSafe Defense Studio',
+  whitelabelLogoUrl: 'https://shipsafe.lankdev.my.id/shipsafe-logo.png',
+  apiKey: 'shipsafe_org_live_8f3a9e2d1c7b4f5a6b0c',
+  createdAt: '2026-10-01T00:00:00Z',
+  members: [
+    {
+      userId: 'usr-dev-auditor',
+      email: 'developer@example.com',
+      fullName: 'ShipSafe Lead Auditor',
+      role: 'owner',
+      tier: 'enterprise',
+      auditsUsed: 14,
+      accountStatus: 'active',
+      joinedAt: '2026-10-01T00:00:00Z',
+    },
+    {
+      userId: 'usr-google-gilankdev',
+      email: 'gilankdev@gmail.com',
+      fullName: 'Gilank Dev',
+      role: 'owner',
+      tier: 'enterprise',
+      auditsUsed: 42,
+      accountStatus: 'active',
+      joinedAt: '2026-10-02T00:00:00Z',
+    },
+    {
+      userId: 'usr-team-secops',
+      email: 'secops@client-agency.com',
+      fullName: 'Budi SecOps',
+      role: 'member',
+      tier: 'enterprise',
+      auditsUsed: 7,
+      accountStatus: 'active',
+      joinedAt: '2026-10-15T00:00:00Z',
+    },
+  ],
+}
+
+function getStoredOrg(): OrganizationData {
+  if (typeof window === 'undefined') return DEFAULT_DEV_ORG
+  try {
+    const raw = window.localStorage.getItem('shipsafe.org.data')
+    return raw ? (JSON.parse(raw) as OrganizationData) : DEFAULT_DEV_ORG
+  } catch {
+    return DEFAULT_DEV_ORG
+  }
+}
+
+function saveStoredOrg(org: OrganizationData): void {
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem('shipsafe.org.data', JSON.stringify(org))
+    } catch {
+      // storage blocked
+    }
+  }
+}
+
+export async function fetchOrganizationData(orgId?: string): Promise<{ data: OrganizationData | null; error: Error | null }> {
+  if (!isSupabaseConfigured) {
+    return { data: getStoredOrg(), error: null }
+  }
+
+  try {
+    const { data: orgRow, error: orgErr } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('id', orgId || 'org-shipsafe-hq')
+      .single()
+
+    if (orgErr || !orgRow) {
+      return { data: getStoredOrg(), error: null }
+    }
+
+    const { data: memberRows } = await supabase
+      .from('user_profiles')
+      .select('user_id, email, full_name, org_role, tier, audits_used, account_status, created_at')
+      .eq('organization_id', orgRow.id)
+
+    const members: OrganizationMember[] = (memberRows || []).map((m: Record<string, unknown>) => ({
+      userId: String(m.user_id),
+      email: String(m.email || ''),
+      fullName: String(m.full_name || ''),
+      role: (m.org_role as 'owner' | 'member') || 'member',
+      tier: 'enterprise',
+      auditsUsed: Number(m.audits_used || 0),
+      accountStatus: (m.account_status as 'active' | 'suspended') || 'active',
+      joinedAt: String(m.created_at || ''),
+    }))
+
+    const orgData: OrganizationData = {
+      id: String(orgRow.id),
+      name: String(orgRow.name),
+      ownerId: String(orgRow.owner_id),
+      maxSeats: Number(orgRow.max_seats || 5),
+      whitelabelCompanyName: orgRow.whitelabel_company_name ? String(orgRow.whitelabel_company_name) : undefined,
+      whitelabelLogoUrl: orgRow.whitelabel_logo_url ? String(orgRow.whitelabel_logo_url) : undefined,
+      apiKey: 'shipsafe_org_live_' + String(orgRow.id).slice(0, 16),
+      members: members.length > 0 ? members : getStoredOrg().members,
+    }
+
+    return { data: orgData, error: null }
+  } catch {
+    return { data: getStoredOrg(), error: null }
+  }
+}
+
+export async function inviteTeamMember(
+  orgId: string,
+  email: string
+): Promise<{ success: boolean; message: string; error: Error | null }> {
+  const sanitized = email.trim().toLowerCase()
+  if (!sanitized || !sanitized.includes('@')) {
+    return { success: false, message: 'Email tidak valid.', error: new Error('Invalid email') }
+  }
+
+  const currentOrg = getStoredOrg()
+  if (currentOrg.members.length >= currentOrg.maxSeats) {
+    return {
+      success: false,
+      message: `Batas kursi tim (${currentOrg.maxSeats} kursi) telah tercapai. Hubungi Admin di 082124153732 untuk menambah kapasitas kursi.`,
+      error: new Error('Seats limit reached'),
+    }
+  }
+
+  if (currentOrg.members.some((m) => m.email.toLowerCase() === sanitized)) {
+    return {
+      success: false,
+      message: 'Anggota dengan email tersebut sudah terdaftar di organisasi ini.',
+      error: new Error('User already in organization'),
+    }
+  }
+
+  const newMember: OrganizationMember = {
+    userId: `usr-invited-${Date.now()}`,
+    email: sanitized,
+    fullName: sanitized.split('@')[0]?.toUpperCase() || 'Team Member',
+    role: 'member',
+    tier: 'enterprise',
+    auditsUsed: 0,
+    accountStatus: 'active',
+    joinedAt: new Date().toISOString(),
+  }
+
+  currentOrg.members.push(newMember)
+  saveStoredOrg(currentOrg)
+
+  if (isSupabaseConfigured) {
+    try {
+      await supabase.from('organization_invites').insert({
+        organization_id: orgId,
+        email: sanitized,
+        invited_by: currentOrg.ownerId,
+        status: 'pending',
+      })
+    } catch {
+      // non-blocking
+    }
+  }
+
+  return { success: true, message: `Berhasil mengundang ${sanitized} ke organisasi.`, error: null }
+}
+
+export async function removeTeamMember(
+  _orgId: string,
+  memberUserId: string
+): Promise<{ success: boolean; message: string; error: Error | null }> {
+  const currentOrg = getStoredOrg()
+  const memberToRemove = currentOrg.members.find((m) => m.userId === memberUserId)
+
+  if (!memberToRemove) {
+    return { success: false, message: 'Anggota tidak ditemukan.', error: new Error('Member not found') }
+  }
+
+  if (memberToRemove.role === 'owner') {
+    return { success: false, message: 'Pemilik organisasi tidak dapat dihapus.', error: new Error('Cannot remove owner') }
+  }
+
+  currentOrg.members = currentOrg.members.filter((m) => m.userId !== memberUserId)
+  saveStoredOrg(currentOrg)
+
+  return { success: true, message: `Anggota ${memberToRemove.email} berhasil dihapus dari organisasi.`, error: null }
+}
+
+export async function updateOrgBranding(
+  orgId: string,
+  companyName: string,
+  logoUrl: string
+): Promise<{ success: boolean; error: Error | null }> {
+  const currentOrg = getStoredOrg()
+  currentOrg.whitelabelCompanyName = companyName
+  currentOrg.whitelabelLogoUrl = logoUrl
+  saveStoredOrg(currentOrg)
+
+  if (isSupabaseConfigured) {
+    try {
+      await supabase
+        .from('organizations')
+        .update({
+          whitelabel_company_name: companyName,
+          whitelabel_logo_url: logoUrl,
+        })
+        .eq('id', orgId)
+    } catch {
+      // non-blocking
+    }
+  }
+
+  return { success: true, error: null }
+}
+
+export async function regenerateOrgApiKey(orgId: string): Promise<{ apiKey: string; error: Error | null }> {
+  const newKey = `shipsafe_org_live_${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`
+  const currentOrg = getStoredOrg()
+  currentOrg.apiKey = newKey
+  saveStoredOrg(currentOrg)
+
+  if (isSupabaseConfigured) {
+    try {
+      await supabase.from('organizations').update({ api_key_hash: newKey }).eq('id', orgId)
+    } catch {
+      // non-blocking
+    }
+  }
+
+  return { apiKey: newKey, error: null }
+}
+
+// ==============================================================================
+// SUPER ADMIN DASHBOARD TYPES & CONTROLLERS
+// ==============================================================================
+
+export interface AdminMetrics {
+  totalUsers: number
+  freeUsers: number
+  proUsers: number
+  enterpriseUsers: number
+  totalAuditsThisMonth: number
+  activeOrganizations: number
+  sandboxStatus: 'Healthy' | 'Degraded' | 'Offline'
+  systemUptime: string
+}
+
+export interface AdminUserRecord {
+  id: string
+  email: string
+  fullName: string
+  tier: 'free' | 'pro' | 'enterprise'
+  isSuperAdmin: boolean
+  accountStatus: 'active' | 'suspended'
+  organizationId: string | null
+  organizationName: string | null
+  auditsUsed: number
+  customQuotaLimit: number | null
+  effectiveLimit: number
+  billingCycleStart: string
+  createdAt: string
+}
+
+const DEFAULT_ADMIN_USERS: AdminUserRecord[] = [
+  {
+    id: 'usr-google-gilankdev',
+    email: 'gilankdev@gmail.com',
+    fullName: 'Gilank Dev',
+    tier: 'enterprise',
+    isSuperAdmin: true,
+    accountStatus: 'active',
+    organizationId: 'org-shipsafe-hq',
+    organizationName: 'ShipSafe Core Security',
+    auditsUsed: 42,
+    customQuotaLimit: null,
+    effectiveLimit: 999999,
+    billingCycleStart: '2026-10-01T00:00:00Z',
+    createdAt: '2026-10-01T00:00:00Z',
+  },
+  {
+    id: 'usr-dev-auditor',
+    email: 'developer@example.com',
+    fullName: 'ShipSafe Lead Auditor',
+    tier: 'enterprise',
+    isSuperAdmin: true,
+    accountStatus: 'active',
+    organizationId: 'org-shipsafe-hq',
+    organizationName: 'ShipSafe Core Security',
+    auditsUsed: 14,
+    customQuotaLimit: null,
+    effectiveLimit: 999999,
+    billingCycleStart: '2026-10-01T00:00:00Z',
+    createdAt: '2026-10-01T00:00:00Z',
+  },
+  {
+    id: 'usr-pro-indie-1',
+    email: 'ahmad.vibecoder@startup.id',
+    fullName: 'Ahmad Vibe Coder',
+    tier: 'pro',
+    isSuperAdmin: false,
+    accountStatus: 'active',
+    organizationId: null,
+    organizationName: null,
+    auditsUsed: 23,
+    customQuotaLimit: 50,
+    effectiveLimit: 50,
+    billingCycleStart: '2026-10-12T00:00:00Z',
+    createdAt: '2026-10-12T00:00:00Z',
+  },
+  {
+    id: 'usr-free-tester-2',
+    email: 'doni.sandbox@gmail.com',
+    fullName: 'Doni Mahasiswa',
+    tier: 'free',
+    isSuperAdmin: false,
+    accountStatus: 'active',
+    organizationId: null,
+    organizationName: null,
+    auditsUsed: 3,
+    customQuotaLimit: null,
+    effectiveLimit: 3,
+    billingCycleStart: '2026-10-20T00:00:00Z',
+    createdAt: '2026-10-20T00:00:00Z',
+  },
+  {
+    id: 'usr-suspended-abuse',
+    email: 'badactor@temp-mail.org',
+    fullName: 'Suspicious Bot',
+    tier: 'free',
+    isSuperAdmin: false,
+    accountStatus: 'suspended',
+    organizationId: null,
+    organizationName: null,
+    auditsUsed: 3,
+    customQuotaLimit: null,
+    effectiveLimit: 3,
+    billingCycleStart: '2026-10-25T00:00:00Z',
+    createdAt: '2026-10-25T00:00:00Z',
+  },
+]
+
+function getStoredAdminUsers(): AdminUserRecord[] {
+  if (typeof window === 'undefined') return DEFAULT_ADMIN_USERS
+  try {
+    const raw = window.localStorage.getItem('shipsafe.admin.users')
+    return raw ? (JSON.parse(raw) as AdminUserRecord[]) : DEFAULT_ADMIN_USERS
+  } catch {
+    return DEFAULT_ADMIN_USERS
+  }
+}
+
+function saveStoredAdminUsers(users: AdminUserRecord[]): void {
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem('shipsafe.admin.users', JSON.stringify(users))
+    } catch {
+      // storage blocked
+    }
+  }
+}
+
+export async function adminFetchMetrics(): Promise<AdminMetrics> {
+  const users = getStoredAdminUsers()
+  const org = getStoredOrg()
+
+  return {
+    totalUsers: users.length,
+    freeUsers: users.filter((u) => u.tier === 'free').length,
+    proUsers: users.filter((u) => u.tier === 'pro').length,
+    enterpriseUsers: users.filter((u) => u.tier === 'enterprise').length,
+    totalAuditsThisMonth: users.reduce((sum, u) => sum + u.auditsUsed, 0),
+    activeOrganizations: org ? 1 : 0,
+    sandboxStatus: 'Healthy',
+    systemUptime: '99.98%',
+  }
+}
+
+export async function adminFetchUsers(
+  search = '',
+  tierFilter = 'all'
+): Promise<{ users: AdminUserRecord[]; error: Error | null }> {
+  let list = getStoredAdminUsers()
+
+  if (tierFilter && tierFilter !== 'all') {
+    list = list.filter((u) => u.tier === tierFilter)
+  }
+
+  if (search.trim()) {
+    const q = search.trim().toLowerCase()
+    list = list.filter(
+      (u) =>
+        u.email.toLowerCase().includes(q) ||
+        u.fullName.toLowerCase().includes(q) ||
+        (u.organizationName && u.organizationName.toLowerCase().includes(q))
+    )
+  }
+
+  return { users: list, error: null }
+}
+
+export async function adminUpdateUser(
+  userId: string,
+  updates: {
+    tier?: 'free' | 'pro' | 'enterprise'
+    customQuotaLimit?: number | null
+    resetQuota?: boolean
+    accountStatus?: 'active' | 'suspended'
+    isSuperAdmin?: boolean
+  }
+): Promise<{ success: boolean; message: string; error: Error | null }> {
+  const list = getStoredAdminUsers()
+  const idx = list.findIndex((u) => u.id === userId)
+  if (idx === -1) {
+    return { success: false, message: 'User tidak ditemukan.', error: new Error('User not found') }
+  }
+
+  const user = list[idx]!
+
+  if (updates.tier !== undefined) {
+    user.tier = updates.tier
+    if (updates.tier === 'free') user.effectiveLimit = user.customQuotaLimit || 3
+    else if (updates.tier === 'pro') user.effectiveLimit = user.customQuotaLimit || 50
+    else user.effectiveLimit = user.customQuotaLimit || 999999
+  }
+
+  if (updates.customQuotaLimit !== undefined) {
+    user.customQuotaLimit = updates.customQuotaLimit
+    user.effectiveLimit = updates.customQuotaLimit || (user.tier === 'free' ? 3 : user.tier === 'pro' ? 50 : 999999)
+  }
+
+  if (updates.resetQuota) {
+    user.auditsUsed = 0
+  }
+
+  if (updates.accountStatus !== undefined) {
+    user.accountStatus = updates.accountStatus
+  }
+
+  if (updates.isSuperAdmin !== undefined) {
+    user.isSuperAdmin = updates.isSuperAdmin
+  }
+
+  list[idx] = user
+  saveStoredAdminUsers(list)
+
+  return { success: true, message: `User ${user.email} berhasil diperbarui.`, error: null }
+}
+
+export async function adminFetchOrganizations(): Promise<{ orgs: OrganizationData[]; error: Error | null }> {
+  const org = getStoredOrg()
+  return { orgs: [org], error: null }
+}
+
+export async function adminUpdateOrgSeats(
+  _orgId: string,
+  newMaxSeats: number
+): Promise<{ success: boolean; message: string; error: Error | null }> {
+  if (newMaxSeats < 1) {
+    return { success: false, message: 'Jumlah kursi minimal adalah 1.', error: new Error('Invalid seat count') }
+  }
+
+  const org = getStoredOrg()
+  org.maxSeats = newMaxSeats
+  saveStoredOrg(org)
+
+  return { success: true, message: `Kapasitas kursi organisasi ${org.name} diubah menjadi ${newMaxSeats} kursi.`, error: null }
+}
+

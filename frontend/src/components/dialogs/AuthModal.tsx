@@ -102,7 +102,7 @@ export function AuthModal() {
 
         {/* Security Assurance Footer */}
         <div className="pt-2 text-center text-xs text-ink-3 leading-relaxed border-t border-rule font-mono">
-          <span>Privasi Terjamin: Zero Code Retention &bull; Kredensial OAuth Dikelola Aman</span>
+          <span>Privasi Terjamin: Zero Code Retention / Kredensial OAuth Dikelola Aman</span>
         </div>
       </div>
     </Dialog>

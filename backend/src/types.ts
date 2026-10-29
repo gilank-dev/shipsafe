@@ -41,7 +41,9 @@ export interface Finding {
   why: string;
   recommendedFix: string;
   verifyWith?: string;
-  remediationPrompt: string;  // Self-contained tailored prompt
+  remediationPrompt: string | null;  // Self-contained tailored prompt (null when locked behind Pro paywall)
+  isLocked?: boolean;         // True when remediation prompt is paywalled on Free tier
+  lockReason?: string;
   confidence?: "Confirmed" | "Likely, verify" | "Not enough information";
 }
 

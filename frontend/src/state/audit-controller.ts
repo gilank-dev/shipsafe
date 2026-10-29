@@ -95,6 +95,16 @@ export async function requestAudit(): Promise<AuditRequestResult> {
     return { started: false, reason: 'unauthorized' }
   }
 
+  // Quota Limit Check: If Free tier limit is reached, show upgrade plan popup immediately
+  const { quota } = get()
+  if (quota && quota.tier === 'free' && quota.used >= quota.limit) {
+    get().openPaywallModal('quota')
+    const msg = `Batas kuota audit bulanan untuk paket Free telah tercapai (${quota.used}/${quota.limit}). Silakan upgrade ke Pro.`
+    announce(msg)
+    toast.error(msg)
+    return { started: false, reason: 'invalid_file' }
+  }
+
   const check = await validateZipFile(file)
   if (!check.ok) {
     get().setFile(null, check.message)
@@ -187,6 +197,14 @@ async function runAudit(): Promise<void> {
     }
     if (isApiError(err) && err.kind === 'captcha_failed') {
       get().setTurnstileToken(null)
+    }
+    if (
+      isApiError(err) &&
+      (err.kind === 'quota_exceeded' ||
+        err.message.toLowerCase().includes('kuota') ||
+        err.message.toLowerCase().includes('quota'))
+    ) {
+      get().openPaywallModal('quota')
     }
     const view = isApiError(err)
       ? { kind: err.kind, message: err.message, ...(err.retryAfterMs !== undefined ? { retryAfterMs: err.retryAfterMs } : {}) }

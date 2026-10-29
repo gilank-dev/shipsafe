@@ -253,3 +253,243 @@ GRANT ALL ON audits TO service_role;
 GRANT ALL ON findings TO service_role;
 GRANT ALL ON audit_diffs TO service_role;
 GRANT ALL ON cli_tokens TO service_role;
+
+-- ------------------------------------------------------------------------------
+-- 10. TIERED SUBSCRIPTION & ATOMIC AUDIT QUOTA ENGINE
+-- ------------------------------------------------------------------------------
+
+DO $$ BEGIN
+    CREATE TYPE subscription_tier AS ENUM ('free', 'pro', 'enterprise');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE IF NOT EXISTS user_quotas (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    tier subscription_tier NOT NULL DEFAULT 'free',
+    audits_used INT NOT NULL DEFAULT 0 CHECK (audits_used >= 0),
+    billing_cycle_start TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+COMMENT ON TABLE user_quotas IS 'Menyimpan kuota audit bulanan dan tier langganan pengguna ShipSafe.';
+CREATE INDEX IF NOT EXISTS idx_user_quotas_tier ON user_quotas(tier);
+
+ALTER TABLE user_quotas ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own quota" ON user_quotas;
+CREATE POLICY "Users can view their own quota"
+    ON user_quotas
+    FOR SELECT
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE OR REPLACE FUNCTION public.handle_new_user_quota()
+RETURNS trigger AS $$
+BEGIN
+    INSERT INTO public.user_quotas (user_id, tier, audits_used, billing_cycle_start, updated_at)
+    VALUES (NEW.id, 'free', 0, timezone('utc'::text, now()), timezone('utc'::text, now()))
+    ON CONFLICT (user_id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created_quota ON auth.users;
+CREATE TRIGGER on_auth_user_created_quota
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_quota();
+
+-- RPC: consume_audit_quota(target_user_id UUID)
+CREATE OR REPLACE FUNCTION public.consume_audit_quota(target_user_id UUID)
+RETURNS JSONB AS $$
+DECLARE
+    v_quota RECORD;
+    v_now TIMESTAMPTZ := timezone('utc'::text, now());
+    v_tier subscription_tier;
+    v_used INT;
+    v_limit INT;
+    v_remaining INT;
+    v_cycle_start TIMESTAMPTZ;
+    v_reset_date TIMESTAMPTZ;
+    v_allowed BOOLEAN := FALSE;
+BEGIN
+    SELECT * INTO v_quota
+    FROM public.user_quotas
+    WHERE user_id = target_user_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        INSERT INTO public.user_quotas (user_id, tier, audits_used, billing_cycle_start, updated_at)
+        VALUES (target_user_id, 'free', 0, v_now, v_now)
+        RETURNING * INTO v_quota;
+    END IF;
+
+    v_tier := v_quota.tier;
+    v_used := v_quota.audits_used;
+    v_cycle_start := v_quota.billing_cycle_start;
+
+    IF v_now >= (v_cycle_start + INTERVAL '1 month') THEN
+        v_used := 0;
+        v_cycle_start := v_now;
+    END IF;
+
+    CASE v_tier
+        WHEN 'free' THEN v_limit := 3;
+        WHEN 'pro' THEN v_limit := 50;
+        WHEN 'enterprise' THEN v_limit := 999999;
+        ELSE v_limit := 3;
+    END CASE;
+
+    v_reset_date := v_cycle_start + INTERVAL '1 month';
+
+    IF v_used < v_limit THEN
+        v_allowed := TRUE;
+        v_used := v_used + 1;
+
+        UPDATE public.user_quotas
+        SET audits_used = v_used,
+            billing_cycle_start = v_cycle_start,
+            updated_at = v_now
+        WHERE user_id = target_user_id;
+    ELSE
+        v_allowed := FALSE;
+        UPDATE public.user_quotas
+        SET audits_used = v_used,
+            billing_cycle_start = v_cycle_start,
+            updated_at = v_now
+        WHERE user_id = target_user_id;
+    END IF;
+
+    v_remaining := GREATEST(0, v_limit - v_used);
+
+    RETURN jsonb_build_object(
+        'allowed', v_allowed,
+        'tier', v_tier,
+        'used', v_used,
+        'limit', v_limit,
+        'remaining', v_remaining,
+        'reset_date', v_reset_date
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC: refund_audit_quota(target_user_id UUID)
+CREATE OR REPLACE FUNCTION public.refund_audit_quota(target_user_id UUID)
+RETURNS JSONB AS $$
+DECLARE
+    v_quota RECORD;
+    v_now TIMESTAMPTZ := timezone('utc'::text, now());
+    v_tier subscription_tier;
+    v_used INT;
+    v_limit INT;
+    v_remaining INT;
+    v_reset_date TIMESTAMPTZ;
+BEGIN
+    SELECT * INTO v_quota
+    FROM public.user_quotas
+    WHERE user_id = target_user_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object(
+            'refunded', false,
+            'message', 'User quota row not found'
+        );
+    END IF;
+
+    v_tier := v_quota.tier;
+    v_used := GREATEST(0, v_quota.audits_used - 1);
+
+    CASE v_tier
+        WHEN 'free' THEN v_limit := 3;
+        WHEN 'pro' THEN v_limit := 50;
+        WHEN 'enterprise' THEN v_limit := 999999;
+        ELSE v_limit := 3;
+    END CASE;
+
+    UPDATE public.user_quotas
+    SET audits_used = v_used,
+        updated_at = v_now
+    WHERE user_id = target_user_id;
+
+    v_remaining := GREATEST(0, v_limit - v_used);
+    v_reset_date := v_quota.billing_cycle_start + INTERVAL '1 month';
+
+    RETURN jsonb_build_object(
+        'refunded', true,
+        'tier', v_tier,
+        'used', v_used,
+        'limit', v_limit,
+        'remaining', v_remaining,
+        'reset_date', v_reset_date
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RPC: get_user_quota(target_user_id UUID)
+CREATE OR REPLACE FUNCTION public.get_user_quota(target_user_id UUID)
+RETURNS JSONB AS $$
+DECLARE
+    v_quota RECORD;
+    v_now TIMESTAMPTZ := timezone('utc'::text, now());
+    v_tier subscription_tier;
+    v_used INT;
+    v_limit INT;
+    v_remaining INT;
+    v_cycle_start TIMESTAMPTZ;
+    v_reset_date TIMESTAMPTZ;
+BEGIN
+    SELECT * INTO v_quota
+    FROM public.user_quotas
+    WHERE user_id = target_user_id;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object(
+            'tier', 'free',
+            'used', 0,
+            'limit', 3,
+            'remaining', 3,
+            'reset_date', v_now + INTERVAL '1 month'
+        );
+    END IF;
+
+    v_tier := v_quota.tier;
+    v_used := v_quota.audits_used;
+    v_cycle_start := v_quota.billing_cycle_start;
+
+    IF v_now >= (v_cycle_start + INTERVAL '1 month') THEN
+        v_used := 0;
+        v_cycle_start := v_now;
+        
+        UPDATE public.user_quotas
+        SET audits_used = 0,
+            billing_cycle_start = v_now,
+            updated_at = v_now
+        WHERE user_id = target_user_id;
+    END IF;
+
+    CASE v_tier
+        WHEN 'free' THEN v_limit := 3;
+        WHEN 'pro' THEN v_limit := 50;
+        WHEN 'enterprise' THEN v_limit := 999999;
+        ELSE v_limit := 3;
+    END CASE;
+
+    v_remaining := GREATEST(0, v_limit - v_used);
+    v_reset_date := v_cycle_start + INTERVAL '1 month';
+
+    RETURN jsonb_build_object(
+        'tier', v_tier,
+        'used', v_used,
+        'limit', v_limit,
+        'remaining', v_remaining,
+        'reset_date', v_reset_date
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT SELECT ON public.user_quotas TO authenticated;
+GRANT ALL ON public.user_quotas TO service_role;
+GRANT EXECUTE ON FUNCTION public.consume_audit_quota(UUID) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.refund_audit_quota(UUID) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_user_quota(UUID) TO authenticated, service_role;

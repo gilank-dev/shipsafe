@@ -410,7 +410,7 @@ export const enContent: LandingContentSchema = {
     badge: '● MAINTAINER ONLINE // AVERAGE RESPONSE TIME < 15 MINUTES',
     whatsapp: {
       label: 'Talk on WhatsApp',
-      url: 'https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya',
+      url: 'https://wa.me/6282124153732?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya',
       aria: 'Open WhatsApp chat with maintainer',
     },
     telegram: {

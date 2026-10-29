@@ -71,7 +71,7 @@ describe('LandingPage', () => {
     fireEvent.click(loginButton)
   })
 
-  it('renders primary pillar buttons (Launch Console, How It Works, MCP, CLI, Threat Vectors, FAQ) and dedicated sections with pricing removed', () => {
+  it('renders primary pillar buttons (Launch Console, How It Works, MCP, CLI, Threat Vectors, Pricing, FAQ) and dedicated sections', () => {
     const onLaunch = vi.fn()
     render(<LandingPage onLaunchConsole={onLaunch} />)
 
@@ -91,13 +91,17 @@ describe('LandingPage', () => {
     const threatLinks = screen.getAllByRole('link', { name: /Threat Vectors/i })
     expect(threatLinks.length).toBeGreaterThan(0)
 
+    const pricingLinks = screen.getAllByRole('link', { name: /Pricing/i })
+    expect(pricingLinks.length).toBeGreaterThan(0)
+
     const faqLinks = screen.getAllByRole('link', { name: /FAQ/i })
     expect(faqLinks.length).toBeGreaterThan(0)
 
-    // Verify pricing is completely removed
-    const pricingLinks = screen.queryAllByRole('link', { name: /Pricing/i })
-    expect(pricingLinks.length).toBe(0)
-    expect(screen.queryByText(/Developer-First Pricing/i)).not.toBeInTheDocument()
+    // Verify 3-tier pricing section
+    expect(screen.getByText(/Investasi Keamanan Seukuran Harga Kopi/i)).toBeInTheDocument()
+    expect(screen.getByText(/Mulai Scan Gratis/i)).toBeInTheDocument()
+    expect(screen.getByText(/Upgrade ke Pro Sekarang/i)).toBeInTheDocument()
+    expect(screen.getByText(/Hubungi Admin/i)).toBeInTheDocument()
 
     // Dedicated showcase sections
     expect(screen.getByText(/How ShipSafe Secures Your Code in 3 Seconds/i)).toBeInTheDocument()

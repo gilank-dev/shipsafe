@@ -32,8 +32,13 @@ function parseFinding(raw: unknown): Finding {
     what: str(raw.what, 'what'),
     why: str(raw.why, 'why'),
     recommendedFix: str(raw.recommendedFix, 'recommendedFix'),
-    // Spec Req 6.1: every finding carries a remediation prompt.
-    remediationPrompt: str(raw.remediationPrompt, 'remediationPrompt'),
+    // When locked behind paywall (Free tier finding #2+), remediation prompt is safely stripped
+    remediationPrompt:
+      Boolean(raw.isLocked) && (raw.remediationPrompt === null || raw.remediationPrompt === undefined)
+        ? ''
+        : str(raw.remediationPrompt, 'remediationPrompt'),
+    isLocked: Boolean(raw.isLocked),
+    lockReason: typeof raw.lockReason === 'string' ? raw.lockReason : undefined,
   }
   if (isObj(raw.location)) {
     const loc = raw.location

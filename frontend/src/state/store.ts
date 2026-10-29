@@ -42,11 +42,21 @@ export interface AuditState {
 
 export type Theme = 'light' | 'dark'
 
+export type SubscriptionTier = 'free' | 'pro' | 'enterprise'
+export type AccountStatus = 'active' | 'suspended'
+
 export interface UserProfile {
   id: string
   email?: string
   fullName?: string
   avatarUrl?: string
+  tier?: SubscriptionTier
+  isSuperAdmin?: boolean
+  accountStatus?: AccountStatus
+  organizationId?: string | null
+  orgRole?: 'owner' | 'member' | null
+  organizationName?: string | null
+  customQuotaLimit?: number | null
 }
 
 export interface AuthState {
@@ -55,11 +65,27 @@ export interface AuthState {
   isHistoryModalOpen: boolean
 }
 
+export type PaywallReason = 'quota' | 'remediation' | 'export' | 'cli' | 'team'
+
+export interface QuotaState {
+  tier: SubscriptionTier
+  used: number
+  limit: number
+  remaining: number
+  resetDate?: string
+}
+
 export interface ShipSafeState {
   submission: SubmissionState
   audit: AuditState
   auth: AuthState
   theme: Theme
+  quota: QuotaState | null
+  setQuota: (quota: QuotaState | null) => void
+  isPaywallModalOpen: boolean
+  paywallReason: PaywallReason
+  openPaywallModal: (reason?: PaywallReason) => void
+  closePaywallModal: () => void
   setFile: (file: File | null, error: string | null) => void
   setDescription: (value: string) => void
   setDeployTarget: (value: string) => void
@@ -77,6 +103,9 @@ export interface ShipSafeState {
   closeEcosystemModal: () => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
+  isSidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  toggleSidebar: () => void
 }
 
 export const initialSubmission: SubmissionState = {
@@ -133,12 +162,57 @@ const getInitialTheme = (): Theme => {
   return 'light'
 }
 
+const getInitialSidebarOpen = (): boolean => {
+  if (typeof window === 'undefined') return true
+  try {
+    const saved = window.localStorage.getItem('shipsafe.sidebar.open')
+    if (saved !== null) return saved === 'true'
+  } catch {
+    // storage blocked
+  }
+  return true
+}
+
 // User session and theme are persisted to localStorage.
 export const useStore = create<ShipSafeState>()((set) => ({
   submission: initialSubmission,
   audit: initialAudit,
   auth: initialAuth,
   theme: getInitialTheme(),
+  isSidebarOpen: getInitialSidebarOpen(),
+  setSidebarOpen: (isSidebarOpen) => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('shipsafe.sidebar.open', String(isSidebarOpen))
+      }
+    } catch {
+      // storage blocked
+    }
+    set({ isSidebarOpen })
+  },
+  toggleSidebar: () =>
+    set((s) => {
+      const next = !s.isSidebarOpen
+      try {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('shipsafe.sidebar.open', String(next))
+        }
+      } catch {
+        // storage blocked
+      }
+      return { isSidebarOpen: next }
+    }),
+  quota: {
+    tier: 'free',
+    used: 1,
+    limit: 3,
+    remaining: 2
+  },
+  setQuota: (quota) => set({ quota }),
+  isPaywallModalOpen: false,
+  paywallReason: 'quota',
+  openPaywallModal: (reason = 'quota') => set({ isPaywallModalOpen: true, paywallReason: reason }),
+  closePaywallModal: () => set({ isPaywallModalOpen: false }),
   setFile: (file, error) => set((s) => ({ submission: { ...s.submission, file, fileError: error } })),
   setDescription: (value) =>
     set((s) => ({

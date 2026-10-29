@@ -33,6 +33,16 @@ export interface FindingLocation {
 
 export type Confidence = 'Confirmed' | 'Likely, verify' | 'Not enough information'
 
+export type SubscriptionTier = 'free' | 'pro' | 'enterprise'
+
+export interface UserQuota {
+  tier: SubscriptionTier
+  used: number
+  limit: number
+  remaining: number
+  resetDate?: string
+}
+
 export interface Finding {
   id: string
   title: string
@@ -46,6 +56,8 @@ export interface Finding {
   recommendedFix: string
   verifyWith?: string
   remediationPrompt: string
+  isLocked?: boolean
+  lockReason?: string
   /** EXTENSION: spec 5.2 requires uncertainty to be explicit. */
   confidence?: Confidence
 }
@@ -87,6 +99,7 @@ export type ApiErrorKind =
   | 'network'
   | 'timeout'
   | 'rate_limited'
+  | 'quota_exceeded'
   | 'queue_full'
   | 'queue_timeout'
   | 'too_large'

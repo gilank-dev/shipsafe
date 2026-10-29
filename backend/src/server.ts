@@ -16,7 +16,7 @@ import { clerkAuthGuard, requireClerkAuth, AuthRequest } from './security/auth-g
 import { parseGitHubRepo, fetchGitHubRepoZip } from './security/repo-importer';
 import { saveAuditToSupabase } from './security/audit-saver';
 import { issueCliToken, isCliToken } from './security/cli-token';
-import { AgentTarget, AuditReport, Finding, AuditDiffResult } from './types';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
@@ -493,7 +493,119 @@ app.post('/api/audit/:id/prompts', (req: Request, res: Response) => {
   });
 });
 
+//
 // 4. Re-Audit Diff & Fix Verification Endpoint
+//
+app.post('/api/audit/verify-diff', requireClerkAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const { baseReport, targetReport, baseAuditId, targetAuditId } = req.body;
+
+    let resolvedBase: AuditReport | undefined = baseReport;
+    let resolvedTarget: AuditReport | undefined = targetReport;
+
+    if (!resolvedBase && baseAuditId) {
+      resolvedBase = reportCache.get(baseAuditId);
+    }
+    if (!resolvedTarget && targetAuditId) {
+      resolvedTarget = reportCache.get(targetAuditId);
+    }
+
+    if (!resolvedBase || !resolvedTarget) {
+      return res.status(400).json({
+        error: {
+          code: 'missing_audit_reports',
+          message: 'Both baseReport and targetReport (or valid cached baseAuditId and targetAuditId) must be provided for diff verification.'
+        }
+      });
+    }
+
+    const diffResult = compareAuditReports(resolvedBase, resolvedTarget);
+
+    // Persist diff result to Supabase audit_diffs table
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (supabaseUrl && serviceKey && !supabaseUrl.includes('your-project-ref')) {
+      const supabase = createClient(supabaseUrl, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+      });
+
+      // Get user ID from Clerk auth
+      const userId = req.auth?.userId;
+
+      if (userId) {
+        const { resolvedFindings, persistentFindings, regressedFindings } = diffResult;
+
+        const { error } = await supabase
+          .from('audit_diffs')
+          .insert({
+            user_id: userId,
+            base_audit_id: baseAuditId,
+            target_audit_id: targetAuditId,
+            score_before: diffResult.scoreBefore,
+            score_after: diffResult.scoreAfter,
+            score_delta: diffResult.scoreDelta,
+            resolved_findings: resolvedFindings.map((f: any) => ({
+              finding_code: f.id,
+              title: f.title,
+              severity: f.severity,
+              area: f.area,
+              threat_category: f.threatCategory,
+              location: f.location,
+              what: f.what,
+              why: f.why,
+              recommended_fix: f.recommendedFix,
+              verify_with: f.verifyWith,
+              confidence: f.confidence
+            })),
+            persistent_findings: persistentFindings.map((f: any) => ({
+              finding_code: f.id,
+              title: f.title,
+              severity: f.severity,
+              area: f.area,
+              threat_category: f.threatCategory,
+              location: f.location,
+              what: f.what,
+              why: f.why,
+              recommended_fix: f.recommendedFix,
+              verify_with: f.verifyWith,
+              confidence: f.confidence
+            })),
+            regressed_findings: regressedFindings.map((f: any) => ({
+              finding_code: f.id,
+              title: f.title,
+              severity: f.severity,
+              area: f.area,
+              threat_category: f.threatCategory,
+              location: f.location,
+              what: f.what,
+              why: f.why,
+              recommended_fix: f.recommendedFix,
+              verify_with: f.verifyWith,
+              confidence: f.confidence
+            }))
+          });
+
+        if (error) {
+          console.error('Supabase audit_diffs insert error:', error);
+        }
+      }
+    }
+
+    res.json({
+      ...diffResult,
+      saved: supabaseUrl && serviceKey && !supabaseUrl.includes('your-project-ref') && req.auth?.userId ? true : false
+    });
+  } catch (error) {
+    console.error('verify-diff endpoint error:', error);
+    res.status(500).json({
+      error: {
+        code: 'internal_error',
+        message: 'Internal server error during diff verification.'
+      }
+    });
+  }
+});
 app.post('/api/audit/verify-diff', (req: Request, res: Response) => {
   const { baseReport, targetReport, baseAuditId, targetAuditId } = req.body;
 

@@ -24,12 +24,21 @@ export function checkZipMagicBytes(buffer: Buffer): boolean {
   return buffer[0] === 0x50 && buffer[1] === 0x4b && buffer[2] === 0x03 && buffer[3] === 0x04;
 }
 
-export function validateAndExtractZip(fileBuffer: Buffer): ZipValidationResult {
+export interface ZipValidationOptions {
+  maxBytes?: number;
+  maxDecompressedBytes?: number;
+}
+
+export function validateAndExtractZip(fileBuffer: Buffer, options?: ZipValidationOptions): ZipValidationResult {
+  const allowedMaxBytes = options?.maxBytes ?? MAX_ZIP_BYTES;
+  const allowedMaxDecompressed = options?.maxDecompressedBytes ?? MAX_DECOMPRESSED_BYTES;
+
   // 1. File size check
-  if (fileBuffer.length > MAX_ZIP_BYTES) {
+  if (fileBuffer.length > allowedMaxBytes) {
+    const limitMb = (allowedMaxBytes / (1024 * 1024)).toFixed(0);
     return {
       valid: false,
-      error: `Archive exceeds maximum allowed size of 10 MB (${(fileBuffer.length / (1024 * 1024)).toFixed(1)} MB).`
+      error: `Archive exceeds maximum allowed size of ${limitMb} MB (${(fileBuffer.length / (1024 * 1024)).toFixed(1)} MB).`
     };
   }
 
@@ -92,10 +101,11 @@ export function validateAndExtractZip(fileBuffer: Buffer): ZipValidationResult {
 
     // Accumulate decompressed size
     totalDecompressed += entry.header.size;
-    if (totalDecompressed > MAX_DECOMPRESSED_BYTES) {
+    if (totalDecompressed > allowedMaxDecompressed) {
+      const decompressedLimitMb = (allowedMaxDecompressed / (1024 * 1024)).toFixed(0);
       return {
         valid: false,
-        error: `Decompressed size exceeds 100 MB limit. Potential zip-bomb.`
+        error: `Decompressed size exceeds ${decompressedLimitMb} MB limit. Potential zip-bomb.`
       };
     }
 

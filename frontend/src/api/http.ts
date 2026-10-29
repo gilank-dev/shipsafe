@@ -26,6 +26,9 @@ export function mapHttpError(status: number, body: unknown, retryAfterHeader?: s
     case 401:
       return new ApiError('unauthorized', message || 'Authentication required. Please sign in with GitHub or Google before auditing code.')
     case 403:
+      if (detail?.code === 'quota_exceeded' || detail?.code === 'QUOTA_EXCEEDED') {
+        return new ApiError('quota_exceeded', message || 'Batas kuota audit bulanan telah tercapai.')
+      }
       return new ApiError('captcha_failed', message || 'Verifikasi CAPTCHA Cloudflare gagal atau kedaluwarsa. Silakan coba lagi.')
     case 404:
       if (detail?.code === 'repo_not_found') {

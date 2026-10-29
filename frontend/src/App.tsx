@@ -8,6 +8,9 @@ import { EcosystemModal } from './components/dialogs/EcosystemModal'
 import { ToastContainer } from './components/ui/Toast'
 import { NotFoundPage } from './components/shell/NotFoundPage'
 import { LandingPage } from './components/landing/LandingPage'
+import { PaywallModal } from './components/pricing/PaywallModal'
+import { SuperAdminDashboard } from './components/admin/SuperAdminDashboard'
+import { TeamManagementPage } from './components/team/TeamManagementPage'
 import { onAuthStateChange } from './lib/supabase'
 import { useStore } from './state/store'
 import { Analytics } from '@vercel/analytics/react'
@@ -182,6 +185,43 @@ export default function App() {
         <LandingPage onLaunchConsole={() => navigateTo('/console')} />
         <AuthModal />
         <EcosystemModal />
+        <PaywallModal />
+        <ToastContainer />
+        <Analytics />
+      </>
+    )
+  }
+
+  // Super Admin Route
+  const isAdminRoute = currentPath === '/admin' || currentPath.startsWith('/admin/')
+  if (isAdminRoute) {
+    return (
+      <>
+        <SuperAdminDashboard onNavigate={navigateTo} />
+        <AuthModal />
+        <ToastContainer />
+        <Analytics />
+      </>
+    )
+  }
+
+  // Enterprise Team Route
+  const authUser = useStore((s) => s.auth.user)
+  const quotaState = useStore((s) => s.quota)
+  const effectiveUserTier = authUser?.organizationId ? 'enterprise' : (authUser?.tier || quotaState?.tier || 'free')
+  const isTeamUser = Boolean(authUser && (authUser.organizationId || authUser.organizationName || effectiveUserTier === 'enterprise' || authUser.isSuperAdmin))
+
+  const isTeamRoute = currentPath === '/dashboard/team' || currentPath === '/team'
+  if (isTeamRoute) {
+    if (!isTeamUser) {
+      navigateTo('/console')
+      return null
+    }
+    return (
+      <>
+        <TeamManagementPage onNavigate={navigateTo} />
+        <AuthModal />
+        <PaywallModal />
         <ToastContainer />
         <Analytics />
       </>
@@ -204,6 +244,7 @@ export default function App() {
         <AppShell submission={<SubmissionPanel />} report={<ReportArea />} />
         <AuthModal />
         <EcosystemModal />
+        <PaywallModal />
         <ToastContainer />
         <Analytics />
       </>
@@ -220,6 +261,7 @@ export default function App() {
       />
       <AuthModal />
       <EcosystemModal />
+      <PaywallModal />
       <ToastContainer />
       <Analytics />
     </>

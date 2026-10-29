@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Finding } from '../../domain/types'
+import { useStore } from '../../state/store'
 import { CopyButton } from '../ui/CopyButton'
 import { SeverityTag } from '../ui/SeverityTag'
 import { IconChevron, IconFile, IconTerminal, IconShield } from '../ui/icons'
@@ -33,6 +34,8 @@ export function FindingCard({
   const locationText = finding.location
     ? `${finding.location.file}${finding.location.line ? `:${finding.location.line}` : ''}`
     : 'Location not determined'
+
+  const openPaywallModal = useStore((s) => s.openPaywallModal)
 
   const severityAccentBorder =
     finding.severity === 'Critical'
@@ -93,19 +96,35 @@ export function FindingCard({
           className="flex items-center gap-2 shrink-0 self-end sm:self-center"
           onClick={(e) => e.stopPropagation()}
         >
-          <CopyButton
-            text={finding.remediationPrompt}
-            label="Copy prompt"
-            subject={`${finding.id} prompt`}
-          />
-          <button
-            type="button"
-            className="btn text-small py-1 px-2.5"
-            onClick={() => onViewPrompt(finding)}
-            title="View prompt for coding agent"
-          >
-            View prompt
-          </button>
+          {finding.isLocked ? (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none border border-rule bg-surface text-ink font-mono text-xs font-semibold hover:bg-raised transition-all cursor-pointer uppercase tracking-wider"
+              onClick={() => openPaywallModal('remediation')}
+              title="Upgrade ke Pro untuk membuka prompt perbaikan instan"
+            >
+              <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span>[LOCKED : PRO]</span>
+            </button>
+          ) : (
+            <>
+              <CopyButton
+                text={finding.remediationPrompt}
+                label="Copy prompt"
+                subject={`${finding.id} prompt`}
+              />
+              <button
+                type="button"
+                className="btn text-small py-1 px-2.5"
+                onClick={() => onViewPrompt(finding)}
+                title="View prompt for coding agent"
+              >
+                View prompt
+              </button>
+            </>
+          )}
           <button
             type="button"
             className="btn min-w-[36px] min-h-[36px] sm:min-w-8 sm:min-h-0 sm:py-1 px-2"
@@ -126,6 +145,33 @@ export function FindingCard({
 
       {expanded && (
         <div className="p-4 sm:p-5 space-y-4 bg-surface/50 text-small min-w-0 max-w-full animate-fadeIn border-t border-rule/30">
+          {/* Locked State Notification */}
+          {finding.isLocked && (
+            <div className="rounded-none border border-rule bg-surface p-3.5 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
+              <div className="flex items-center gap-3">
+                <div className="size-8 rounded-none border border-rule bg-raised text-ink flex items-center justify-center shrink-0">
+                  <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-ink uppercase tracking-wider">
+                    [PROMPT PERBAIKAN AI TERKUNCI: KHUSUS PRO]
+                  </p>
+                  <p className="text-xs text-ink-2">
+                    Upgrade ke Pro (Rp 79rb/bulan) untuk membuka semua prompt perbaikan instan.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => openPaywallModal('remediation')}
+                className="px-3 py-1.5 rounded-none border border-ink bg-ink text-canvas hover:bg-ink-2 font-mono font-semibold text-xs transition-colors shrink-0 cursor-pointer uppercase tracking-wider"
+              >
+                [UNLOCK PROMPT: RP 79.000/MO]
+              </button>
+            </div>
+          )}
           {/* Code Reference Snippet */}
           {finding.location?.snippet && (
             <div className="min-w-0 max-w-full border border-rule rounded-[var(--radius-control)] bg-canvas overflow-hidden shadow-2xs">
@@ -152,7 +198,6 @@ export function FindingCard({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div className="p-3.5 rounded-[var(--radius-control)] border border-rule bg-raised/90 shadow-2xs">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="size-2 rounded-full bg-ink-2" />
                 <p className="font-bold text-caption uppercase tracking-wider text-ink-2">
                   What happened
                 </p>
@@ -162,7 +207,6 @@ export function FindingCard({
 
             <div className="p-3.5 rounded-[var(--radius-control)] border border-rule bg-raised/90 shadow-2xs">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="size-2 rounded-full bg-status-fail" />
                 <p className="font-bold text-caption uppercase tracking-wider text-ink-2">
                   Why it matters
                 </p>

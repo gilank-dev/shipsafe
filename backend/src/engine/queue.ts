@@ -17,6 +17,7 @@ interface QueuedItem<T> {
   task: () => Promise<T>;
   resolve: (value: T | PromiseLike<T>) => void;
   reject: (reason?: any) => void;
+  priority: number;
   enqueuedAt: number;
   timeoutTimer: NodeJS.Timeout;
 }
@@ -49,11 +50,10 @@ export class AuditQueue {
   }
 
   /**
-   * Run a task respecting the concurrency limit.
-   * If a slot is available (< 3), runs immediately.
-   * Otherwise waits in the FIFO queue until a slot frees up.
+   * Run a task respecting concurrency and tier priority.
+   * Higher priority weight (Enterprise=3, Pro=2, Free=1) dequeues first while preserving FIFO order within same priority.
    */
-  async run<T>(task: () => Promise<T>): Promise<T> {
+  async run<T>(task: () => Promise<T>, priority: number = 1): Promise<T> {
     // If we have an available worker slot, execute immediately!
     if (this.activeCount < this.maxConcurrent) {
       this.activeCount++;
@@ -75,7 +75,7 @@ export class AuditQueue {
       throw err;
     }
 
-    // Enqueue the request
+    // Enqueue the request based on priority (higher priority inserted ahead of lower priority, FIFO for same priority)
     return new Promise<T>((resolve, reject) => {
       const id = `Q-${Math.random().toString(36).substring(2, 9)}`;
       
@@ -93,16 +93,24 @@ export class AuditQueue {
         }
       }, this.queueTimeoutMs);
 
-      this.queue.push({
+      const newItem: QueuedItem<T> = {
         id,
         task,
         resolve,
         reject,
+        priority,
         enqueuedAt: Date.now(),
         timeoutTimer
-      });
+      };
 
-      console.log(`[ShipSafe Queue] Request masuk antrean [${id}]. Posisi antrean: ${this.queue.length}. Pekerja aktif: ${this.activeCount}/${this.maxConcurrent}`);
+      const insertIdx = this.queue.findIndex(item => item.priority < priority);
+      if (insertIdx === -1) {
+        this.queue.push(newItem);
+      } else {
+        this.queue.splice(insertIdx, 0, newItem);
+      }
+
+      console.log(`[ShipSafe Queue] Request masuk antrean [${id}] (Priority: ${priority}). Posisi antrean: ${this.queue.length}. Pekerja aktif: ${this.activeCount}/${this.maxConcurrent}`);
     });
   }
 
