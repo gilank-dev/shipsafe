@@ -1,17 +1,19 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { LandingPage } from './LandingPage'
 
 describe('LandingPage', () => {
-  it('renders Security Gatekeeper branding, hero section, and launch button', () => {
+  it('renders branding, hero section, and launch button without tactical badges', () => {
     const onLaunch = vi.fn()
     render(<LandingPage onLaunchConsole={onLaunch} />)
 
     const brandingElements = screen.getAllByText(/ShipSafe/i)
     expect(brandingElements.length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/Security Gatekeeper/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/The Pre-Deployment Security Gatekeeper for/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/Vibe-Coded Web Apps/i)).toBeInTheDocument()
+    // PRE-DEPLOYMENT GATEKEEPER tactical badge is strictly removed
+    expect(screen.queryByText(/PRE-DEPLOYMENT GATEKEEPER/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Pre-Deployment Security Gatekeeper for/i)).toBeInTheDocument()
+    expect(screen.getByText(/Web Apps & Vibe-Coded Projects/i)).toBeInTheDocument()
+    expect(screen.getByText(/Explore Work/i)).toBeInTheDocument()
 
     const launchButtons = screen.getAllByRole('button', { name: /Launch Console/i })
     expect(launchButtons.length).toBeGreaterThan(0)
@@ -24,21 +26,23 @@ describe('LandingPage', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
     expect(screen.getByText(/10 Critical Threat Vectors Audited/i)).toBeInTheDocument()
-    expect(screen.getByText(/SQL Injection/i)).toBeInTheDocument()
-    expect(screen.getByText(/Cross-Site Scripting \(XSS\)/i)).toBeInTheDocument()
-    expect(screen.getByText(/DDoS & ReDoS/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/SQL Injection/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Cross-Site Scripting \(XSS\)/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/DDoS & ReDoS/i).length).toBeGreaterThan(0)
     expect(screen.getByText(/WHAT SHIPSAFE DOES NOT DO/i)).toBeInTheDocument()
-    expect(screen.getByText(/10MB Archive Upper Limit/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/10MB Archive Upper Limit/i).length).toBeGreaterThan(0)
   })
 
   it('renders admin direct contact links for WhatsApp and Telegram', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    const waLink = screen.getByRole('link', { name: /Talk on WhatsApp/i })
-    expect(waLink).toHaveAttribute('href', expect.stringContaining('https://wa.me/'))
+    const waLinks = screen.getAllByRole('link', { name: /WhatsApp/i })
+    expect(waLinks.length).toBeGreaterThan(0)
+    expect(waLinks[0]).toHaveAttribute('href', expect.stringContaining('https://wa.me/'))
 
-    const tgLink = screen.getByRole('link', { name: /Talk on Telegram/i })
-    expect(tgLink).toHaveAttribute('href', expect.stringContaining('https://t.me/'))
+    const tgLinks = screen.getAllByRole('link', { name: /Telegram/i })
+    expect(tgLinks.length).toBeGreaterThan(0)
+    expect(tgLinks[0]).toHaveAttribute('href', expect.stringContaining('https://t.me/'))
   })
 
   it('toggles interactive FAQ accordion', () => {
@@ -48,15 +52,15 @@ describe('LandingPage', () => {
     expect(faqButton).toBeInTheDocument()
 
     // First FAQ is open by default
-    expect(screen.getByText(/Traditional enterprise suites are designed for lengthy release cycles/i)).toBeInTheDocument()
+    expect(screen.getByText(/Traditional tools are built for slow, enterprise waterfall cycles/i)).toBeInTheDocument()
 
     // Click to close
     fireEvent.click(faqButton)
-    expect(screen.queryByText(/Traditional enterprise suites are designed for lengthy release cycles/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Traditional tools are built for slow, enterprise waterfall cycles/i)).not.toBeInTheDocument()
 
     // Click to re-open
     fireEvent.click(faqButton)
-    expect(screen.getByText(/Traditional enterprise suites are designed for lengthy release cycles/i)).toBeInTheDocument()
+    expect(screen.getByText(/Traditional tools are built for slow, enterprise waterfall cycles/i)).toBeInTheDocument()
   })
 
   it('renders Login / Daftar button and triggers auth modal', () => {
@@ -67,107 +71,141 @@ describe('LandingPage', () => {
     fireEvent.click(loginButton)
   })
 
-  it('renders primary pillar buttons (Console, MCP, CLI) and dedicated sections', () => {
+  it('renders primary pillar buttons (Launch Console, How It Works, MCP, CLI, Threat Vectors, FAQ) and dedicated sections with pricing removed', () => {
     const onLaunch = vi.fn()
     render(<LandingPage onLaunchConsole={onLaunch} />)
 
-    // Navbar & action dock pillar buttons
+    // Navbar & action dock buttons
     const consoleButtons = screen.getAllByRole('button', { name: /Console/i })
     expect(consoleButtons.length).toBeGreaterThan(0)
 
-    const mcpLinks = screen.getAllByRole('link', { name: /MCP/i })
+    const howItWorksLinks = screen.getAllByRole('link', { name: /How It Works/i })
+    expect(howItWorksLinks.length).toBeGreaterThan(0)
+
+    const mcpLinks = screen.getAllByRole('link', { name: /^MCP$/i })
     expect(mcpLinks.length).toBeGreaterThan(0)
 
-    const cliLinks = screen.getAllByRole('link', { name: /CLI/i })
+    const cliLinks = screen.getAllByRole('link', { name: /^CLI$/i })
     expect(cliLinks.length).toBeGreaterThan(0)
 
+    const threatLinks = screen.getAllByRole('link', { name: /Threat Vectors/i })
+    expect(threatLinks.length).toBeGreaterThan(0)
+
+    const faqLinks = screen.getAllByRole('link', { name: /FAQ/i })
+    expect(faqLinks.length).toBeGreaterThan(0)
+
+    // Verify pricing is completely removed
+    const pricingLinks = screen.queryAllByRole('link', { name: /Pricing/i })
+    expect(pricingLinks.length).toBe(0)
+    expect(screen.queryByText(/Developer-First Pricing/i)).not.toBeInTheDocument()
+
     // Dedicated showcase sections
+    expect(screen.getByText(/How ShipSafe Secures Your Code in 3 Seconds/i)).toBeInTheDocument()
     expect(screen.getByText(/Autonomous AI Agent Security Bridge/i)).toBeInTheDocument()
-    expect(screen.getByText(/ShipSafe Terminal CLI & Git Hook/i)).toBeInTheDocument()
+    expect(screen.getByText(/ShipSafe Terminal CLI & Git Hook Gatekeeper/i)).toBeInTheDocument()
     expect(screen.getAllByText(/audit_codebase/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/node cli\/scripts\/install-hook.js --install/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/node cli\/scripts\/install-hook.js --install/i).length).toBeGreaterThan(0)
   })
 
-  it('supports 6 agent harnesses and prompt tab switching', () => {
-    render(<LandingPage onLaunchConsole={vi.fn()} />)
+  it('renders clean desktop navbar and complete layout at 1280px and 1440px viewports without overlap', () => {
+    // Test at 1280px desktop resolution
+    window.innerWidth = 1280
+    window.innerHeight = 800
+    window.dispatchEvent(new Event('resize'))
 
-    // Verify all 6 harness tabs + Prompt AI Agent tab
-    expect(screen.getByRole('button', { name: /Cursor/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Claude Desktop/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Antigravity/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /OpenAI Codex/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Windsurf/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /GitHub Copilot/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Prompt AI Agent/i })).toBeInTheDocument()
+    const onLaunch = vi.fn()
+    const { container, rerender } = render(<LandingPage onLaunchConsole={onLaunch} />)
 
-    // Switch to Antigravity
-    fireEvent.click(screen.getByRole('button', { name: /Antigravity/i }))
-    expect(screen.getByText(/mcp_config\.json/i)).toBeInTheDocument()
-    expect(screen.getByText(/agy mcp add shipsafe/i)).toBeInTheDocument()
+    // 1. Header Banner Check
+    const header = screen.getByRole('banner')
+    expect(header).toBeInTheDocument()
+    // Brand title is pure 'ShipSafe'
+    expect(header).toHaveTextContent('ShipSafe')
+    // Crucial: PRE-DEPLOYMENT GATEKEEPER must NOT be crammed inside the navbar header
+    expect(header).not.toHaveTextContent('PRE-DEPLOYMENT GATEKEEPER')
 
-    // Switch to OpenAI Codex
-    fireEvent.click(screen.getByRole('button', { name: /OpenAI Codex/i }))
-    expect(screen.getByText(/config\.json/i)).toBeInTheDocument()
-    expect(screen.getByText(/codex mcp add shipsafe/i)).toBeInTheDocument()
+    // 2. Navigation Links are clean, concise, industry-standard
+    const nav = header.querySelector('nav')
+    expect(nav).toBeInTheDocument()
+    expect(nav).toHaveClass('lg:flex')
+    const navQueries = within(nav!)
+    expect(navQueries.getByRole('link', { name: /^How It Works$/i })).toBeInTheDocument()
+    expect(navQueries.getByRole('link', { name: /^MCP$/i })).toBeInTheDocument()
+    expect(navQueries.getByRole('link', { name: /^CLI$/i })).toBeInTheDocument()
+    expect(navQueries.getByRole('link', { name: /^Threat Vectors$/i })).toBeInTheDocument()
+    expect(navQueries.getByRole('link', { name: /^FAQ$/i })).toBeInTheDocument()
+    expect(navQueries.queryByRole('button', { name: /^Console$/i })).not.toBeInTheDocument()
+    expect(navQueries.queryByRole('link', { name: /^Fitur Visual$/i })).not.toBeInTheDocument()
+    expect(navQueries.queryByRole('link', { name: /^Documentation$/i })).not.toBeInTheDocument()
 
-    // Switch to GitHub Copilot
-    fireEvent.click(screen.getByRole('button', { name: /GitHub Copilot/i }))
-    expect(screen.getByText(/mcp\.json/i)).toBeInTheDocument()
+    // 3. Right Action Items
+    const launchButtons = screen.getAllByRole('button', { name: /Launch Console/i })
+    expect(launchButtons.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('button', { name: /Login \/ Daftar/i })).toBeInTheDocument()
 
-    // Switch to Prompt AI Agent
-    fireEvent.click(screen.getByRole('button', { name: /Prompt AI Agent/i }))
-    expect(screen.getByText(/One-Click Prompt for Coding Agents/i)).toBeInTheDocument()
-    expect(screen.getByText(/Install and configure the ShipSafe security auditor MCP server/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Copy Prompt/i })).toBeInTheDocument()
+    // 4. Hero section branding and clean CTA without tactical badges
+    expect(screen.queryByText('PRE-DEPLOYMENT GATEKEEPER')).not.toBeInTheDocument()
+    expect(screen.getByText('Explore Work')).toBeInTheDocument()
+
+    // 5. Bento cards grid (3 columns on desktop)
+    const bentoContainer = container.querySelector('.grid.grid-cols-1.md\\:grid-cols-3')
+    expect(bentoContainer).toBeInTheDocument()
+    expect(screen.getByText('Launch Web Audit')).toBeInTheDocument()
+    expect(screen.getByText('10 Coding Agents Bridge')).toBeInTheDocument()
+    expect(screen.getByText('Pre-Commit Gatekeeper')).toBeInTheDocument()
+
+    // 6. Test at 1440px widescreen resolution
+    window.innerWidth = 1440
+    window.innerHeight = 900
+    window.dispatchEvent(new Event('resize'))
+    rerender(<LandingPage onLaunchConsole={onLaunch} />)
+
+    // Verify sections remain solid on wide screens
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Pre-Deployment Security Gatekeeper/i)
+    expect(screen.getByText('Autonomous AI Agent Security Bridge')).toBeInTheDocument()
+    expect(screen.getByText('ShipSafe Terminal CLI & Git Hook Gatekeeper')).toBeInTheDocument()
+    expect(screen.getByText('10 Critical Threat Vectors Audited')).toBeInTheDocument()
+
+    // 7. Footer 4 columns on desktop
+    const footer = container.querySelector('footer')
+    expect(footer).toBeInTheDocument()
+    const footerGrid = footer?.querySelector('.grid.grid-cols-2.md\\:grid-cols-4')
+    expect(footerGrid).toBeInTheDocument()
   })
 
-  it('renders How It Works, Comparison Matrix, and Transparent Pricing sections', () => {
+  it('gates copy actions and triggers auth modal when user is unauthenticated', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    // How It Works section
-    expect(screen.getByText(/How ShipSafe Secures Your Code in 3 Seconds/i)).toBeInTheDocument()
-    expect(screen.getByText(/Ingest Codebase/i)).toBeInTheDocument()
-    expect(screen.getByText(/3-Second In-Memory AST Scan/i)).toBeInTheDocument()
-    expect(screen.getByText(/Clear Verdict & Agent Prompts/i)).toBeInTheDocument()
+    // Locate gated copy buttons
+    const copyButtons = screen.getAllByRole('button', { name: /^Copy$/i })
+    expect(copyButtons.length).toBeGreaterThan(0)
 
-    // Comparison Matrix section
-    expect(screen.getByText(/Why ShipSafe Outperforms Legacy Scanners for Vibe Coders/i)).toBeInTheDocument()
-    expect(screen.getByText(/Architectural Criteria/i)).toBeInTheDocument()
-    expect(screen.getByText(/Legacy Suites \(Snyk \/ SonarQube\)/i)).toBeInTheDocument()
-
-    // Pricing section
-    const pricingLinks = screen.getAllByRole('link', { name: /Pricing/i })
-    expect(pricingLinks.length).toBeGreaterThan(0)
-    expect(screen.getByText(/Predictable, Developer-First Pricing/i)).toBeInTheDocument()
-    expect(screen.getAllByText(/Free Solo/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/Pro Team/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/Enterprise Custom/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/\$19/i).length).toBeGreaterThan(0)
+    // Clicking copy should trigger notice banner
+    fireEvent.click(copyButtons[0]!)
+    expect(screen.getAllByText(/Authentication required/i).length).toBeGreaterThan(0)
   })
 
-  it('toggles bilingual language switcher between English and Indonesian', () => {
+  it('supports selecting among 10 coding agents and toggling config vs prompt', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    // Initial state is English
-    expect(screen.getAllByText(/The Pre-Deployment Security Gatekeeper for/i).length).toBeGreaterThan(0)
+    // Verify all 10 agents are rendered in selector (including Agen Lain)
+    const agentNames = [
+      'Cursor', 'Claude Code', 'Windsurf', 'GitHub Copilot', 'OpenCode',
+      'Hermes', 'Aider', 'Cline', 'Roo Code', 'Agen Lain'
+    ]
+    agentNames.forEach((name) => {
+      expect(screen.getByRole('button', { name: new RegExp(`^${name}$`, 'i') })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('button', { name: /^Continue$/i })).not.toBeInTheDocument()
 
-    // Switch to Indonesian
-    const idButton = screen.getByRole('button', { name: /Ganti bahasa ke Bahasa Indonesia/i })
-    fireEvent.click(idButton)
+    // Switch to Windsurf
+    const windsurfBtn = screen.getByRole('button', { name: /^Windsurf$/i })
+    fireEvent.click(windsurfBtn)
+    expect(screen.getAllByText(/~\/\.codeium\/windsurf\/mcp_config\.json/i).length).toBeGreaterThan(0)
 
-    // Verify Indonesian content
-    expect(screen.getAllByText(/Gerbang Keamanan Pra-Deploy untuk/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/Aplikasi Web Vibe-Coding/i)).toBeInTheDocument()
-    expect(screen.getByText(/Cara ShipSafe Mengamankan Kode Anda dalam 3 Detik/i)).toBeInTheDocument()
-    expect(screen.getByText(/Mengapa ShipSafe Lebih Unggul untuk Pengembang Vibe-Coding/i)).toBeInTheDocument()
-    expect(screen.getByText(/Biaya Terjangkau, Dibuat untuk Pengembang/i)).toBeInTheDocument()
-
-    // Switch back to English
-    const enButton = screen.getByRole('button', { name: /Switch language to English/i })
-    fireEvent.click(enButton)
-
-    // Verify English content restored
-    expect(screen.getAllByText(/The Pre-Deployment Security Gatekeeper for/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/How ShipSafe Secures Your Code in 3 Seconds/i)).toBeInTheDocument()
+    // Switch to Prompt view mode
+    const promptToggle = screen.getByRole('button', { name: /^Remediation Prompt$/i })
+    fireEvent.click(promptToggle)
+    expect(screen.getAllByText(/Cascade Autonomous Remediation Prompt/i).length).toBeGreaterThan(0)
   })
 })

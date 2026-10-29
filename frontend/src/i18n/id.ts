@@ -4,7 +4,7 @@ export const idContent: LandingContentSchema = {
   nav: {
     brand: {
       name: 'ShipSafe',
-      desk: 'Gerbang Keamanan Kode',
+      desk: 'GERBANG KEAMANAN PRA-DEPLOY',
       versionBadge: 'v2.4-STABIL',
       monogram: 'SS',
     },
@@ -40,13 +40,13 @@ export const idContent: LandingContentSchema = {
 
   hero: {
     eyebrow: {
-      tag: 'Gerbang Keamanan Pra-Deploy',
+      tag: 'PENGAWAS PRA-DEPLOYMENT',
       separator: '|',
       subtitle: 'Palang Pintu Keamanan Otomatis Berbasis AST & Regex',
     },
     headline: {
       prefix: 'Gerbang Keamanan Pra-Deploy untuk',
-      highlight: 'Aplikasi Web Vibe-Coding.',
+      highlight: 'Aplikasi Web & Kode AI.',
       suffix: 'Periksa menyeluruh sebelum rilis ke publik.',
     },
     reassurance:
@@ -73,21 +73,21 @@ export const idContent: LandingContentSchema = {
         'Lakukan audit instan di peramban, pasang palang pintu otomatis di terminal lokal, atau biarkan agen AI menambal celah secara mandiri melalui MCP.',
     },
     console: {
-      tag: 'Pilar 01: Konsol Web',
+      tag: 'PILLAR 01 · KONSOL WEB',
       title: 'Konsol Web Audit',
       description:
-        'Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan stempel kelayakan keamanan resmi langsung di peramban Anda.',
+        'Unggah arsip berkas ZIP atau impor repositori GitHub publik. Dapatkan analisis AST seketika, kalkulasi risiko terukur, dan putusan audit keamanan resmi langsung di peramban Anda.',
       action: 'Buka Konsol Web ->',
     },
     mcp: {
-      tag: 'Pilar 02: Server MCP',
+      tag: 'PILLAR 02 · MCP',
       title: 'Jembatan Agen AI Otonom',
       description:
         'Hubungkan ShipSafe langsung ke Cursor, Claude Desktop, Windsurf, OpenCode, dan Hermes melalui protokol standar stdio JSON-RPC 2.0. Biarkan agen AI mengaudit dan menambal celah secara mandiri.',
       action: 'Pelajari Konfigurasi MCP ->',
     },
     cli: {
-      tag: 'Pillar 03: CLI Terminal & Git Hook',
+      tag: 'PILLAR 03 · CLI',
       title: 'Palang Pintu Pre-Commit & CI',
       description:
         'Audit kode secara lokal dalam hitungan milidetik atau pasang git hook 1-klik yang memblokir commit berbahaya. Menghasilkan telemetri SARIF 2.1.0 standar OASIS untuk integrasi native GitHub Code Scanning.',
@@ -97,7 +97,7 @@ export const idContent: LandingContentSchema = {
 
   telemetry: {
     window: {
-      title: 'Telemetri: repo-vibe-saas.bundle.zip (4.8MB)',
+      title: 'telemetri // repo-vibe-saas.bundle.zip (4.8MB)',
       statusActive: 'PEMINDAIAN AKTIF',
       dotsAria: 'Kontrol jendela terminal',
     },
@@ -169,7 +169,7 @@ export const idContent: LandingContentSchema = {
     },
     columns: {
       metric: 'Kapabilitas / Metrik',
-      shipsafe: 'ShipSafe Gatekeeper',
+      shipsafe: 'Platform Keamanan ShipSafe',
       legacySast: 'SAST Korporat Lawas (SonarQube, Snyk)',
       linters: 'Linter Kode Biasa (ESLint, Prettier)',
     },
@@ -407,7 +407,7 @@ export const idContent: LandingContentSchema = {
     title: 'Butuh Aturan Audit Kustom atau Konsultasi Langsung?',
     subtitle:
       'Terhubung langsung dengan kreator dan tim inti ShipSafe. Dapatkan bantuan untuk merancang aturan regex kustom, mengonfigurasi pipeline CI/CD, atau mengaudit arsitektur sistem khusus.',
-    badge: 'Admin Online: Respon di bawah 15 menit',
+    badge: '● ADMIN AKTIF // RATA-RATA RESPON < 15 MENIT',
     whatsapp: {
       label: 'Konsultasi via WhatsApp',
       url: 'https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya',

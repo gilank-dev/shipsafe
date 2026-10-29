@@ -29,6 +29,10 @@
       "destination": "http://213.163.197.214:23010/api/import-repo"
     },
     {
+      "source": "/api/cli/:path*",
+      "destination": "http://213.163.197.214:23010/api/cli/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

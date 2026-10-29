@@ -168,11 +168,88 @@ CREATE POLICY "Users can delete findings for their own audits"
     );
 
 -- ------------------------------------------------------------------------------
--- 5. GRANTS & PERMISSIONS
+-- 5. TABLE: audit_diffs
+-- Menyimpan hasil komparasi audit (sebelum vs sesudah perbaikan kode/re-audit).
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS audit_diffs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    base_audit_id UUID NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
+    target_audit_id UUID NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
+    score_before NUMERIC(3,1) NOT NULL,
+    score_after NUMERIC(3,1) NOT NULL,
+    score_delta NUMERIC(3,1) NOT NULL,
+    resolved_findings JSONB NOT NULL DEFAULT '[]'::jsonb,
+    persistent_findings JSONB NOT NULL DEFAULT '[]'::jsonb,
+    regressed_findings JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+COMMENT ON TABLE audit_diffs IS 'Menyimpan riwayat perbandingan audit sebelum dan sesudah remediasi kode.';
+
+-- ------------------------------------------------------------------------------
+-- 6. TABLE: cli_tokens
+-- Menyimpan token akses developer untuk integrasi CLI & CI/CD Gatekeeper.
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS cli_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL UNIQUE,
+    token_preview TEXT NOT NULL,
+    label TEXT NOT NULL DEFAULT 'Default CLI Token',
+    last_used_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+COMMENT ON TABLE cli_tokens IS 'Menyimpan metadata token autentikasi CLI dan CI/CD.';
+
+-- ------------------------------------------------------------------------------
+-- 7. ADDITIONAL INDEXES
+-- ------------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_audit_diffs_user 
+    ON audit_diffs(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_cli_tokens_user 
+    ON cli_tokens(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_cli_tokens_hash 
+    ON cli_tokens(token_hash);
+
+-- ------------------------------------------------------------------------------
+-- 8. ROW LEVEL SECURITY (RLS) FOR NEW TABLES
+-- ------------------------------------------------------------------------------
+ALTER TABLE audit_diffs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cli_tokens ENABLE ROW LEVEL SECURITY;
+
+-- Policy: audit_diffs
+DROP POLICY IF EXISTS "Users can manage their own audit diffs" ON audit_diffs;
+CREATE POLICY "Users can manage their own audit diffs"
+    ON audit_diffs
+    FOR ALL
+    TO authenticated
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- Policy: cli_tokens
+DROP POLICY IF EXISTS "Users can manage their own CLI tokens" ON cli_tokens;
+CREATE POLICY "Users can manage their own CLI tokens"
+    ON cli_tokens
+    FOR ALL
+    TO authenticated
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- ------------------------------------------------------------------------------
+-- 9. GRANTS & PERMISSIONS
 -- Memberikan akses tabel kepada peran authenticated dan service_role
 -- ------------------------------------------------------------------------------
 GRANT SELECT, INSERT, UPDATE, DELETE ON audits TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON findings TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON audit_diffs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON cli_tokens TO authenticated;
 
 GRANT ALL ON audits TO service_role;
 GRANT ALL ON findings TO service_role;
+GRANT ALL ON audit_diffs TO service_role;
+GRANT ALL ON cli_tokens TO service_role;

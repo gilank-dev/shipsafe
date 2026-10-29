@@ -1,29 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 // Boundary Breach - ShipSafe</title>
+    <title>404 - Halaman Tidak Ditemukan | ShipSafe</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <style>
       :root {
-        --canvas: #fcfcf9;
+        --canvas: #fafafa;
         --surface: #ffffff;
-        --ink: #111418;
-        --ink-2: #4b5563;
-        --ink-3: #9ca3af;
-        --rule: #e5e7eb;
-        --fail: #dc2626;
+        --ink: #18181b;
+        --ink-2: #52525b;
+        --ink-3: #a1a1aa;
+        --rule: #e4e4e7;
+        --box-bg: #f4f4f5;
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --canvas: #090a0f;
-          --surface: #11131a;
-          --ink: #f3f4f6;
-          --ink-2: #9ca3af;
-          --ink-3: #6b7280;
+          --canvas: #090a0b;
+          --surface: #121316;
+          --ink: #f4f4f5;
+          --ink-2: #a1a1aa;
+          --ink-3: #71717a;
           --rule: #27272a;
-          --fail: #ef4444;
+          --box-bg: #18181b;
         }
       }
       * {
@@ -32,7 +32,7 @@
         padding: 0;
       }
       body {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background-color: var(--canvas);
         color: var(--ink);
         min-height: 100vh;
@@ -45,7 +45,7 @@
         padding: 1rem 1.5rem;
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.625rem;
       }
       .logo-sq {
         width: 14px;
@@ -53,9 +53,9 @@
         background: var(--ink);
       }
       .logo-title {
-        font-family: system-ui, -apple-system, sans-serif;
         font-weight: 800;
         font-size: 1.15rem;
+        letter-spacing: -0.02em;
       }
       main {
         flex: 1;
@@ -65,62 +65,59 @@
         padding: 1.5rem;
       }
       .card {
-        border: 2px solid var(--ink);
         background: var(--surface);
-        padding: 2rem;
-        max-width: 620px;
+        border: 1px solid var(--rule);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        max-width: 560px;
         width: 100%;
-        border-radius: 4px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       }
-      .badge {
-        display: inline-block;
-        border: 1px solid var(--fail);
-        color: var(--fail);
+      .tag {
+        font-family: ui-monospace, SFMono-Regular, monospace;
         font-size: 0.75rem;
-        font-weight: 700;
-        padding: 0.25rem 0.5rem;
-        margin-bottom: 1rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: 0.5rem;
       }
       h1 {
-        font-family: system-ui, -apple-system, sans-serif;
-        font-size: 1.6rem;
+        font-size: 1.85rem;
         font-weight: 800;
+        letter-spacing: -0.025em;
         margin-bottom: 0.75rem;
-        letter-spacing: -0.02em;
       }
       p {
-        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.925rem;
         color: var(--ink-2);
-        font-size: 0.95rem;
-        line-height: 1.5;
-        margin-bottom: 1.5rem;
-      }
-      .box {
-        border: 1px solid var(--rule);
-        background: var(--canvas);
-        padding: 1rem;
-        font-size: 0.8rem;
-        margin-bottom: 1.5rem;
         line-height: 1.6;
+        margin-bottom: 1.75rem;
+      }
+      .diag {
+        background: var(--box-bg);
+        border: 1px solid var(--rule);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        font-family: ui-monospace, SFMono-Regular, monospace;
+        font-size: 0.75rem;
+        text-align: left;
+        margin-bottom: 2rem;
+        color: var(--ink-2);
       }
       .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.75rem 1.25rem;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-size: 0.9rem;
-        font-weight: 700;
-        text-decoration: none;
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 9999px;
         background: var(--ink);
         color: var(--canvas);
-        border: 2px solid var(--ink);
-        border-radius: 3px;
-        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: opacity 0.2s;
       }
       .btn:hover {
-        opacity: 0.92;
+        opacity: 0.9;
       }
       footer {
         border-top: 1px solid var(--rule);
@@ -139,24 +136,25 @@
 
     <main>
       <div class="card">
-        <div class="badge">404 // Boundary Breach</div>
-        <h1>Perimeter Breach: Path Undefined</h1>
-        <p>
-          The requested endpoint does not exist within ShipSafe's verified security envelope.
-        </p>
+        <div class="tag">Error 404</div>
+        <h1>Halaman Tidak Ditemukan</h1>
+        <p>Halaman yang Anda tuju tidak tersedia atau telah dipindahkan. Silakan periksa kembali tautan yang Anda tuju.</p>
 
-        <div class="box">
-          <div>GATEKEEPER_STATUS: UNRESOLVED</div>
-          <div>DIAGNOSTIC: Route outside pre-deployment scan perimeter</div>
-          <div>ACTION: Return to the root security cockpit to audit projects</div>
+        <div class="diag">
+          <div>STATUS: 404 NOT_FOUND</div>
+          <div style="margin-top: 4px;">LOCATION: <span id="req-path">/</span></div>
         </div>
 
-        <a href="/" class="btn">Return to Security Cockpit</a>
+        <a href="/" class="btn">Kembali ke Beranda</a>
       </div>
     </main>
 
     <footer>
       ShipSafe Security Architecture. Zero data retention sandbox.
     </footer>
+
+    <script>
+      document.getElementById('req-path').textContent = window.location.pathname || '/';
+    </script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import { corsMiddleware } from './security/cors-guard';
 import helmet from 'helmet';
 import multer from 'multer';
 import dotenv from 'dotenv';
@@ -11,10 +11,12 @@ import { buildAuditReport } from './engine/report-builder';
 import { generateRemediationPrompt } from './engine/prompts';
 import { enrichReportWithAi, getAiConfig, callAiCompletion } from './engine/ai-client';
 import { globalAuditQueue } from './engine/queue';
+import { compareAuditReports } from './engine/diff-verifier';
 import { clerkAuthGuard, requireClerkAuth, AuthRequest } from './security/auth-guard';
 import { parseGitHubRepo, fetchGitHubRepoZip } from './security/repo-importer';
 import { saveAuditToSupabase } from './security/audit-saver';
-import { AgentTarget, AuditReport, Finding } from './types';
+import { issueCliToken, isCliToken } from './security/cli-token';
+import { AgentTarget, AuditReport, Finding, AuditDiffResult } from './types';
 
 dotenv.config();
 
@@ -23,40 +25,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 23010;
 
 // Security Middleware
 app.use(helmet({ contentSecurityPolicy: false })); // API server
-
-const rawCorsOrigin = process.env.CORS_ORIGIN;
-const defaultAllowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'http://localhost:3000',
-  'https://shipsafe-pi.vercel.app',
-  'https://shipsafe-lankdev.vercel.app',
-  'https://shipsafe.lankdev.my.id',
-  'https://nusa-bench.vercel.app',
-];
-const allowedOrigins = rawCorsOrigin
-  ? rawCorsOrigin.split(',').map((s) => s.trim())
-  : defaultAllowedOrigins;
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow non-browser requests (e.g. server-side proxy, curl, automated testing)
-      if (!origin) return callback(null, true);
-      if (
-        allowedOrigins.includes(origin) ||
-        /^https:\/\/.*\.vercel\.app$/.test(origin) ||
-        /^https:\/\/.*\.lankdev\.my\.id$/.test(origin)
-      ) {
-        return callback(null, true);
-      }
-      return callback(new Error(`Origin ${origin} not allowed by CORS whitelist.`));
-    },
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['Content-Disposition', 'X-File-Name', 'X-Repo-Owner', 'X-Repo-Name', 'X-Repo-Size'],
-  })
-);
+app.use(corsMiddleware);
 
 app.use(express.json({ limit: '2mb' }));
 
@@ -180,6 +149,61 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     success: true,
     token,
     user,
+  });
+});
+
+// 1.3 CLI Token Issuance (for linking Terminal CLI to Web Console Session)
+app.post('/api/cli/token', requireClerkAuth, (req: AuthRequest, res: Response) => {
+  if (!req.user || !req.user.id) {
+    res.status(401).json({ error: { code: 'unauthorized', message: 'Authentication required.' } });
+    return;
+  }
+
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (isCliToken(token)) {
+    res.status(403).json({
+      error: {
+        code: 'cli_token_not_allowed',
+        message: 'Sign in on the web console to create a CLI token.',
+      },
+    });
+    return;
+  }
+
+  try {
+    const { token: cliToken, expiresAt } = issueCliToken({
+      id: req.user.id,
+      email: req.user.email,
+    });
+    res.status(201).json({
+      token: cliToken,
+      tokenType: 'cli',
+      email: req.user.email || '',
+      expiresAt,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'CLI token generation failed';
+    res.status(503).json({ error: { code: 'cli_tokens_unavailable', message } });
+  }
+});
+
+// 1.4 CLI Identity Verification
+app.get('/api/cli/whoami', requireClerkAuth, (req: AuthRequest, res: Response) => {
+  if (!req.user || !req.user.id) {
+    res.status(401).json({ error: { code: 'unauthorized', message: 'Authentication required.' } });
+    return;
+  }
+
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  const isCli = isCliToken(token);
+
+  res.json({
+    id: req.user.id,
+    email: req.user.email || 'developer@shipsafe.dev',
+    authMethod: isCli ? 'cli_token' : 'session',
+    ...(isCli ? { client: 'shipsafe-cli' } : {}),
   });
 });
 
@@ -469,24 +493,63 @@ app.post('/api/audit/:id/prompts', (req: Request, res: Response) => {
   });
 });
 
+// 4. Re-Audit Diff & Fix Verification Endpoint
+app.post('/api/audit/verify-diff', (req: Request, res: Response) => {
+  const { baseReport, targetReport, baseAuditId, targetAuditId } = req.body;
+
+  let resolvedBase: AuditReport | undefined = baseReport;
+  let resolvedTarget: AuditReport | undefined = targetReport;
+
+  if (!resolvedBase && baseAuditId) {
+    resolvedBase = reportCache.get(baseAuditId);
+  }
+  if (!resolvedTarget && targetAuditId) {
+    resolvedTarget = reportCache.get(targetAuditId);
+  }
+
+  if (!resolvedBase || !resolvedTarget) {
+    return res.status(400).json({
+      error: {
+        code: 'missing_audit_reports',
+        message: 'Both baseReport and targetReport (or valid cached baseAuditId and targetAuditId) must be provided for diff verification.'
+      }
+    });
+  }
+
+  const diffResult = compareAuditReports(resolvedBase, resolvedTarget);
+  res.json(diffResult);
+});
+
 // Global Error Handler
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error('[ShipSafe Server Error]', err);
 
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    res.status(413).json({
+  if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string' && err.message.startsWith('CORS_NOT_ALLOWED')) {
+    return res.status(403).json({
+      error: {
+        code: 'cors_not_allowed',
+        message: 'Origin not allowed by CORS security whitelist.',
+      },
+    });
+  }
+
+  if (err && typeof err === 'object' && 'code' in err && err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
       error: {
         code: 'too_large',
         message: 'The uploaded file exceeds the 10 MB size limit.'
       }
     });
-    return;
   }
 
-  res.status(err.statusCode || 500).json({
+  const statusCode = err && typeof err === 'object' && 'statusCode' in err && typeof err.statusCode === 'number' ? err.statusCode : 500;
+  const code = err && typeof err === 'object' && 'code' in err && typeof err.code === 'string' ? err.code : 'server_error';
+  const message = err instanceof Error ? err.message : 'Internal Server Error';
+
+  res.status(statusCode).json({
     error: {
-      code: err.code || 'server_error',
-      message: err instanceof Error ? err.message : 'Internal Server Error'
+      code,
+      message
     }
   });
 });

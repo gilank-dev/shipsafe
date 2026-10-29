@@ -200,7 +200,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
   en: {
     nav: {
       brandName: 'ShipSafe',
-      tagline: 'Security Gatekeeper',
+      tagline: 'Code Security Auditor',
       console: 'Console',
       howItWorks: 'How It Works',
       comparison: 'Comparison',
@@ -214,10 +214,10 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       launchConsole: 'Launch Console',
     },
     hero: {
-      eyebrowBadge: 'Pre-Deployment Security Gatekeeper',
+      eyebrowBadge: 'ShipSafe Security Platform',
       eyebrowSub: 'Automated AST & Regex Security Barrier',
-      headlineMain: 'The Pre-Deployment Security Gatekeeper for',
-      headlineHighlight: 'Vibe-Coded Web Apps.',
+      headlineMain: 'Pre-Deployment Security Gatekeeper for',
+      headlineHighlight: 'Web Apps & Vibe-Coded Projects.',
       subheadline:
         'Built for developers and founders shipping at the speed of thought. Catch leaked service keys, unauthenticated endpoints, exposed database tables, and prompt injection surfaces in 3 seconds before you push to production.',
       triggersTitle: 'Operational Peace of Mind: Prevent 4 Catastrophic Launch Failures',
@@ -256,21 +256,21 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     bentoPillars: {
       pillars: [
         {
-          pillarId: 'Pillar 01: Web Console',
+          pillarId: 'PILLAR 01 · CONSOLE',
           title: 'Instant Web Audit',
           description:
             'Upload a ZIP archive or link a GitHub repository for a 3-second AST analysis and an authoritative security clearance verdict.',
           actionLabel: 'Launch Console',
         },
         {
-          pillarId: 'Pillar 02: Model Context Protocol',
+          pillarId: 'PILLAR 02 · MCP',
           title: 'Autonomous Agent Bridge',
           description:
             'Connect Cursor, Claude Desktop, Windsurf, and Hermes via native stdio JSON-RPC 2.0 tools for self-healing codebases.',
           actionLabel: 'Explore MCP',
         },
         {
-          pillarId: 'Pillar 03: Terminal CLI & Git Hook',
+          pillarId: 'PILLAR 03 · CLI',
           title: 'Pre-Commit Gatekeeper',
           description:
             'Audit locally with zero dependencies or install a 1-click git hook that blocks vulnerable commits before code leaves your machine.',
@@ -279,16 +279,16 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       ],
     },
     telemetry: {
-      windowTitle: 'Telemetry: repo-vibe-saas.bundle.zip (4.8MB)',
+      windowTitle: 'Inspection Telemetry · repo-vibe-saas.bundle.zip (4.8MB)',
       reportTab: 'Inspection Report',
       promptTab: '1-Click Agent Prompt',
-      astScanStatus: '[00:01.04] AST parsing 42 source files: OK (0.8s)',
+      astScanStatus: '[00:01.04] AST parsing 42 source files... OK (0.8s)',
       findingSecrets:
-        '[00:01.88] Vector Secrets Scan: [FAIL] Stripe live key exposed in src/config/stripe.ts:8',
+        '[00:01.88] Vector: Secrets Scan - [FAIL] Stripe live key exposed in src/config/stripe.ts:8',
       findingAccessControl:
-        '[00:02.12] Vector Broken Access Control: [FAIL] Public endpoint lacks session RLS guard in app/api/invoices/[id]/route.ts:19',
+        '[00:02.12] Vector: Broken Access Control - [FAIL] Public endpoint lacks session RLS guard in app/api/invoices/[id]/route.ts:19',
       findingPromptInjection:
-        '[00:02.89] Vector Prompt Injection Surface: [WARN] Raw unsanitized query passed into OpenAI prompt in lib/agent.ts:42',
+        '[00:02.89] Vector: Prompt Injection Surface - [WARN] Raw unsanitized query passed into OpenAI prompt in lib/agent.ts:42',
       verdictSummary: 'Verdict: 2 critical findings, 1 warning detected',
       verdictBadge: 'Action Required',
       promptTitle: 'TAILORED REMEDIATION PROMPT FOR CLAUDE CODE / CURSOR',
@@ -325,7 +325,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           title: 'Clear Verdict & Agent Prompts',
           tagline: 'Self-Healing Remediation',
           description:
-            'Receive an authoritative security clearance status (Approved or Action Required). For every finding, copy an exact line-specific remediation prompt formatted specifically for your AI coding assistant to resolve the issue in 60 seconds.',
+            'Receive an authoritative Security Clearance status (Approved or Action Required). For every finding, copy an exact line-specific remediation prompt formatted specifically for your AI coding assistant to resolve the issue in 60 seconds.',
           badge: 'Tailored for 5 coding agents',
         },
       ],
@@ -547,7 +547,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         'Connect directly with the creator of ShipSafe. Get hands-on guidance on custom AST rulesets, CI/CD pipeline automation, or auditing bespoke fullstack architectures.',
       whatsappButton: 'Talk on WhatsApp',
       telegramButton: 'Talk on Telegram',
-      statusBadge: 'Admin Online: Average response under 15 minutes',
+      statusBadge: '● ADMIN ONLINE · AVERAGE RESPONSE < 15 MINUTES',
     },
     faq: {
       eyebrow: 'DOCUMENTATION & ANSWERS',
@@ -599,7 +599,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
   id: {
     nav: {
       brandName: 'ShipSafe',
-      tagline: 'Gerbang Keamanan Kode',
+      tagline: 'GERBANG KEAMANAN PRA-DEPLOY',
       console: 'Konsol Web',
       howItWorks: 'Cara Kerja',
       comparison: 'Perbandingan',
@@ -613,10 +613,10 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       launchConsole: 'Buka Konsol',
     },
     hero: {
-      eyebrowBadge: 'Gerbang Keamanan Pra-Deploy',
+      eyebrowBadge: 'GERBANG KEAMANAN PRA-DEPLOY',
       eyebrowSub: 'Barikade Keamanan AST & Regex Otomatis',
       headlineMain: 'Gerbang Keamanan Pra-Deploy untuk',
-      headlineHighlight: 'Aplikasi Web Vibe-Coding.',
+      headlineHighlight: 'Aplikasi Web & Kode AI.',
       subheadline:
         'Dibuat khusus untuk developer dan founder yang membangun aplikasi secepat prompt AI. Tangkap kebocoran service key, endpoint tanpa autentikasi, tabel database terekspos, dan celah prompt injection dalam 3 detik sebelum kode meluncur ke produksi.',
       triggersTitle: 'Ketenangan Operasional: Tangkal 4 Risiko Fatal Sebelum Terlambat',
@@ -655,21 +655,21 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
     bentoPillars: {
       pillars: [
         {
-          pillarId: 'Pilar 01: Konsol Web',
+          pillarId: 'PILAR 01 · KONSOL WEB',
           title: 'Audit Web Seketika',
           description:
-            'Unggah arsip ZIP atau masukkan tautan repositori GitHub untuk analisis AST 3 detik di memori dengan stempel kelayakan keamanan resmi.',
+            'Unggah arsip ZIP atau masukkan tautan repositori GitHub untuk analisis AST 3 detik di memori dengan putusan audit resmi.',
           actionLabel: 'Buka Konsol',
         },
         {
-          pillarId: 'Pilar 02: Server MCP',
+          pillarId: 'PILAR 02 · SERVER MCP',
           title: 'Jembatan AI Agent Otonom',
           description:
             'Hubungkan Cursor, Claude Desktop, Windsurf, dan Hermes melalui tool standar stdio JSON-RPC 2.0 untuk perbaikan kode mandiri.',
           actionLabel: 'Pelajari MCP',
         },
         {
-          pillarId: 'Pilar 03: CLI Terminal & Git Hook',
+          pillarId: 'PILAR 03 · CLI TERMINAL',
           title: 'Penjaga Pre-Commit Lokal',
           description:
             'Audit kode secara lokal tanpa dependensi atau pasang git hook 1-klik yang memblokir commit berbahaya sebelum keluar dari laptop.',
@@ -678,16 +678,16 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       ],
     },
     telemetry: {
-      windowTitle: 'Telemetri: repo-vibe-saas.bundle.zip (4.8MB)',
+      windowTitle: 'Telemetri Inspeksi · repo-vibe-saas.bundle.zip (4.8MB)',
       reportTab: 'Laporan Inspeksi',
       promptTab: 'Prompt Remediasi AI',
-      astScanStatus: '[00:01.04] Parsing AST 42 berkas kode sumber: OK (0.8s)',
+      astScanStatus: '[00:01.04] Parsing AST 42 berkas kode sumber... OK (0.8s)',
       findingSecrets:
-        '[00:01.88] Vektor Pemindaian Kunci Rahasia: [GAGAL] Live key Stripe terekspos di src/config/stripe.ts:8',
+        '[00:01.88] Vektor: Pemindaian Kunci Rahasia - [GAGAL] Live key Stripe terekspos di src/config/stripe.ts:8',
       findingAccessControl:
-        '[00:02.12] Vektor Kontrol Akses Terbuka: [GAGAL] Endpoint publik tanpa proteksi sesi RLS di app/api/invoices/[id]/route.ts:19',
+        '[00:02.12] Vektor: Kontrol Akses Terbuka - [GAGAL] Endpoint publik tanpa proteksi sesi RLS di app/api/invoices/[id]/route.ts:19',
       findingPromptInjection:
-        '[00:02.89] Vektor Celah Prompt Injection: [PERINGATAN] Kueri pengguna tanpa sanitasi masuk ke prompt OpenAI di lib/agent.ts:42',
+        '[00:02.89] Vektor: Celah Prompt Injection - [PERINGATAN] Kueri pengguna tanpa sanitasi masuk ke prompt OpenAI di lib/agent.ts:42',
       verdictSummary: 'Keputusan: 2 temuan kritis, 1 peringatan terdeteksi',
       verdictBadge: 'Tindakan Diperlukan',
       promptTitle: 'PROMPT REMEDIASI KHUSUS UNTUK CLAUDE CODE / CURSOR',
@@ -724,7 +724,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           title: 'Stempel Putusan & Prompt AI',
           tagline: 'Remediasi Mandiri Seketika',
           description:
-            'Terima status resmi Kelayakan Keamanan (Passed atau Action Required). Untuk setiap temuan, salin prompt perbaikan presisi per-baris yang dirancang khusus bagi asisten koding AI Anda agar celah tuntas diperbaiki dalam 60 detik.',
+            'Terima status resmi Izin Keamanan (Passed atau Action Required). Untuk setiap temuan, salin prompt perbaikan presisi per-baris yang dirancang khusus bagi asisten koding AI Anda agar celah tuntas diperbaiki dalam 60 detik.',
           badge: 'Diformat untuk 5 coding agent',
         },
       ],
@@ -946,7 +946,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
         'Terhubung langsung dengan kreator inti ShipSafe. Dapatkan panduan integrasi aturan AST khusus, otomatisasi pipeline CI/CD, atau audit arsitektur fullstack spesifik.',
       whatsappButton: 'Konsultasi via WhatsApp',
       telegramButton: 'Diskusi via Telegram',
-      statusBadge: 'Pengembang Online: Rata-rata respon di bawah 15 menit',
+      statusBadge: '● PENGEMBANG ONLINE · RATA-RATA RESPON < 15 MENIT',
     },
     faq: {
       eyebrow: 'DOKUMENTASI & JAWABAN',

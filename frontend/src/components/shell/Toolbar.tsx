@@ -7,6 +7,7 @@ import { selectOutdated } from '../../state/selectors'
 import { useStore } from '../../state/store'
 import { SampleMenu } from './SampleMenu'
 import { ThemeToggle } from './ThemeToggle'
+import { BrandLogo } from '../ui/BrandLogo'
 
 const STAGE_WORD = { upload: 'uploading', scanning: 'scanning', auditing: 'auditing', report: 'writing the report' } as const
 
@@ -56,51 +57,46 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
                   window.dispatchEvent(new PopStateEvent('popstate'))
                 }
               }}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer text-left"
+              className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer text-left shrink-0"
               title="Return to Landing Page & System Overview"
             >
-              <span className="block size-3.5 bg-ink" aria-hidden="true" />
-              <span className="text-h3 leading-none font-extrabold [font-stretch:125%]">ShipSafe</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  window.history.pushState({}, '', '/')
-                  window.dispatchEvent(new PopStateEvent('popstate'))
-                }
-              }}
-              className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-ink font-bold border border-rule hover:border-rule-strong bg-surface hover:bg-raised px-2 py-1 rounded-sm cursor-pointer transition-colors shadow-xs shrink-0"
-              title="Return to Landing Page & System Overview"
-            >
-              <span>←</span>
-              <span className="hidden sm:inline">Landing Page</span>
-              <span className="sm:hidden">Home</span>
+              <BrandLogo size="md" />
             </button>
             <div className="hidden sm:flex items-center gap-1.5 font-mono text-[11px]">
               <button
                 type="button"
                 onClick={() => openEcosystemModal('mcp')}
-                className="px-2 py-0.5 rounded-xs border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
                 title="ShipSafe MCP Server Configuration for AI Agents"
               >
-                ⚡ MCP
+                <svg className="size-3.5 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                <span>MCP</span>
               </button>
               <button
                 type="button"
                 onClick={() => openEcosystemModal('cli')}
-                className="px-2 py-0.5 rounded-xs border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
                 title="ShipSafe Terminal CLI & Pre-Commit Git Hook"
               >
-                💻 CLI
+                <svg className="size-3.5 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="4 17 10 11 4 5" />
+                  <line x1="12" y1="19" x2="20" y2="19" />
+                </svg>
+                <span>CLI</span>
               </button>
               <button
                 type="button"
                 onClick={() => openEcosystemModal('docs')}
-                className="px-2 py-0.5 rounded-xs border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border border-rule hover:border-ink bg-surface hover:bg-raised text-ink-2 hover:text-ink cursor-pointer transition-colors"
                 title="Security Architecture & Threat Vectors Documentation"
               >
-                📖 Docs
+                <svg className="size-3.5 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+                <span>Docs</span>
               </button>
             </div>
             <span className="hidden text-small text-ink-3 lg:inline">Pre-deployment security gate</span>
@@ -110,18 +106,25 @@ export function Toolbar({ ref }: { ref?: Ref<HTMLDivElement> }) {
             <button
               type="button"
               onClick={() => openEcosystemModal('mcp')}
-              className="hidden sm:inline-block px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
+              className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
               title="MCP Server"
             >
-              MCP
+              <svg className="size-3 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <span>MCP</span>
             </button>
             <button
               type="button"
               onClick={() => openEcosystemModal('cli')}
-              className="hidden sm:inline-block px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
+              className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-xs border border-rule font-mono text-[11px] text-ink bg-surface"
               title="CLI Gatekeeper"
             >
-              CLI
+              <svg className="size-3 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="4 17 10 11 4 5" />
+                <line x1="12" y1="19" x2="20" y2="19" />
+              </svg>
+              <span>CLI</span>
             </button>
             <ThemeToggle />
             {user ? (

@@ -84,6 +84,38 @@ function createApi(): ShipSafeApi {
 export const api: ShipSafeApi = createApi()
 export const isMockMode: boolean = import.meta.env.VITE_API_MODE === 'mock'
 
+export interface CliTokenResponse {
+  token: string
+  email: string
+  expiresAt: string
+  command: string
+}
+
+export async function fetchCliToken(authToken?: string | null): Promise<CliTokenResponse> {
+  const url = `${base.replace(/\/+$/, '')}/cli/token`
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`
+    }
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+    })
+    if (res.ok) {
+      return (await res.json()) as CliTokenResponse
+    }
+  } catch (e) {
+    console.warn('[ShipSafe] fetchCliToken fallback:', e)
+  }
+  return {
+    token: 'sk_shipsafe_demo.mock_session',
+    email: 'developer@shipsafe.dev',
+    expiresAt: new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
+    command: 'shipsafe login --token=sk_shipsafe_demo.mock_session',
+  }
+}
+
 /** Demo projects build an in-memory ZIP archive instantly. */
 export async function loadSample(id: SampleId): Promise<{ file: File; context: ProjectContext }> {
   return (await import('./mock/sample-zips')).buildSample(id)

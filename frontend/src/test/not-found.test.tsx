@@ -3,22 +3,26 @@ import { describe, it, expect, vi } from 'vitest'
 import { NotFoundPage } from '../components/shell/NotFoundPage'
 
 describe('NotFoundPage', () => {
-  it('renders tactical 404 security boundary breach heading and telemetry', () => {
+  it('renders clean professional 404 error heading and brand identity without tactical badges', () => {
     render(<NotFoundPage />)
 
-    expect(screen.getByText(/404 \/\/ Boundary Breach/i)).toBeInTheDocument()
-    expect(screen.getByText(/Perimeter Breach: Path Undefined/i)).toBeInTheDocument()
-    expect(screen.getByText(/SECURITY_TELEMETRY/i)).toBeInTheDocument()
-    expect(screen.getByText(/GATEKEEPER_STATUS: UNRESOLVED/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Return to Security Cockpit/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Inspect API Health/i })).toHaveAttribute('href', '/api/health')
+    expect(screen.getByText(/ERROR 404/i)).toBeInTheDocument()
+    expect(screen.getByText(/Halaman Tidak Ditemukan/i)).toBeInTheDocument()
+    // Strictly no tactical badges or boundary breach slop
+    expect(screen.queryByText(/404 \/\/ Boundary Breach/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/SECURITY_TELEMETRY/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Back to Landing Page/i)).not.toBeInTheDocument()
+
+    const homeButtons = screen.getAllByRole('button', { name: /Beranda/i })
+    expect(homeButtons.length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: /Buka Console Audit/i })).toBeInTheDocument()
   })
 
-  it('calls onGoHome when Return to Security Cockpit button is clicked', () => {
+  it('calls onGoHome when Beranda button is clicked', () => {
     const onGoHome = vi.fn()
     render(<NotFoundPage onGoHome={onGoHome} />)
 
-    const returnBtn = screen.getByRole('button', { name: /Return to Security Cockpit/i })
+    const returnBtn = screen.getByRole('button', { name: /Kembali ke Beranda/i })
     fireEvent.click(returnBtn)
 
     expect(onGoHome).toHaveBeenCalledTimes(1)

@@ -124,3 +124,14 @@ export interface AuditHistoryItem {
   createdAt: string
 }
 
+export interface AuditDiffResult {
+  baseAuditId?: string
+  targetAuditId?: string
+  scoreBefore: number
+  scoreAfter: number
+  scoreDelta: number
+  resolvedFindings: Finding[]
+  persistentFindings: Finding[]
+  regressedFindings: Finding[]
+  summary: string
+}

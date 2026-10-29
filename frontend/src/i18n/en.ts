@@ -4,7 +4,7 @@ export const enContent: LandingContentSchema = {
   nav: {
     brand: {
       name: 'ShipSafe',
-      desk: 'Security Gatekeeper',
+      desk: 'Code Security Auditor',
       versionBadge: 'v2.4-STABLE',
       monogram: 'SS',
     },
@@ -40,12 +40,12 @@ export const enContent: LandingContentSchema = {
 
   hero: {
     eyebrow: {
-      tag: 'Pre-Deployment Security Gatekeeper',
+      tag: '// CODE SECURITY AUDITOR',
       separator: '|',
       subtitle: 'Automated AST & Regex Security Barrier',
     },
     headline: {
-      prefix: 'The Pre-Deployment Security Gatekeeper for',
+      prefix: 'Pre-Deployment Security Gatekeeper for',
       highlight: 'Vibe-Coded Web Apps.',
       suffix: 'Inspect before you ship.',
     },
@@ -73,21 +73,21 @@ export const enContent: LandingContentSchema = {
         'Whether you audit in your browser, trigger scans from terminal hooks, or let AI coding agents self-heal vulnerabilities via MCP.',
     },
     console: {
-      tag: 'Pillar 01: Web Console',
+      tag: 'PILLAR 01 · CONSOLE',
       title: 'Web Audit Console',
       description:
-        'Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and official security clearance stamps directly in your browser.',
+        'Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and verified security clearance directly in your browser.',
       action: 'Launch Console ->',
     },
     mcp: {
-      tag: 'Pillar 02: Model Context Protocol',
+      tag: 'PILLAR 02 · MCP',
       title: 'Autonomous Agent Bridge',
       description:
         'Connect ShipSafe directly to Cursor, Claude Desktop, Windsurf, OpenCode, and Hermes via standard stdio JSON-RPC 2.0. Allow coding agents to audit and remediate findings autonomously.',
       action: 'Explore MCP Setup ->',
     },
     cli: {
-      tag: 'Pillar 03: Terminal CLI & Git Hook',
+      tag: 'PILLAR 03 // CLI',
       title: 'Pre-Commit & CI Gatekeeper',
       description:
         'Audit code locally in milliseconds or install a 1-click git hook that blocks vulnerable commits. Emits OASIS standard SARIF 2.1.0 telemetry for native GitHub Code Scanning integration.',
@@ -97,7 +97,7 @@ export const enContent: LandingContentSchema = {
 
   telemetry: {
     window: {
-      title: 'Telemetry: repo-vibe-saas.bundle.zip (4.8MB)',
+      title: 'telemetry // repo-vibe-saas.bundle.zip (4.8MB)',
       statusActive: 'SCANNING ACTIVE',
       dotsAria: 'Terminal window controls',
     },
@@ -155,7 +155,7 @@ export const enContent: LandingContentSchema = {
         title: 'Security Clearance & 1-Click Fixes',
         subtitle: 'Actionable AI Prompts',
         description:
-          'Receive an unambiguous security clearance verdict stamp (Approved for Ship or Quarantined). If vulnerabilities are detected, get line-specific remediation prompts tailored for Cursor, Claude Code, and Windsurf.',
+          'Receive an unambiguous Security Clearance verdict (Approved for Ship or Quarantined). If vulnerabilities are detected, get line-specific remediation prompts tailored for Cursor, Claude Code, and Windsurf.',
       },
     },
   },
@@ -169,7 +169,7 @@ export const enContent: LandingContentSchema = {
     },
     columns: {
       metric: 'Capability / Metric',
-      shipsafe: 'ShipSafe Gatekeeper',
+      shipsafe: 'ShipSafe Security Platform',
       legacySast: 'Legacy Enterprise SAST (SonarQube, Snyk)',
       linters: 'Standard Linters (ESLint, Prettier)',
     },
@@ -407,7 +407,7 @@ export const enContent: LandingContentSchema = {
     title: 'Need Custom Audit Rules or Dedicated Guidance?',
     subtitle:
       'Connect directly with the creator of ShipSafe. Get assistance on integrating custom regex rulesets, configuring CI/CD pipelines, or auditing specialized web architectures.',
-    badge: 'Maintainer Online: Average response under 15 minutes',
+    badge: '● MAINTAINER ONLINE // AVERAGE RESPONSE TIME < 15 MINUTES',
     whatsapp: {
       label: 'Talk on WhatsApp',
       url: 'https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya',

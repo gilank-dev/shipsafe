@@ -62,7 +62,7 @@ export function AppShell({ submission, report }: AppShellProps) {
   return (
     <>
       <SkipLinks />
-      <header ref={headerRef} className="sticky top-0 z-30 w-full border-b border-rule bg-canvas shadow-xs">
+      <header ref={headerRef} className="sticky top-0 z-30 w-full border-b border-rule bg-canvas shadow-xs" data-print="hide">
         <h1 className="visually-hidden">ShipSafe: Pre-Deployment Security Gatekeeper for Vibe Coding &amp; Web Applications</h1>
         <DisclaimerBanner />
         <Toolbar ref={toolbarRef} />
@@ -70,7 +70,7 @@ export function AppShell({ submission, report }: AppShellProps) {
 
       <main className="mx-auto min-h-[100dvh] w-full max-w-[105rem] px-3 py-3 sm:px-4 md:px-6 md:py-4 xl:px-10 pb-safe">
         {/* Mobile View Switcher (< lg) to eliminate massive vertical scroll */}
-        <div className="lg:hidden mb-4 border-b border-rule pb-2" role="tablist" aria-label="Mobile workspace view">
+        <div className="lg:hidden mb-4 border-b border-rule pb-2" role="tablist" aria-label="Mobile workspace view" data-print="hide">
           <div className="grid grid-cols-2 gap-1.5 p-1 bg-surface border border-rule rounded-[var(--radius-control)]">
             <button
               type="button"
@@ -154,6 +154,7 @@ export function AppShell({ submission, report }: AppShellProps) {
           className="fixed bottom-6 right-6 z-40 p-2.5 rounded-full border border-rule bg-raised/95 text-ink shadow-md hover:bg-surface transition-all focus-visible:outline-2 focus-visible:outline-ink animate-fadeIn"
           aria-label="Scroll back to top"
           title="Back to top"
+          data-print="hide"
         >
           <span className="rotate-180 inline-block">
             <IconChevron width={16} height={16} />

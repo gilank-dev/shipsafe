@@ -15,8 +15,10 @@ import { PromptModal } from './PromptModal'
 import { RiskScorecard } from './RiskScorecard'
 import { SecretsToRotate } from './SecretsToRotate'
 import { ThreatMatrixView } from './ThreatMatrixView'
+import { ComplianceView } from './ComplianceView'
+import { DiffVerifierView } from './DiffVerifierView'
 
-type ReportTab = 'overview' | 'findings' | 'threats' | 'secrets'
+type ReportTab = 'overview' | 'findings' | 'threats' | 'compliance' | 'diff' | 'secrets'
 
 export function ReportView() {
   const status = useStore((s) => s.audit.status)
@@ -294,6 +296,45 @@ export function ReportView() {
 
         <button
           role="tab"
+          id="tab-compliance"
+          aria-selected={activeTab === 'compliance'}
+          aria-controls="panel-compliance"
+          tabIndex={activeTab === 'compliance' ? 0 : -1}
+          onClick={() => setActiveTab('compliance')}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 text-small font-semibold rounded-t-[var(--radius-control)] border-b-2 transition-all shrink-0 ${
+            activeTab === 'compliance'
+              ? 'border-ink text-ink bg-surface/70 font-bold'
+              : 'border-transparent text-ink-2 hover:text-ink hover:bg-surface/40'
+          }`}
+        >
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M8 1.5L2.5 4v4.5c0 3.5 2.5 6 5.5 6s5.5-2.5 5.5-6V4L8 1.5z" />
+            <path d="M5.5 8l2 2 3.5-3.5" />
+          </svg>
+          <span>OWASP Top 10</span>
+        </button>
+
+        <button
+          role="tab"
+          id="tab-diff"
+          aria-selected={activeTab === 'diff'}
+          aria-controls="panel-diff"
+          tabIndex={activeTab === 'diff' ? 0 : -1}
+          onClick={() => setActiveTab('diff')}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 text-small font-semibold rounded-t-[var(--radius-control)] border-b-2 transition-all shrink-0 ${
+            activeTab === 'diff'
+              ? 'border-ink text-ink bg-surface/70 font-bold'
+              : 'border-transparent text-ink-2 hover:text-ink hover:bg-surface/40'
+          }`}
+        >
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 2v12M12 2v12M1.5 8h13" />
+          </svg>
+          <span>Verify Fix</span>
+        </button>
+
+        <button
+          role="tab"
           id="tab-secrets"
           aria-selected={activeTab === 'secrets'}
           aria-controls="panel-secrets"
@@ -349,7 +390,27 @@ export function ReportView() {
         </div>
       )}
 
-      {/* 4. SECRETS & SCOPE TAB */}
+      {/* 4. OWASP COMPLIANCE TAB */}
+      {activeTab === 'compliance' && (
+        <div id="panel-compliance" role="tabpanel" aria-labelledby="tab-compliance" className="space-y-4 animate-fadeIn">
+          <ComplianceView
+            findings={report.findings}
+            onViewPrompt={(finding) => setActivePromptFinding(finding)}
+          />
+        </div>
+      )}
+
+      {/* 5. VERIFY FIX / RE-AUDIT DIFF TAB */}
+      {activeTab === 'diff' && (
+        <div id="panel-diff" role="tabpanel" aria-labelledby="tab-diff" className="space-y-4 animate-fadeIn">
+          <DiffVerifierView
+            currentReport={report}
+            onViewPrompt={(finding) => setActivePromptFinding(finding)}
+          />
+        </div>
+      )}
+
+      {/* 6. SECRETS & SCOPE TAB */}
       {activeTab === 'secrets' && (
         <div id="panel-secrets" role="tabpanel" aria-labelledby="tab-secrets" className="space-y-4 animate-fadeIn">
           {report.secretsToRotate && report.secretsToRotate.length > 0 ? (

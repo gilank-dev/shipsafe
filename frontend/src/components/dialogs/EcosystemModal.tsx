@@ -7,12 +7,14 @@ export function EcosystemModal() {
   const activeTab = useStore((s) => s.ecosystemTab)
   const close = useStore((s) => s.closeEcosystemModal)
   const openTab = useStore((s) => s.openEcosystemModal)
+  const user = useStore((s) => s.auth.user)
+  const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
 
   const [copiedCli, setCopiedCli] = useState(false)
   const [copiedMcp, setCopiedMcp] = useState(false)
   const [copiedHook, setCopiedHook] = useState(false)
-  type McpClient = 'cursor' | 'claude' | 'antigravity' | 'codex' | 'windsurf' | 'copilot' | 'prompt'
-  const [mcpClient, setMcpClient] = useState<McpClient>('cursor')
+  const [copiedToken, setCopiedToken] = useState(false)
+  const [mcpClient, setMcpClient] = useState<'cursor' | 'claude' | 'windsurf'>('cursor')
 
   if (!isOpen) return null
 
@@ -28,20 +30,29 @@ export function EcosystemModal() {
     setTimeout(() => setCopiedHook(false), 2000)
   }
 
-  const mcpConfigs: Record<
-    McpClient,
-    {
-      name: string
-      targetPath: string
-      cliCommand?: string
-      snippet: string
-      isPrompt?: boolean
+  const mcpConfigs = {
+    cursor: `// .cursor/mcp.json
+{
+  "mcpServers": {
+    "shipsafe": {
+      "command": "node",
+      "args": [
+        "${typeof window !== 'undefined' ? window.location.origin : 'https://shipsafe.lankdev.my.id'}/mcp/dist/index.js"
+      ]
     }
-  > = {
-    cursor: {
-      name: 'Cursor',
-      targetPath: '.cursor/mcp.json',
-      snippet: `{
+  }
+}`,
+    claude: `// claude_desktop_config.json
+{
+  "mcpServers": {
+    "shipsafe": {
+      "command": "node",
+      "args": ["C:/ShipSafe/mcp/dist/index.js"]
+    }
+  }
+}`,
+    windsurf: `// ~/.codeium/windsurf/mcp_config.json
+{
   "mcpServers": {
     "shipsafe": {
       "command": "npx",
@@ -49,86 +60,10 @@ export function EcosystemModal() {
     }
   }
 }`,
-    },
-    claude: {
-      name: 'Claude Desktop',
-      targetPath: 'claude_desktop_config.json',
-      cliCommand: 'claude mcp add shipsafe npx -y @lankdev/shipsafe-mcp',
-      snippet: `{
-  "mcpServers": {
-    "shipsafe": {
-      "command": "npx",
-      "args": ["-y", "@lankdev/shipsafe-mcp"]
-    }
-  }
-}`,
-    },
-    antigravity: {
-      name: 'Antigravity (agy)',
-      targetPath: '~/.gemini/antigravity/mcp_config.json',
-      cliCommand: 'agy mcp add shipsafe -- npx -y @lankdev/shipsafe-mcp',
-      snippet: `{
-  "mcpServers": {
-    "shipsafe": {
-      "command": "npx",
-      "args": ["-y", "@lankdev/shipsafe-mcp"]
-    }
-  }
-}`,
-    },
-    codex: {
-      name: 'OpenAI Codex',
-      targetPath: '~/.codex/config.json',
-      cliCommand: 'codex mcp add shipsafe -- npx -y @lankdev/shipsafe-mcp',
-      snippet: `{
-  "mcpServers": {
-    "shipsafe": {
-      "command": "npx",
-      "args": ["-y", "@lankdev/shipsafe-mcp"]
-    }
-  }
-}`,
-    },
-    windsurf: {
-      name: 'Windsurf',
-      targetPath: '~/.codeium/windsurf/mcp_config.json',
-      snippet: `{
-  "mcpServers": {
-    "shipsafe": {
-      "command": "npx",
-      "args": ["-y", "@lankdev/shipsafe-mcp"]
-    }
-  }
-}`,
-    },
-    copilot: {
-      name: 'GitHub Copilot',
-      targetPath: '.vscode/mcp.json',
-      snippet: `{
-  "mcpServers": {
-    "shipsafe": {
-      "command": "npx",
-      "args": ["-y", "@lankdev/shipsafe-mcp"]
-    }
-  }
-}`,
-    },
-    prompt: {
-      name: 'Prompt AI Agent',
-      targetPath: 'One-Click Prompt for Coding Agents',
-      isPrompt: true,
-      snippet: `Install and configure the ShipSafe security auditor MCP server in this workspace so you can audit vulnerabilities before deployment.
-
-MCP Server Configuration:
-Command: npx -y @lankdev/shipsafe-mcp
-Protocol: Stdio JSON-RPC 2.0
-
-Once registered, run the \`audit_codebase\` tool across the project root, evaluate findings against the 10 threat vectors, and generate verified remediation patches before deployment.`,
-    },
   }
 
   const handleCopyMcp = () => {
-    void navigator.clipboard.writeText(mcpConfigs[mcpClient].snippet)
+    void navigator.clipboard.writeText(mcpConfigs[mcpClient])
     setCopiedMcp(true)
     setTimeout(() => setCopiedMcp(false), 2000)
   }
@@ -154,23 +89,34 @@ Once registered, run the \`audit_codebase\` tool across the project root, evalua
         <button
           type="button"
           onClick={() => openTab('mcp')}
-          className={`font-mono text-caption uppercase px-3 py-1.5 rounded-xs font-bold transition-colors cursor-pointer border ${activeTab === 'mcp' ? 'bg-ink text-canvas border-ink' : 'bg-surface text-ink-2 border-rule hover:border-ink'}`}
+          className={`font-mono text-caption uppercase px-3 py-1.5 rounded-xs font-bold transition-colors cursor-pointer border inline-flex items-center gap-1.5 ${activeTab === 'mcp' ? 'bg-ink text-canvas border-ink' : 'bg-surface text-ink-2 border-rule hover:border-ink'}`}
         >
-          ⚡ MCP Server
+          <svg className="size-3.5 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+          <span>MCP Server</span>
         </button>
         <button
           type="button"
           onClick={() => openTab('cli')}
-          className={`font-mono text-caption uppercase px-3 py-1.5 rounded-xs font-bold transition-colors cursor-pointer border ${activeTab === 'cli' ? 'bg-ink text-canvas border-ink' : 'bg-surface text-ink-2 border-rule hover:border-ink'}`}
+          className={`font-mono text-caption uppercase px-3 py-1.5 rounded-xs font-bold transition-colors cursor-pointer border inline-flex items-center gap-1.5 ${activeTab === 'cli' ? 'bg-ink text-canvas border-ink' : 'bg-surface text-ink-2 border-rule hover:border-ink'}`}
         >
-          💻 Terminal CLI
+          <svg className="size-3.5 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="4 17 10 11 4 5" />
+            <line x1="12" y1="19" x2="20" y2="19" />
+          </svg>
+          <span>Terminal CLI</span>
         </button>
         <button
           type="button"
           onClick={() => openTab('docs')}
-          className={`font-mono text-caption uppercase px-3 py-1.5 rounded-xs font-bold transition-colors cursor-pointer border ${activeTab === 'docs' ? 'bg-ink text-canvas border-ink' : 'bg-surface text-ink-2 border-rule hover:border-ink'}`}
+          className={`font-mono text-caption uppercase px-3 py-1.5 rounded-xs font-bold transition-colors cursor-pointer border inline-flex items-center gap-1.5 ${activeTab === 'docs' ? 'bg-ink text-canvas border-ink' : 'bg-surface text-ink-2 border-rule hover:border-ink'}`}
         >
-          📖 Documentation
+          <svg className="size-3.5 shrink-0 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+          <span>Documentation</span>
         </button>
       </div>
 
@@ -190,60 +136,40 @@ Once registered, run the \`audit_codebase\` tool across the project root, evalua
           </div>
 
           <div className="border border-rule bg-raised rounded-sm overflow-hidden">
-            <div className="flex items-center justify-between border-b border-rule bg-surface px-3 py-2 font-mono text-caption gap-2">
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                {(Object.keys(mcpConfigs) as McpClient[]).map((key) => {
-                  const cfg = mcpConfigs[key]
-                  const isActive = mcpClient === key
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setMcpClient(key)}
-                      className={`px-2 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer whitespace-nowrap shrink-0 ${
-                        isActive
-                          ? cfg.isPrompt
-                            ? 'border-emerald-600 bg-emerald-600 text-white'
-                            : 'border-ink bg-ink text-canvas'
-                          : cfg.isPrompt
-                            ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500'
-                            : 'border-rule hover:border-ink'
-                      }`}
-                    >
-                      {cfg.isPrompt ? '✦ ' + cfg.name : cfg.name}
-                    </button>
-                  )
-                })}
+            <div className="flex items-center justify-between border-b border-rule bg-surface px-3 py-2 font-mono text-caption">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setMcpClient('cursor')}
+                  className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer ${mcpClient === 'cursor' ? 'border-ink bg-ink text-canvas' : 'border-rule hover:border-ink'}`}
+                >
+                  Cursor
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMcpClient('claude')}
+                  className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer ${mcpClient === 'claude' ? 'border-ink bg-ink text-canvas' : 'border-rule hover:border-ink'}`}
+                >
+                  Claude Desktop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMcpClient('windsurf')}
+                  className={`px-2.5 py-1 text-[11px] font-bold uppercase rounded-xs border cursor-pointer ${mcpClient === 'windsurf' ? 'border-ink bg-ink text-canvas' : 'border-rule hover:border-ink'}`}
+                >
+                  Windsurf / Hermes
+                </button>
               </div>
               <button
                 type="button"
                 onClick={handleCopyMcp}
-                className="font-bold uppercase px-2.5 py-1 text-[11px] bg-surface border border-rule hover:border-ink cursor-pointer active:scale-95 shrink-0"
+                className="font-bold uppercase px-2 py-1 text-[11px] bg-surface border border-rule hover:border-ink cursor-pointer active:scale-95"
               >
-                {copiedMcp ? '✓ COPIED' : mcpConfigs[mcpClient].isPrompt ? 'COPY PROMPT' : 'COPY CONFIG'}
+                {copiedMcp ? '✓ COPIED' : 'COPY CONFIG'}
               </button>
             </div>
-            <div className="px-3 py-1.5 border-b border-rule bg-canvas/40 font-mono text-[11px] flex items-center justify-between gap-2 text-ink-3">
-              <div className="truncate">
-                <span>Target: </span>
-                <span className="font-semibold text-ink truncate">{mcpConfigs[mcpClient].targetPath}</span>
-              </div>
-              {mcpConfigs[mcpClient].cliCommand && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(mcpConfigs[mcpClient].cliCommand!)
-                    setCopiedMcp(true)
-                    setTimeout(() => setCopiedMcp(false), 2000)
-                  }}
-                  className="hidden sm:inline-block text-[10px] bg-surface px-1.5 py-0.5 border border-rule hover:border-ink cursor-pointer text-ink-2"
-                >
-                  CLI: <code className="text-ink">{mcpConfigs[mcpClient].cliCommand}</code>
-                </button>
-              )}
-            </div>
             <pre className="p-3 text-caption font-mono text-ink overflow-x-auto leading-relaxed bg-raised">
-              {mcpConfigs[mcpClient].snippet}
+              {mcpConfigs[mcpClient]}
             </pre>
           </div>
 
@@ -275,7 +201,7 @@ Once registered, run the \`audit_codebase\` tool across the project root, evalua
               onClick={() => navigateToLandingAnchor('#mcp')}
               className="text-small font-bold text-ink hover:underline cursor-pointer flex items-center gap-1"
             >
-              <span>View full MCP showcase on Landing Page</span>
+              <span>Buka Konfigurasi MCP Lengkap</span>
               <span>&rarr;</span>
             </button>
           </div>
@@ -293,11 +219,59 @@ Once registered, run the \`audit_codebase\` tool across the project root, evalua
               </span>
             </div>
             <p className="text-small text-ink-2 mt-1">
-              Run audits on local directories before committing. Zero dependencies, offline-ready, outputs security scorecard ASCII table.
+              Run audits on local directories before committing. Zero dependencies, offline-ready, outputs Security Docket ASCII scorecard.
             </p>
           </div>
 
           <div className="space-y-3">
+            <div className="border border-rule bg-surface p-3 rounded-sm">
+              <div className="flex items-center justify-between mb-1">
+                <div className="font-mono text-[11px] font-bold text-ink-3 uppercase">CLI AUTHENTICATION GATEWAY</div>
+                <span className="font-mono text-[10px] text-ink font-bold bg-raised px-2 py-0.5 border border-rule">
+                  {user ? 'AUTHENTICATED' : 'LOGIN REQUIRED'}
+                </span>
+              </div>
+              {user ? (
+                <div>
+                  <p className="text-[11px] text-ink-2 mb-2 font-mono">
+                    Signed in as <strong className="text-ink">{user.email || 'developer'}</strong>. Run in terminal to link local CLI:
+                  </p>
+                  <div className="flex items-center justify-between bg-raised p-2 rounded-xs border border-rule font-mono text-small">
+                    <code className="text-ink font-bold truncate max-w-[280px]">
+                      shipsafe login --token=sk_shipsafe_session
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard.writeText('shipsafe login --token=sk_shipsafe_session')
+                        setCopiedToken(true)
+                        setTimeout(() => setCopiedToken(false), 2000)
+                      }}
+                      className="text-caption px-2 py-0.5 border border-rule hover:border-ink bg-surface font-bold uppercase cursor-pointer shrink-0"
+                    >
+                      {copiedToken ? '✓ COPIED' : 'COPY COMMAND'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] text-ink-2 font-mono">
+                    ShipSafe CLI requires an authenticated session token to run scans.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close()
+                      setAuthModalOpen(true)
+                    }}
+                    className="text-caption px-2.5 py-1 border border-ink bg-ink text-canvas font-bold uppercase cursor-pointer shrink-0"
+                  >
+                    SIGN IN
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="border border-rule bg-surface p-3 rounded-sm">
               <div className="font-mono text-[11px] font-bold text-ink-3 uppercase mb-1">AUDIT LOCAL DIRECTORY</div>
               <div className="flex items-center justify-between bg-raised p-2 rounded-xs border border-rule font-mono text-small">
@@ -345,7 +319,7 @@ Once registered, run the \`audit_codebase\` tool across the project root, evalua
               onClick={() => navigateToLandingAnchor('#cli')}
               className="text-small font-bold text-ink hover:underline cursor-pointer flex items-center gap-1"
             >
-              <span>View full CLI guide on Landing Page</span>
+              <span>Buka Panduan Terminal CLI Lengkap</span>
               <span>&rarr;</span>
             </button>
           </div>
@@ -407,27 +381,14 @@ Once registered, run the \`audit_codebase\` tool across the project root, evalua
               onClick={() => navigateToLandingAnchor('#threat-matrix')}
               className="text-small font-bold text-ink hover:underline cursor-pointer"
             >
-              View Threat Matrix on Landing Page &rarr;
+              Tinjau Matriks 10 Vektor Ancaman &rarr;
             </button>
           </div>
         </div>
       )}
 
       {/* 5. Footer */}
-      <div className="mt-6 pt-3 border-t border-rule flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => {
-            close()
-            if (typeof window !== 'undefined') {
-              window.history.pushState({}, '', '/')
-              window.dispatchEvent(new PopStateEvent('popstate'))
-            }
-          }}
-          className="font-mono text-caption uppercase text-ink font-bold hover:underline cursor-pointer flex items-center gap-1"
-        >
-          <span>&larr; Return to Landing Page</span>
-        </button>
+      <div className="mt-6 pt-3 border-t border-rule flex items-center justify-end">
         <button
           type="button"
           onClick={close}

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, createClerkClient } from '@clerk/backend';
+import { verifyCliToken, isCliToken } from './cli-token';
 
 export interface AuthenticatedUser {
   id: string;
@@ -38,14 +39,32 @@ export async function verifyClerkJwt(token: string): Promise<VerifyJwtResult> {
     return { valid: false, error: 'Token is missing or empty', statusCode: 401 };
   }
 
-  // 1. Validate developer tokens, provider tokens, or CLI automation API keys
+  // 1. Validate signed ShipSafe CLI access tokens
+  if (isCliToken(token)) {
+    const cliResult = verifyCliToken(token);
+    if (cliResult.valid && cliResult.user) {
+      return {
+        valid: true,
+        user: {
+          id: cliResult.user.id,
+          email: cliResult.user.email || 'cli@shipsafe.dev',
+        },
+      };
+    }
+    return {
+      valid: false,
+      error: cliResult.error || 'Invalid or expired CLI access token. Please run shipsafe login.',
+      statusCode: 401,
+    };
+  }
+
+  // 2. Validate developer tokens, provider tokens, or CLI automation API keys
   const configuredApiKey = process.env.SHIPSAFE_API_KEY || process.env.CLI_API_KEY;
   if (
     (configuredApiKey && token === configuredApiKey) ||
     token.startsWith('dev-token-') ||
     token.startsWith('google-token-') ||
     token.startsWith('github-token-') ||
-    token.startsWith('sk_shipsafe_') ||
     token.startsWith('sk_live_')
   ) {
     let email = 'auditor@shipsafe.dev';

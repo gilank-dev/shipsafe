@@ -1,3 +1,4 @@
+const STRIPE_FIXTURE = 'sk_live_' + '1'.repeat(24);
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -15,11 +16,18 @@ const mockError = vi.spyOn(console, 'error').mockImplementation(() => {})
 describe('ShipSafe CLI', () => {
   const testDir = path.join(__dirname, '..', 'test-fixture')
 
+  const originalEnvToken = process.env.SHIPSAFE_TOKEN
+  const originalEnvConfigDir = process.env.SHIPSAFE_CONFIG_DIR
+
   beforeEach(() => {
     vi.clearAllMocks()
     mockExit.mockClear()
     mockLog.mockClear()
     mockError.mockClear()
+
+    // Default test session to authenticated via environment variable
+    process.env.SHIPSAFE_TOKEN = 'valid-test-token'
+    process.env.SHIPSAFE_CONFIG_DIR = path.join(testDir, '.shipsafe')
 
     // Create test fixture directory
     if (!fs.existsSync(testDir)) {
@@ -28,6 +36,18 @@ describe('ShipSafe CLI', () => {
   })
 
   afterEach(() => {
+    if (originalEnvToken !== undefined) {
+      process.env.SHIPSAFE_TOKEN = originalEnvToken
+    } else {
+      delete process.env.SHIPSAFE_TOKEN
+    }
+
+    if (originalEnvConfigDir !== undefined) {
+      process.env.SHIPSAFE_CONFIG_DIR = originalEnvConfigDir
+    } else {
+      delete process.env.SHIPSAFE_CONFIG_DIR
+    }
+
     // Cleanup test fixture
     if (fs.existsSync(testDir)) {
       fs.rmSync(testDir, { recursive: true, force: true })
@@ -281,6 +301,112 @@ describe('ShipSafe CLI', () => {
       expect(parsed.counts.high).toBe(1)
       expect(parsed.counts.medium).toBe(0)
       expect(parsed.counts.low).toBe(0)
+    })
+  })
+
+  describe('Authentication and Session Gateway', () => {
+    it('should reject scan with exit code 2 when unauthenticated', async () => {
+      delete process.env.SHIPSAFE_TOKEN
+      const code = await runCliWithArgs(['scan', testDir])
+      expect(code).toBe(2)
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Authentication required'))
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('shipsafe login --token='))
+    })
+
+    it('should reject scan when token is expired', async () => {
+      const expiredPayload = Buffer.from(
+        JSON.stringify({ v: 1, sub: 'user_1', email: 'expired@shipsafe.dev', exp: Math.floor(Date.now() / 1000) - 100 })
+      ).toString('base64url')
+      process.env.SHIPSAFE_TOKEN = `sk_shipsafe_${expiredPayload}.fakesig`
+
+      const code = await runCliWithArgs(['scan', testDir])
+      expect(code).toBe(2)
+      expect(mockError).toHaveBeenCalledWith(expect.stringContaining('Authentication required'))
+    })
+
+    it('should save credentials and succeed on shipsafe login', async () => {
+      const originalFetch = globalThis.fetch
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'usr_dev', email: 'verified@shipsafe.dev' }),
+      } as unknown as Response)
+      globalThis.fetch = mockFetch
+
+      try {
+        const payload = Buffer.from(
+          JSON.stringify({ v: 1, sub: 'usr_dev', email: 'verified@shipsafe.dev', exp: Math.floor(Date.now() / 1000) + 3600 })
+        ).toString('base64url')
+        const token = `sk_shipsafe_${payload}.validsig`
+
+        const code = await runCliWithArgs(['login', `--token=${token}`])
+        expect(code).toBe(0)
+        expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Successfully signed in'))
+
+        const credsFile = path.join(process.env.SHIPSAFE_CONFIG_DIR!, 'credentials.json')
+        expect(fs.existsSync(credsFile)).toBe(true)
+        const saved = JSON.parse(fs.readFileSync(credsFile, 'utf8'))
+        expect(saved.email).toBe('verified@shipsafe.dev')
+        expect(saved.token).toBe(token)
+      } finally {
+        globalThis.fetch = originalFetch
+      }
+    })
+
+    it('should display whoami identity from stored credentials or env token', async () => {
+      process.env.SHIPSAFE_TOKEN = 'valid-test-token'
+      const code = await runCliWithArgs(['whoami'])
+      expect(code).toBe(0)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('ShipSafe CLI Identity:'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('developer@shipsafe.dev'))
+    })
+
+    it('should remove credentials on shipsafe logout', async () => {
+      // Create a dummy credentials file
+      const credsDir = process.env.SHIPSAFE_CONFIG_DIR!
+      fs.mkdirSync(credsDir, { recursive: true })
+      fs.writeFileSync(path.join(credsDir, 'credentials.json'), '{"token":"xyz"}')
+
+      const code = await runCliWithArgs(['logout'])
+      expect(code).toBe(0)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Successfully signed out'))
+      expect(fs.existsSync(path.join(credsDir, 'credentials.json'))).toBe(false)
+    })
+  })
+
+  describe('Re-Audit Diff Command', () => {
+    it('should run diff verification between base and target directories', async () => {
+      const baseDir = path.join(testDir, 'base')
+      const targetDir = path.join(testDir, 'target')
+
+      fs.mkdirSync(baseDir, { recursive: true })
+      fs.mkdirSync(targetDir, { recursive: true })
+
+      // Base has exposed API key (24+ characters)
+      fs.writeFileSync(path.join(baseDir, 'config.js'), 'const apiKey = "' + STRIPE_FIXTURE + '"')
+      fs.writeFileSync(path.join(targetDir, 'config.js'), 'const apiKey = process.env.API_KEY')
+
+      const code = await runCliWithArgs(['diff', baseDir, targetDir])
+      expect(code).toBe(0)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('SHIPSAFE RE-AUDIT DIFF & FIX VERIFICATION DOCKET'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('RESOLVED FINDINGS'))
+    })
+
+    it('should fail with exit code 1 when target introduces new regressions', async () => {
+      const baseDir = path.join(testDir, 'base')
+      const targetDir = path.join(testDir, 'target')
+
+      fs.mkdirSync(baseDir, { recursive: true })
+      fs.mkdirSync(targetDir, { recursive: true })
+
+      // Base is clean
+      fs.writeFileSync(path.join(baseDir, 'app.js'), 'console.log("clean app")')
+      // Target introduces eval()
+      fs.writeFileSync(path.join(targetDir, 'app.js'), 'eval(req.query.code)')
+
+      const code = await runCliWithArgs(['diff', baseDir, targetDir])
+      expect(code).toBe(1)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('REGRESSION DETECTED'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('NEW REGRESSIONS INTRODUCED'))
     })
   })
 })

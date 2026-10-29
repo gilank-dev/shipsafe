@@ -3,15 +3,15 @@
 :root {
   color-scheme: light dark;
 
-  --canvas: light-dark(#edf0ee, #090a0f);
-  --surface: light-dark(#f7f9f7, #11131a);
-  --raised: light-dark(#ffffff, #161922);
+  --canvas: light-dark(#edf0ee, #0d1012);
+  --surface: light-dark(#f7f9f7, #15191c);
+  --raised: light-dark(#ffffff, #1b2024);
   --ink: light-dark(#13171a, #e9edeb);
   --ink-2: light-dark(#3a4349, #b5bfbb);
   --ink-3: light-dark(#545f65, #939e99);
   --placeholder: light-dark(#5a656b, #89948f);
-  --rule: light-dark(#c9cfcb, #1e2230);
-  --rule-strong: light-dark(#636f69, #2e364f);
+  --rule: light-dark(#c9cfcb, #2b3338);
+  --rule-strong: light-dark(#636f69, #7c8883);
 
   --sev-critical-bg: light-dark(#b3261e, #f0675f);
   --sev-critical-fg: light-dark(#ffffff, #14070a);
@@ -109,27 +109,19 @@ html[data-theme='dark'] {
   --color-neutral-900: #18181b;
   --color-neutral-950: #090a0b;
 
-  /* Industrial Swiss Dark Brand Tokens */
-  --color-brand-bg: #090a0f;
-  --color-brand-surface: #11131a;
-  --color-brand-border: #1e2230;
-
   /* Accent status colors */
   --color-emerald-50: #ecfdf5;
   --color-emerald-500: #10b981;
   --color-emerald-600: #059669;
-  --color-cyan-400: #22d3ee;
-  --color-cyan-500: #06b6d4;
-  --color-cyan-950: #083344;
   --color-rose-50: #fff1f2;
-  --color-rose-500: #ef4444;
-  --color-rose-600: #dc2626;
-  --color-rose-950: #450a0a;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
+  --color-rose-950: #4c0519;
   --color-amber-500: #f59e0b;
   --color-amber-600: #d97706;
 
-  --font-sans: 'Geist Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --font-sans: 'Archivo Variable', system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
   --text-caption: 0.75rem;
   --text-caption--line-height: 1.4;

@@ -4,6 +4,11 @@ import { ClerkProvider } from '@clerk/clerk-react'
 import './styles/index.css'
 import App from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { useStore } from './state/store'
+
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  ;(window as unknown as { __store?: typeof useStore }).__store = useStore
+}
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 

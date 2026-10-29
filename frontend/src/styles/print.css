@@ -1,15 +1,98 @@
-/* Print only the report: hide the submission panel and interactive chrome. */
+/* ShipSafe Executive Security Audit Report - Print & PDF Stylesheet
+   Standards: OWASP ASVS Level 2, Anti-Slop, High-Contrast Black/White */
+
 @media print {
+  @page {
+    margin: 1.5cm;
+    size: auto;
+  }
+
+  /* 1. Hide interactive controls, chrome, and non-report elements */
   [data-print='hide'],
-  .skip-link {
+  .skip-link,
+  header,
+  nav[role='tablist'],
+  button,
+  .btn,
+  .filter-chip,
+  dialog,
+  aside,
+  footer,
+  #project-submission,
+  .no-print {
     display: none !important;
   }
+
+  /* 2. Reset base colors and backgrounds to clean ink on paper */
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
   html,
   body {
-    background: #fff;
-    color: #000;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
+
+  /* 3. Layout Grid override: full-width report container */
   .layout-grid {
     display: block !important;
+    width: 100% !important;
+  }
+
+  #audit-report {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 4. Page Break Controls */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+    color: #000000 !important;
+    font-weight: 700 !important;
+  }
+
+  section,
+  article,
+  .border,
+  .rounded-\[var\(--radius-control\)\] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border-color: #cccccc !important;
+  }
+
+  /* 5. Typography and Contrast */
+  code,
+  pre,
+  .font-mono {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 9pt !important;
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    border: 1px solid #cccccc !important;
+    padding: 6pt !important;
+  }
+
+  /* 6. Expand all tab panels during print so the full dossier is included */
+  [role='tabpanel'] {
+    display: block !important;
+    margin-bottom: 24pt !important;
   }
 }
