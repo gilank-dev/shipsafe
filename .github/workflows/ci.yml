@@ -35,11 +35,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         # Lock yang dibuat di Windows tidak memuat binary optional varian Linux
-        # (lightningcss, esbuild — bug npm/cli#4828), sehingga npm ci gagal di
-        # runner Linux. Resolusi fresh di Linux mengembalikan binary yang benar.
+        # (lightningcss/esbuild — bug npm/cli#4828). npm ci lalu reify eksplisit
+        # paket native agar varian Linux terunduh tanpa mengubah lock.
         run: |
-          rm package-lock.json
-          npm install --no-audit --no-fund
+          npm ci
+          npm install --no-save --no-package-lock lightningcss esbuild
       - name: Typecheck + lint + unit tests (incl. axe-core)
         run: |
           npm run typecheck -w frontend
