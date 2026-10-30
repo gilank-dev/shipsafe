@@ -34,12 +34,10 @@ jobs:
           node-version: 20
           cache: npm
       - name: Install dependencies
-        # Lock yang dibuat di Windows tidak memuat binary optional varian Linux
-        # (lightningcss/esbuild — bug npm/cli#4828). npm ci lalu reify eksplisit
-        # paket native agar varian Linux terunduh tanpa mengubah lock.
-        run: |
-          npm ci
-          npm install --no-save --no-package-lock lightningcss esbuild
+        # package-lock.json WAJIB di-generate di Linux (npm di Windows memangkas
+        # binary optional varian Linux — bug npm/cli#4828). Lock kanonik saat ini
+        # berisi varian win32 + linux sekaligus, jadi npm ci aman di dua platform.
+        run: npm ci
       - name: Typecheck + lint + unit tests (incl. axe-core)
         run: |
           npm run typecheck -w frontend
