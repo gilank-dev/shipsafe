@@ -34,10 +34,12 @@ jobs:
           node-version: 20
           cache: npm
       - name: Install dependencies
-        # npm install (bukan npm ci): lockfile yang dibuat di Windows hanya memuat
-        # binary optional lightningcss win32 — bug npm/cli#4828. Install ulang di
-        # runner Linux mengembalikan varian platform yang benar.
-        run: npm install --no-audit --no-fund
+        # Lock yang dibuat di Windows tidak memuat binary optional varian Linux
+        # (lightningcss, esbuild — bug npm/cli#4828), sehingga npm ci gagal di
+        # runner Linux. Resolusi fresh di Linux mengembalikan binary yang benar.
+        run: |
+          rm package-lock.json
+          npm install --no-audit --no-fund
       - name: Typecheck + lint + unit tests (incl. axe-core)
         run: |
           npm run typecheck -w frontend
