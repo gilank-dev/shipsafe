@@ -211,7 +211,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
       faq: 'FAQ',
       login: 'Sign In / Register',
       logout: 'Sign Out',
-      launchConsole: 'Launch Console',
+      launchConsole: 'Console',
     },
     hero: {
       eyebrowBadge: 'ShipSafe Security Platform',
@@ -247,7 +247,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           risk: 'Brand Trust',
         },
       ],
-      ctaPrimary: 'Launch Console',
+      ctaPrimary: 'Console',
       ctaSecondary: 'Explore Ecosystem',
       cliLabel: 'npx @lankdev/shipsafe-cli scan .',
       copyButton: 'Copy',
@@ -260,7 +260,7 @@ export const landingDictionary: Record<Language, LandingContentDictionary> = {
           title: 'Instant Web Audit',
           description:
             'Upload a ZIP archive or link a GitHub repository for a 3-second AST analysis and an authoritative security clearance verdict.',
-          actionLabel: 'Launch Console',
+          actionLabel: 'Console',
         },
         {
           pillarId: 'PILLAR 02 / MCP',

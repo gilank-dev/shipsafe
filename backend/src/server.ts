@@ -16,7 +16,12 @@ import { clerkAuthGuard, requireClerkAuth, AuthRequest } from './security/auth-g
 import { parseGitHubRepo, fetchGitHubRepoZip } from './security/repo-importer';
 import { saveAuditToSupabase } from './security/audit-saver';
 import { issueCliToken, isCliToken } from './security/cli-token';
+import { globalLimiter, auditLimiter, authVoucherLimiter } from './security/rate-limiter';
+import { consumeUserAuditQuota, refundUserAuditQuota } from './security/quota-guard';
+import { buildAdminRouter, verifyJwtAuth } from './security/admin-routes';
+import { getIntakeStatus } from './security/admin-controller';
 import { createClient } from '@supabase/supabase-js';
+import type { AuditReport, Finding, AgentTarget } from './types';
 
 dotenv.config();
 
@@ -26,6 +31,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 23010;
 // Security Middleware
 app.use(helmet({ contentSecurityPolicy: false })); // API server
 app.use(corsMiddleware);
+app.use(globalLimiter); // 120 req/min per client IP (Cloudflare/Vercel-aware)
 
 app.use(express.json({ limit: '2mb' }));
 
@@ -42,7 +48,7 @@ const uploadAuditFile = upload.fields([
 ]);
 
 // Simple in-memory report cache for prompt reformatting
-const reportCache = new Map<string, AuditReport>();
+import { reportCache } from './engine/report-cache';
 
 // 1. Healthcheck Endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -78,11 +84,13 @@ app.get('/api/ai/health', async (_req: Request, res: Response) => {
 });
 
 // 1.25 Developer & Fallback Auth Login Endpoint
-app.post('/api/auth/login', async (req: Request, res: Response) => {
+app.post('/api/auth/login', authVoucherLimiter, async (req: Request, res: Response) => {
   const { email, password, isDev } = req.body || {};
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  // If isDev flag, developer email, or no credentials provided
-  if (isDev || email === 'developer@example.com' || !email) {
+  // Legacy dev-mode bypass: ONLY for local development / non-production builds.
+  // In production every login MUST be verified against the real auth service.
+  if (!isProduction && (isDev || email === 'developer@example.com' || !email)) {
     const devUser = {
       id: 'usr-dev-auditor',
       email: 'developer@example.com',
@@ -98,11 +106,19 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     return;
   }
 
-  // Attempt Supabase authentication if credentials provided and Supabase is configured
+  if (!email || typeof email !== 'string' || !password) {
+    res.status(400).json({
+      success: false,
+      error: { code: 'missing_credentials', message: 'Email dan password wajib diisi.' }
+    });
+    return;
+  }
+
+  // Attempt Supabase authentication
   const supabaseUrl = process.env.SUPABASE_URL;
   const apiKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
-  if (supabaseUrl && apiKey && !supabaseUrl.includes('your-project-ref') && password) {
+  if (supabaseUrl && apiKey && !supabaseUrl.includes('your-project-ref')) {
     try {
       const url = `${supabaseUrl.replace(/\/+$/, '')}/auth/v1/token?grant_type=password`;
       const response = await fetch(url, {
@@ -129,10 +145,37 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
           });
           return;
         }
+      } else if (response.status === 400 || response.status === 401 || response.status === 403) {
+        // Supabase explicitly rejected the credentials.
+        res.status(401).json({
+          success: false,
+          error: { code: 'invalid_credentials', message: 'Email atau password salah.' }
+        });
+        return;
       }
+      // Other non-OK statuses fall through to the fail-closed decision below.
     } catch (err) {
-      console.warn('[ShipSafe Auth] Supabase direct login error, using fallback profile:', err);
+      console.warn('[ShipSafe Auth] Supabase direct login error:', err);
     }
+  }
+
+  const isSupabaseConfigured = Boolean(
+    supabaseUrl && apiKey && !supabaseUrl.includes('your-project-ref')
+  );
+
+  // FAIL-CLOSED in production: no dev tokens may be minted by an HTTP route.
+  if (isProduction || isSupabaseConfigured) {
+    const statusCode = isSupabaseConfigured ? 401 : 503;
+    res.status(statusCode).json({
+      success: false,
+      error: {
+        code: isSupabaseConfigured ? 'invalid_credentials' : 'auth_service_unavailable',
+        message: isSupabaseConfigured
+          ? 'Email atau password salah.'
+          : 'Layanan autentikasi sedang tidak tersedia. Silakan coba beberapa saat lagi.'
+      }
+    });
+    return;
   }
 
   // Graceful fallback profile for development / demo mode so user is never locked out
@@ -262,8 +305,19 @@ app.post('/api/import-repo', requireClerkAuth, async (req: AuthRequest, res: Res
   }
 });
 
-// 2. Audit Endpoint with Mandatory Auth & Concurrency Limiter (Max 3 concurrent users + FIFO Queue)
-app.post('/api/audit', requireClerkAuth, uploadAuditFile, async (req: AuthRequest, res: Response, next: NextFunction) => {
+// 2. Audit Endpoint with Mandatory Auth, Rate Limit, Intake Gate & Quota Enforcement
+app.post('/api/audit', auditLimiter, requireClerkAuth, uploadAuditFile, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  // Product intake control: Super Admin can pause new scan intake globally.
+  if (!getIntakeStatus()) {
+    res.status(503).json({
+      error: {
+        code: 'intake_paused',
+        message: 'ShipSafe scan intake is temporarily paused for platform maintenance. Please retry later.'
+      }
+    });
+    return;
+  }
+
   const turnstileToken =
     req.body?.['cf-turnstile-response'] ||
     req.body?.turnstileToken ||
@@ -353,6 +407,33 @@ app.post('/api/audit', requireClerkAuth, uploadAuditFile, async (req: AuthReques
   }
 
   try {
+    // Enforce monthly audit quota (Supabase RPC with FOR UPDATE row locking).
+    // Non-UUID identities (CLI runner / local dev) receive an internal fallback.
+    const quotaUserId = req.user?.id;
+    if (quotaUserId) {
+      try {
+        const quota = await consumeUserAuditQuota(quotaUserId);
+        if (!quota.allowed) {
+          res.status(402).json({
+            error: {
+              code: 'quota_exceeded',
+              message: 'Batas kuota audit bulanan Anda telah tercapai. Silakan upgrade ke Pro.',
+              quota: {
+                tier: quota.tier,
+                used: quota.used,
+                limit: quota.limit,
+                remaining: 0,
+                resetDate: quota.reset_date
+              }
+            }
+          });
+          return;
+        }
+      } catch {
+        // Quota guard failures must never block an audit; continue.
+      }
+    }
+
     // Acquire slot in queue (Max 3 workers concurrently)
     const result = await globalAuditQueue.run(async () => {
       let tempDir: string | undefined;
@@ -431,6 +512,10 @@ app.post('/api/audit', requireClerkAuth, uploadAuditFile, async (req: AuthReques
       queueStats: globalAuditQueue.stats
     });
   } catch (err: any) {
+    // Refund the consumed quota unit when the audit fails (scanner crash,
+    // queue saturation, unsafe archive) so users aren't billed for broken runs.
+    void refundUserAuditQuota(req.user?.id as string).catch(() => undefined);
+
     if (err.code === 'QUEUE_FULL') {
       res.status(429).json({
         error: {
@@ -495,6 +580,8 @@ app.post('/api/audit/:id/prompts', (req: Request, res: Response) => {
 
 //
 // 4. Re-Audit Diff & Fix Verification Endpoint
+// NOTE: verification always requires a verified session; identity comes from
+// the Supabase audit ledger, not from client-supplied payloads alone.
 //
 app.post('/api/audit/verify-diff', requireClerkAuth, async (req: AuthRequest, res: Response) => {
   try {
@@ -531,7 +618,7 @@ app.post('/api/audit/verify-diff', requireClerkAuth, async (req: AuthRequest, re
       });
 
       // Get user ID from Clerk auth
-      const userId = req.auth?.userId;
+      const userId = req.user?.id;
 
       if (userId) {
         const { resolvedFindings, persistentFindings, regressedFindings } = diffResult;
@@ -594,7 +681,7 @@ app.post('/api/audit/verify-diff', requireClerkAuth, async (req: AuthRequest, re
 
     res.json({
       ...diffResult,
-      saved: supabaseUrl && serviceKey && !supabaseUrl.includes('your-project-ref') && req.auth?.userId ? true : false
+      saved: supabaseUrl && serviceKey && !supabaseUrl.includes('your-project-ref') && req.user?.id ? true : false
     });
   } catch (error) {
     console.error('verify-diff endpoint error:', error);
@@ -606,31 +693,10 @@ app.post('/api/audit/verify-diff', requireClerkAuth, async (req: AuthRequest, re
     });
   }
 });
-app.post('/api/audit/verify-diff', (req: Request, res: Response) => {
-  const { baseReport, targetReport, baseAuditId, targetAuditId } = req.body;
-
-  let resolvedBase: AuditReport | undefined = baseReport;
-  let resolvedTarget: AuditReport | undefined = targetReport;
-
-  if (!resolvedBase && baseAuditId) {
-    resolvedBase = reportCache.get(baseAuditId);
-  }
-  if (!resolvedTarget && targetAuditId) {
-    resolvedTarget = reportCache.get(targetAuditId);
-  }
-
-  if (!resolvedBase || !resolvedTarget) {
-    return res.status(400).json({
-      error: {
-        code: 'missing_audit_reports',
-        message: 'Both baseReport and targetReport (or valid cached baseAuditId and targetAuditId) must be provided for diff verification.'
-      }
-    });
-  }
-
-  const diffResult = compareAuditReports(resolvedBase, resolvedTarget);
-  res.json(diffResult);
-});
+// ---------------------------------------------------------------------------
+// 5. Super Admin Console API + verified user helpers (mounted under /api)
+// ---------------------------------------------------------------------------
+app.use('/api', buildAdminRouter(verifyJwtAuth, { authMode: 'production' }));
 
 // Global Error Handler
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

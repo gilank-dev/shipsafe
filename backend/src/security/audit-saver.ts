@@ -63,7 +63,8 @@ export async function saveAuditToSupabase(params: SaveAuditParams): Promise<Save
     const auditRes = await fetch(`${baseUrl}/rest/v1/audits`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(auditPayload)
+      body: JSON.stringify(auditPayload),
+      signal: AbortSignal.timeout(8000)
     });
 
     if (!auditRes.ok) {
@@ -104,7 +105,8 @@ export async function saveAuditToSupabase(params: SaveAuditParams): Promise<Save
       const findingsRes = await fetch(`${baseUrl}/rest/v1/findings`, {
         method: 'POST',
         headers,
-        body: JSON.stringify(findingsPayload)
+        body: JSON.stringify(findingsPayload),
+        signal: AbortSignal.timeout(8000)
       });
 
       if (!findingsRes.ok) {

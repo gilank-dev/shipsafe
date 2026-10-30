@@ -106,7 +106,7 @@ flowchart LR
 | **Frontend** | React 19, Vite, Tailwind CSS v4, Vercel Edge | Hosted di `https://shipsafe.lankdev.my.id`. Desain *Anti-Slop* berdensitas tinggi (dark mode, kontras tajam WCAG AA), bot defense via Cloudflare Turnstile CAPTCHA. |
 | **Backend** | Node.js 20, Express, TypeScript, CentOS 9 Stream VPS | Static analysis engine, AST parsing, sandboxing terisolasi, antrean FIFO maksimal 3 audit serentak anti-overload. |
 | **AI Gateway** | 9Router (`hermes-agent`) | Pembuat prompt perbaikan kontekstual per coding agent, dengan *auto-fallback* ke aturan statis jika AI offline. |
-| **Database & Auth** | Supabase (PostgreSQL) + Clerk JWT | Autentikasi aman (GitHub, Google, Email, Magic Link) dan riwayat audit multi-tenant dengan Row Level Security (RLS). |
+| **Database & Auth** | Supabase (PostgreSQL) + Supabase Auth | Autentikasi aman (GitHub, Google, Email, Magic Link) dan riwayat audit multi-tenant dengan Row Level Security (RLS). |
 
 - **Yang Diucapkan**:
   > *"Frontend berjalan di Vercel Edge dengan domain resmi shipsafe.lankdev.my.id. Backend berjalan di VPS kami dengan sistem antrean FIFO yang membatasi maksimal tiga audit bersamaan agar server tetap stabil. Prompt perbaikan dibuat lewat AI gateway, dengan aturan statis sebagai cadangan jika AI tidak tersedia. Riwayat audit disimpan aman di Supabase dengan RLS."*
@@ -233,7 +233,7 @@ flowchart LR
 > "Dampak kebocoran data sangat minimal karena:
 > 1. Kami tidak menyimpan berkas ZIP atau repositori kode pengguna di disk.
 > 2. Kredensial yang tersimpan di riwayat database sudah di-masking secara permanen.
-> 3. Database Supabase kami diproteksi oleh RLS multi-tenant yang ketat, enkripsi at-rest, dan otentikasi berbasis Clerk/Supabase JWT."
+> 3. Database Supabase kami diproteksi oleh RLS multi-tenant yang ketat, enkripsi at-rest, dan otentikasi berbasis Supabase Auth JWT."
 
 ---
 

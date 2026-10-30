@@ -31,7 +31,7 @@ ShipSafe/
 │   │   ├── components/    # UI components (landing/, ui/, dialogs/, submission/, report/, run/, shell/, markdown/)
 │   │   ├── api/           # HTTP client + mock fallback
 │   │   ├── domain/        # Validation, secret masking, samples
-│   │   ├── lib/           # Clerk, Supabase clients
+│   │   ├── lib/           # Supabase client & API integrations
 │   │   ├── state/         # Zustand stores
 │   │   └── styles/        # Design tokens (tokens.css), markdown.css
 │   ├── package.json       # Scripts: dev, build, preview, typecheck, lint, test
@@ -99,13 +99,17 @@ npm start            # node dist/index.js (stdio JSON-RPC)
 npm install          # Install deps
 npm run build        # tsc → dist/index.js
 npm link             # link binary 'shipsafe' locally
-shipsafe scan .      # audit local folder
+shipsafe scan .      # audit local folder (anonymous)
+shipsafe scan . --agent=cursor   # tailored AI prompt generation (cursor, claude, copilot, windsurf)
+shipsafe login --token=sk_...    # link CLI to Supabase user account
+shipsafe whoami      # inspect identity & token status
+shipsafe diff <base> [target]    # re-audit fix verification
 ```
 
 ### Key Environment Variables
-**Frontend** (`.env`): `VITE_API_MODE` (mock|http), `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_CLOUDFLARE_TURNSTILE_SITE_KEY`
+**Frontend** (`.env`): `VITE_API_MODE` (mock|http), `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_CLOUDFLARE_TURNSTILE_SITE_KEY`
 
-**Backend** (`.env`): `PORT=23010`, `CORS_ORIGIN`, `MAX_ZIP_SIZE_MB=10`, `CLERK_SECRET_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL=hermes-agent`, `TURNSTILE_SECRET`
+**Backend** (`.env`): `PORT=23010`, `CORS_ORIGIN`, `MAX_ZIP_SIZE_MB=10`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL=hermes-agent`, `TURNSTILE_SECRET`
 
 ---
 
@@ -151,10 +155,17 @@ shipsafe scan .      # audit local folder
 10. Zero-Day (`eval()`, `new Function()`, prototype pollution)
 
 ### Auth & Data Flow
+- **Primary Auth Engine**: Supabase Auth handles user registration, login, and session tokens.
 - **Optional Auth**: Anonymous users can audit; logged-in users get history persisted to Supabase
-- **JWT Verification**: Backend validates Supabase JWT via `@clerk/backend` + `SUPABASE_JWT_SECRET`
+- **JWT Verification**: Backend validates Supabase JWT via `SUPABASE_JWT_SECRET` / Supabase Auth
+- **Super Admin Whitelist**: High-privilege ledger and system administrative actions are strictly limited to `hi@lankdev.my.id`, `gilankdev@gmail.com`, `ghilankputraramadhan@gmail.com`
 - **RLS**: Full multi-tenant isolation on `audits` and `findings` tables
 - **Service Role**: Backend uses `SUPABASE_SERVICE_ROLE_KEY` for server-side writes
+
+### Official Support & Maintainer Contacts
+- **WhatsApp Lead**: [+62 821-2415-3732](https://wa.me/6282124153732) (`082124153732`)
+- **Direct Email**: [gilankdev@gmail.com](mailto:gilankdev@gmail.com)
+- **Production URL**: [https://shipsafe.lankdev.my.id](https://shipsafe.lankdev.my.id)
 
 ---
 

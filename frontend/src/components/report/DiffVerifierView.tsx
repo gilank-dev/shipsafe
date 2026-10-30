@@ -15,6 +15,7 @@ export const DiffVerifierView: React.FC<DiffVerifierViewProps> = ({ currentRepor
   // Demo baseline report or empty state for comparative diffing
   const [baseReport, setBaseReport] = useState<AuditReport | null>(null)
   const [filter, setFilter] = useState<'All' | 'Resolved' | 'Persistent' | 'Regressed'>('All')
+  const [copiedCert, setCopiedCert] = useState(false)
 
   // When baseReport is set, calculate the real diff
   const diff = baseReport ? compareAuditReports(baseReport, currentReport) : null
@@ -81,6 +82,8 @@ export const DiffVerifierView: React.FC<DiffVerifierViewProps> = ({ currentRepor
     ].join('\n')
 
     await copyToClipboard(cert)
+    setCopiedCert(true)
+    setTimeout(() => setCopiedCert(false), 2000)
     showToast('Copied Verification Certificate to clipboard!')
   }
 
@@ -116,14 +119,25 @@ export const DiffVerifierView: React.FC<DiffVerifierViewProps> = ({ currentRepor
               <button
                 type="button"
                 onClick={handleCopyCertificate}
-                className="btn btn-secondary text-small font-mono flex items-center gap-1.5"
+                className="btn btn-secondary text-small font-mono flex items-center gap-1.5 transition-all active:scale-[0.98]"
                 title="Copy markdown certificate for pull request"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                </svg>
-                <span>Export Certificate</span>
+                {copiedCert ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="text-pass animate-micro-pop">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span className="font-bold">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                    </svg>
+                    <span>Export Certificate</span>
+                  </>
+                )}
               </button>
               <button
                 type="button"

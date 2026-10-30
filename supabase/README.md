@@ -45,8 +45,14 @@ Menyimpan detail setiap kerentanan individual yang terhubung ke sebuah audit.
 - `created_at` (TIMESTAMPTZ): Timestamp pembuatan temuan.
 
 ### 3. Keamanan & Row Level Security (RLS)
-- RLS diaktifkan (`ENABLE ROW LEVEL SECURITY`) pada kedua tabel.
-- **Isolasi Penuh Multi-tenant**: Pengguna hanya dapat melakukan `SELECT`, `INSERT`, `UPDATE`, dan `DELETE` pada baris audit miliknya (`auth.uid() = user_id`) dan temuan yang terhubung ke audit miliknya.
+- RLS diaktifkan (`ENABLE ROW LEVEL SECURITY`) pada seluruh tabel: `audits`, `findings`, `audit_diffs`, `cli_tokens`, `user_quotas`, `organizations`, `user_profiles`, `organization_invites`.
+- **Isolasi Penuh Multi-tenant**: Pengguna hanya dapat melakukan `SELECT`, `INSERT`, `UPDATE`, dan `DELETE` pada baris miliknya (`auth.uid() = user_id`) dan relasi terverifikasi.
+- **Validasi Cross-Tenant pada Diffs**: Tabel `audit_diffs` menerapkan verifikasi ketat bahwa `base_audit_id` dan `target_audit_id` wajib milik `auth.uid()`.
+- **Proteksi Mutasi Profil**: Trigger `trg_protect_user_profile` mencegah pengguna biasa mengubah tier, status suspensi, kuota, atau hak Super Admin secara sepihak dari client.
+- **Otorisasi RPC Kuota**:
+  - `consume_audit_quota`: Dilindungi verifikasi kepemilikan tenant dan row locking (`FOR UPDATE`) dengan lazy monthly reset (1 bulan).
+  - `get_user_quota`: Hanya mengembalikan data kuota milik pemanggil atau diizinkan jika pemanggil adalah Super Admin.
+  - `refund_audit_quota`: **Dicabut sepenuhnya dari akses client/authenticated**, hanya dapat dieksekusi secara eksklusif oleh backend melalui `service_role`.
 - **Service Role**: Backend VPS menggunakan `SUPABASE_SERVICE_ROLE_KEY` bila perlu melakukan persistensi langsung dari server dengan aman tanpa melanggar batasan pengguna anonim.
 
 ### 4. Indeks Kinerja

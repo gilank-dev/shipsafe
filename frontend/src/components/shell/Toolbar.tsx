@@ -30,6 +30,7 @@ interface ToolbarProps {
 export function Toolbar({ ref, activeView = 'audit', onSelectView }: ToolbarProps) {
   const statusLine = useStatusLine()
   const user = useStore((s) => s.auth.user)
+  const isSidebarOpen = useStore((s) => s.isSidebarOpen)
   const toggleSidebar = useStore((s) => s.toggleSidebar)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
 
@@ -41,8 +42,9 @@ export function Toolbar({ ref, activeView = 'audit', onSelectView }: ToolbarProp
           <button
             type="button"
             onClick={toggleSidebar}
-            aria-label="Toggle navigasi sidebar"
-            title="Toggle navigasi (Ctrl+B)"
+            aria-label="Toggle navigation sidebar"
+            aria-expanded={isSidebarOpen}
+            title="Toggle navigation sidebar (Ctrl+B)"
             className="p-1.5 text-ink-2 hover:text-ink hover:bg-surface rounded-sm cursor-pointer transition-colors"
           >
             <Menu className="size-4 shrink-0" strokeWidth={1.5} />
@@ -57,7 +59,7 @@ export function Toolbar({ ref, activeView = 'audit', onSelectView }: ToolbarProp
               }
             }}
             className="flex items-center gap-2 hover:opacity-85 transition-opacity cursor-pointer text-left shrink-0"
-            title="Kembali ke Landing Page"
+            title="Return to Landing Page"
           >
             <BrandLogo size="md" />
           </button>
@@ -73,7 +75,7 @@ export function Toolbar({ ref, activeView = 'audit', onSelectView }: ToolbarProp
                 ? 'bg-ink text-canvas font-semibold border-ink'
                 : 'bg-surface hover:bg-raised text-ink-2 hover:text-ink border-rule'
             }`}
-            title="Buka Dokumentasi Lengkap ShipSafe"
+            title="Open Complete Documentation"
           >
             <BookOpen className="size-3.5 shrink-0" strokeWidth={1.5} />
             <span>Documentation</span>
@@ -86,9 +88,9 @@ export function Toolbar({ ref, activeView = 'audit', onSelectView }: ToolbarProp
           data-testid="status-line"
         >
           {activeView === 'docs'
-            ? 'Dokumentasi & Panduan Keamanan'
+            ? 'Official Security Documentation & Guides'
             : activeView === 'pricing'
-              ? 'Paket & Langganan ShipSafe'
+              ? 'ShipSafe Subscription Tiers & Plans'
               : statusLine}
         </p>
 

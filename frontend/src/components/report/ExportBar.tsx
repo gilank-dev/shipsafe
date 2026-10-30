@@ -38,7 +38,7 @@ export function ExportBar({ findings }: ExportBarProps) {
   const handleExportMarkdown = () => {
     if (isFree) {
       openPaywallModal('export')
-      toast.error('Ekspor laporan terkunci di paket Free. Upgrade ke Pro untuk membuka ekspor Markdown, JSON, dan PDF.')
+      toast.error('Report exports are locked on the Free tier. Upgrade to Pro to unlock Markdown, JSON, and PDF exports.')
       return
     }
 
@@ -69,7 +69,7 @@ export function ExportBar({ findings }: ExportBarProps) {
   const handleExportJson = () => {
     if (isFree) {
       openPaywallModal('export')
-      toast.error('Ekspor laporan JSON terkunci di paket Free. Upgrade ke Pro untuk mengekspor data audit.')
+      toast.error('JSON report exports are locked on the Free tier. Upgrade to Pro to export audit data.')
       return
     }
 
@@ -91,7 +91,7 @@ export function ExportBar({ findings }: ExportBarProps) {
   const handleExportPdf = () => {
     if (isFree) {
       openPaywallModal('export')
-      toast.error('Ekspor laporan PDF terkunci di paket Free. Upgrade ke Pro untuk mencetak & mengunduh PDF.')
+      toast.error('PDF report exports are locked on the Free tier. Upgrade to Pro to download verified PDF certificates.')
       return
     }
 

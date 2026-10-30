@@ -44,17 +44,17 @@ export const PricingSection: React.FC = () => {
   const handleEnterpriseSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const selectedNeeds: string[] = []
-    if (enterpriseForm.needs.cicd) selectedNeeds.push('Integrasi CI/CD')
+    if (enterpriseForm.needs.cicd) selectedNeeds.push('CI/CD Pipeline Integration')
     if (enterpriseForm.needs.whiteLabel) selectedNeeds.push('White-Label PDF Report')
     if (enterpriseForm.needs.dedicatedSandbox) selectedNeeds.push('Dedicated Sandbox / On-Premise')
 
     const message = encodeURIComponent(
-      `Halo Admin ShipSafe, saya tertarik dengan paket Enterprise ShipSafe.\n\n` +
-      `Informasi Proyek / Perusahaan:\n` +
-      `- Perusahaan / Proyek: ${enterpriseForm.companyName || 'Belum diisi'}\n` +
-      `- Estimasi Deployment / Scan: ${enterpriseForm.estimatedVolume} per bulan\n` +
-      `- Kebutuhan Utama: ${selectedNeeds.length > 0 ? selectedNeeds.join(', ') : 'Konsultasi Enterprise'}\n\n` +
-      `Mohon info tindak lanjut dan penawaran teknisnya. Terima kasih.`
+      `Hello ShipSafe Security Team, I am interested in the ShipSafe Enterprise plan.\n\n` +
+      `Project & Organization Information:\n` +
+      `- Organization / Project: ${enterpriseForm.companyName || 'Not specified'}\n` +
+      `- Estimated Deployment / Scan Volume: ${enterpriseForm.estimatedVolume} scans per month\n` +
+      `- Core Requirements: ${selectedNeeds.length > 0 ? selectedNeeds.join(', ') : 'Enterprise Consultation'}\n\n` +
+      `Please provide further details on technical onboarding and custom SLA terms. Thank you.`
     )
 
     window.open(`https://wa.me/6282124153732?text=${message}`, '_blank')
@@ -66,17 +66,17 @@ export const PricingSection: React.FC = () => {
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-neutral-950 dark:text-white mb-3">
-          Investasi Keamanan Seukuran Harga Kopi
+          Developer Security for the Price of a Coffee
         </h2>
         <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed">
-          Rilis kode ke production dengan tenang. Pilih paket sesuai frekuensi deployment kamu.
+          Ship code to production with complete peace of mind. Choose the plan tailored to your release velocity.
         </p>
       </div>
 
       {/* 3-Tier Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
         {/* Tier 1: Free (Sandbox) */}
-        <div className="flex flex-col justify-between rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-white dark:bg-[#121316] p-6 sm:p-7 transition-all duration-200 hover:border-neutral-400 dark:hover:border-neutral-700 shadow-sm">
+        <div className="flex flex-col justify-between rounded-2xl border border-black/[0.08] dark:border-white/[0.12] bg-white dark:bg-[#121316] p-6 sm:p-7 transition-all duration-200 hover:border-neutral-400 dark:hover:border-neutral-700 hover:-translate-y-1 hover:shadow-md shadow-sm">
           <div>
             <div className="flex items-center justify-between mb-2 sm:mb-3">
               <span className="font-mono text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
@@ -86,11 +86,11 @@ export const PricingSection: React.FC = () => {
 
             <div className="flex items-baseline gap-1 mb-1.5">
               <span className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white">Rp 0</span>
-              <span className="text-sm text-neutral-500 dark:text-neutral-400">/ bulan</span>
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">/ month</span>
             </div>
 
             <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4 min-h-[44px]">
-              Cocok untuk menguji keamanan proyek sampingan sebelum rilis pertama.
+              Ideal for verifying side-project security before your first production launch.
             </p>
 
             <div className="w-full h-px bg-neutral-200 dark:bg-neutral-800 mb-3 sm:mb-4" />
@@ -100,31 +100,31 @@ export const PricingSection: React.FC = () => {
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>3x audit keamanan per bulan (Maks 10 MB)</span>
+                <span>3 security audits per month (Max 10 MB)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Deteksi 10 kategori ancaman & celah runtime</span>
+                <span>10 critical threat categories &amp; runtime vulnerability scans</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Auto-redaction rahasia (zero-persistence)</span>
+                <span>Zero-persistence automatic secret redaction</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Remediasi prompt AI untuk temuan pertama</span>
+                <span>AI remediation prompt unlocked for finding #1</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Format laporan web konsol & JSON</span>
+                <span>Web console &amp; JSON audit report export</span>
               </li>
             </ul>
           </div>
@@ -134,7 +134,7 @@ export const PricingSection: React.FC = () => {
             onClick={handleFreeCta}
             className="w-full py-3 px-4 rounded-xl border border-black/[0.12] dark:border-white/[0.16] bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800/80 dark:hover:bg-neutral-700 text-neutral-950 dark:text-white font-medium text-sm transition-all cursor-pointer font-sans active:scale-[0.99] text-center"
           >
-            Mulai Scan Gratis
+            Start Free Scan
           </button>
         </div>
 
@@ -142,7 +142,7 @@ export const PricingSection: React.FC = () => {
         <div className="relative flex flex-col justify-between rounded-2xl border-2 border-neutral-900 dark:border-white bg-white dark:bg-[#121316] p-6 sm:p-7 transition-all duration-200 shadow-md">
           {/* Badge */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-mono text-[10px] font-bold tracking-wide">
-            Paling Populer
+            Most Popular
           </div>
 
           <div>
@@ -154,11 +154,11 @@ export const PricingSection: React.FC = () => {
 
             <div className="flex items-baseline gap-1 mb-1.5">
               <span className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white">Rp 79.000</span>
-              <span className="text-sm text-neutral-500 dark:text-neutral-400">/ bulan</span>
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">/ month</span>
             </div>
 
             <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4 min-h-[44px]">
-              Untuk solo developer & vibe coder yang rutin ship aplikasi ke production dengan cepat dan aman.
+              For solo developers and vibe coders shipping apps to production rapidly and securely.
             </p>
 
             <div className="w-full h-px bg-neutral-200 dark:bg-neutral-800 mb-3 sm:mb-4" />
@@ -168,7 +168,7 @@ export const PricingSection: React.FC = () => {
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Unlimited scan ZIP & CLI scans lokal</span>
+                <span>Unlimited ZIP audits &amp; local CLI scans</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -180,19 +180,19 @@ export const PricingSection: React.FC = () => {
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Ekspor sertifikat resmi kelayakan format PDF</span>
+                <span>Official security clearance PDF certificate export</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Riwayat audit tersimpan & Supabase sync</span>
+                <span>Persistent audit history &amp; cloud synchronization</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Prioritas antrean server AI tercepat</span>
+                <span>Highest-priority AI worker queue execution</span>
               </li>
             </ul>
           </div>
@@ -202,7 +202,7 @@ export const PricingSection: React.FC = () => {
             onClick={handleProCta}
             className="w-full py-3 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-900 font-medium text-sm transition-all cursor-pointer font-sans active:scale-[0.99] text-center"
           >
-            Upgrade ke Pro Sekarang
+            Upgrade to Pro
           </button>
         </div>
 
@@ -216,11 +216,11 @@ export const PricingSection: React.FC = () => {
             </div>
 
             <div className="flex items-baseline gap-1 mb-1.5">
-              <span className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white">Kustom</span>
+              <span className="text-3xl sm:text-4xl font-extrabold text-neutral-950 dark:text-white">Custom</span>
             </div>
 
             <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4 min-h-[44px]">
-              Untuk proyek skala besar dengan dedicated sandbox dan SLA khusus.
+              For large-scale projects requiring dedicated sandboxes and tailored SLAs.
             </p>
 
             <div className="w-full h-px bg-neutral-200 dark:bg-neutral-800 mb-3 sm:mb-4" />
@@ -230,31 +230,31 @@ export const PricingSection: React.FC = () => {
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Unlimited audit + dedicated VPS sandbox</span>
+                <span>Unlimited audits + dedicated VPS isolation sandbox</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Kustom kapasitas upload (hingga 500 MB+)</span>
+                <span>Custom upload capacity (up to 500 MB+)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Aturan kustom AST & regex khusus arsitektur</span>
+                <span>Custom AST &amp; regex rules tailored to your architecture</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Full integrasi otomatis CI/CD (GitHub & GitLab)</span>
+                <span>Full CI/CD automated pipeline integration (GitHub &amp; GitLab)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="size-3.5 sm:size-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                <span>White-label PDF & SLA prioritas teknis 24/7</span>
+                <span>White-label branded PDF &amp; 24/7 dedicated security SLA</span>
               </li>
             </ul>
           </div>
@@ -264,7 +264,7 @@ export const PricingSection: React.FC = () => {
             onClick={() => setIsEnterpriseModalOpen(true)}
             className="w-full py-3 px-4 rounded-xl border border-black/[0.12] dark:border-white/[0.16] bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800/80 dark:hover:bg-neutral-700 text-neutral-950 dark:text-white font-medium text-sm transition-all cursor-pointer font-sans active:scale-[0.99] text-center"
           >
-            Hubungi Admin
+            Contact Security Team
           </button>
         </div>
       </div>
@@ -285,7 +285,7 @@ export const PricingSection: React.FC = () => {
               type="button"
               onClick={() => setIsEnterpriseModalOpen(false)}
               className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
-              aria-label="Tutup modal"
+              aria-label="Close modal"
             >
               <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -293,27 +293,27 @@ export const PricingSection: React.FC = () => {
             </button>
 
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-mono text-[11px] font-semibold mb-3">
-              <span>Solusi Enterprise (Custom SLA)</span>
+              <span>Enterprise Solution (Custom SLA)</span>
             </div>
 
             <h3 id="enterprise-modal-title" className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-950 dark:text-white mb-2">
-              Konsultasi Kebutuhan Enterprise
+              Enterprise Security Consultation
             </h3>
             <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-5">
-              Ceritakan kebutuhan arsitektur dan proyek Anda untuk mendapatkan penawaran khusus dan akses sandbox dedicated.
+              Share your architectural requirements and release volume to receive tailored SLA terms and dedicated sandbox access.
             </p>
 
             <form onSubmit={handleEnterpriseSubmit} className="space-y-4">
               {/* Company / Project Name */}
               <div>
                 <label htmlFor="companyName" className="block text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                  Nama Perusahaan / Proyek
+                  Company / Project Name
                 </label>
                 <input
                   id="companyName"
                   type="text"
                   required
-                  placeholder="PT Teknologi Nusantara / Proyek Produksi"
+                  placeholder="Acme Technologies / Production Workspace"
                   value={enterpriseForm.companyName}
                   onChange={(e) => setEnterpriseForm({ ...enterpriseForm, companyName: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-950 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:border-neutral-900 dark:focus:border-white transition-colors"
@@ -323,24 +323,24 @@ export const PricingSection: React.FC = () => {
               {/* Estimated Volume */}
               <div>
                 <label htmlFor="estimatedVolume" className="block text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                  Estimasi Deployment / Scan per Bulan
+                  Estimated Deployment / Scan Volume per Month
                 </label>
                 <select
                   id="estimatedVolume"
                   value={enterpriseForm.estimatedVolume}
-                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, estimatedVolume: e.target.value as any })}
+                  onChange={(e) => setEnterpriseForm({ ...enterpriseForm, estimatedVolume: e.target.value as '< 100' | '100 - 500' | '500+' })}
                   className="w-full px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-neutral-950 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:border-neutral-900 dark:focus:border-white transition-colors"
                 >
-                  <option value="< 100">&lt; 100 scan per bulan</option>
-                  <option value="100 - 500">100 - 500 scan per bulan</option>
-                  <option value="500+">500+ scan per bulan</option>
+                  <option value="< 100">&lt; 100 scans per month</option>
+                  <option value="100 - 500">100 - 500 scans per month</option>
+                  <option value="500+">500+ scans per month</option>
                 </select>
               </div>
 
               {/* Primary Needs */}
               <div>
                 <span className="block text-xs font-mono font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Kebutuhan Utama
+                  Key Requirements
                 </span>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2.5 text-xs text-neutral-800 dark:text-neutral-200 cursor-pointer">
@@ -355,7 +355,7 @@ export const PricingSection: React.FC = () => {
                       }
                       className="size-4 rounded border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white focus:ring-neutral-400"
                     />
-                    <span>Integrasi CI/CD (GitHub Actions / GitLab)</span>
+                    <span>CI/CD Pipeline Integration (GitHub Actions / GitLab)</span>
                   </label>
                   <label className="flex items-center gap-2.5 text-xs text-neutral-800 dark:text-neutral-200 cursor-pointer">
                     <input
@@ -397,7 +397,7 @@ export const PricingSection: React.FC = () => {
                   <svg className="size-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.275.072.376-.044c.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z" />
                   </svg>
-                  <span>Kirim Lead ke WhatsApp Admin</span>
+                  <span>Submit Inquiry via WhatsApp</span>
                 </button>
               </div>
             </form>

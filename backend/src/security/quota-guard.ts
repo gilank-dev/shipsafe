@@ -37,12 +37,30 @@ const enterpriseHourlyCounter = new Map<string, number[]>();
 const ENTERPRISE_HOURLY_CAP = 60;
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
+function pruneEnterpriseCounter(now = Date.now()): void {
+  for (const [key, timestamps] of enterpriseHourlyCounter.entries()) {
+    const active = timestamps.filter((t) => now - t < ONE_HOUR_MS);
+    if (active.length === 0) {
+      enterpriseHourlyCounter.delete(key);
+    } else {
+      enterpriseHourlyCounter.set(key, active);
+    }
+  }
+}
+
+export function clearEnterpriseRateLimitsForTesting(): void {
+  enterpriseHourlyCounter.clear();
+}
+
 /**
  * Check Enterprise Fair Use Policy (FUP) rate limit.
  * Returns true if permitted, false if rate limit exceeded.
  */
 export function checkEnterpriseRateLimit(orgOrUserId: string): { allowed: boolean; retryAfterSeconds?: number } {
   const now = Date.now();
+  if (enterpriseHourlyCounter.size > 200) {
+    pruneEnterpriseCounter(now);
+  }
   const timestamps = (enterpriseHourlyCounter.get(orgOrUserId) || []).filter(
     (t) => now - t < ONE_HOUR_MS
   );
@@ -85,7 +103,8 @@ export async function fetchUserQuota(userId: string): Promise<QuotaStatus> {
         'Authorization': `Bearer ${serviceKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ target_user_id: userId })
+      body: JSON.stringify({ target_user_id: userId }),
+      signal: AbortSignal.timeout(5000)
     });
 
     if (res.ok) {
@@ -133,7 +152,8 @@ export async function consumeUserAuditQuota(userId: string): Promise<QuotaStatus
         'Authorization': `Bearer ${serviceKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ target_user_id: userId })
+      body: JSON.stringify({ target_user_id: userId }),
+      signal: AbortSignal.timeout(5000)
     });
 
     if (res.ok) {
@@ -178,7 +198,8 @@ export async function refundUserAuditQuota(userId: string): Promise<void> {
         'Authorization': `Bearer ${serviceKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ target_user_id: userId })
+      body: JSON.stringify({ target_user_id: userId }),
+      signal: AbortSignal.timeout(5000)
     });
     console.info(`[QuotaGuard] Successfully refunded 1 audit quota to user ${userId}`);
   } catch (err) {
@@ -187,5 +208,8 @@ export async function refundUserAuditQuota(userId: string): Promise<void> {
 }
 
 function isUuid(id: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  // Standard UUID v1-v5 OR Clerk user IDs (user_..., usr_..., usr-dev-*, usr-google, usr-github, usr-cli-runner)
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    || /^user_[a-zA-Z0-9_-]+$/i.test(id)
+    || /^usr(?:-[a-zA-Z0-9_-]+)+$/.test(id);
 }

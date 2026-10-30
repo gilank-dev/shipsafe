@@ -181,11 +181,11 @@ async function runAudit(): Promise<void> {
       void saveAuditToSupabase(report, file.name)
         .then(({ id, error }) => {
           if (!error && id) {
-            toast.info('Laporan audit berhasil disimpan ke riwayat cloud akun Anda.')
+            toast.info('Audit report successfully saved to your cloud account history.')
           }
         })
         .catch((err) => {
-          console.warn('[ShipSafe] Gagal menyimpan audit ke cloud:', err)
+          console.warn('[ShipSafe] Failed to save audit to cloud history:', err)
         })
     }
   } catch (err) {

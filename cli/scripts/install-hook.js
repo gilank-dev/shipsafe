@@ -12,8 +12,8 @@
  * It respects .gitignore and uses --fail-on=high by default.
  */
 
-const { readFileSync, writeFileSync, existsSync, chmodSync } = require('node:fs');
-const { join, resolve } = require('node:path');
+const { readFileSync, writeFileSync, existsSync, chmodSync, mkdirSync } = require('node:fs');
+const { join, resolve, dirname } = require('node:path');
 const { execSync } = require('node:child_process');
 const readline = require('node:readline');
 
@@ -76,6 +76,14 @@ function findGitRoot(startDir = process.cwd()) {
 }
 
 function getHookPath(gitRoot) {
+  try {
+    const gitHooksDir = execSync('git rev-parse --git-path hooks', { cwd: gitRoot, encoding: 'utf8' }).trim();
+    if (gitHooksDir) {
+      return resolve(gitRoot, gitHooksDir, 'pre-commit');
+    }
+  } catch {
+    // fallback
+  }
   return join(gitRoot, '.git', 'hooks', 'pre-commit');
 }
 
@@ -102,6 +110,11 @@ function installHook(gitRoot, dryRun = false) {
     console.log(newContent);
     console.log('---');
     return true;
+  }
+
+  const hookDir = dirname(hookPath);
+  if (!existsSync(hookDir)) {
+    mkdirSync(hookDir, { recursive: true });
   }
 
   writeFileSync(hookPath, newContent, { mode: 0o755 });

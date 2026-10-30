@@ -54,4 +54,50 @@ describe('Secret Scanner and Masking', () => {
     const templateFindings = scanContentForSecrets(templateText, '.env.sample');
     expect(templateFindings.length).toBe(0);
   });
+
+  it('guarantees masking is strictly idempotent on both maskSecret and maskAllSecretsInText', () => {
+    // 1. maskSecret idempotency
+    const testCases = [
+      fakeStripe,
+      fakeAws,
+      fakeGithub,
+      'sk_l****',
+      'AKIA****',
+      'ghp_****',
+      '****',
+      'abc****',
+      'abc',
+      '12345678'
+    ];
+
+    for (const item of testCases) {
+      const maskedOnce = maskSecret(item);
+      const maskedTwice = maskSecret(maskedOnce);
+      const maskedThrice = maskSecret(maskedTwice);
+      expect(maskedTwice).toBe(maskedOnce);
+      expect(maskedThrice).toBe(maskedOnce);
+    }
+
+    // 2. maskAllSecretsInText idempotency
+    const fullText = `API_KEY=${fakeStripe} and AWS=${fakeAws} and GH=${fakeGithub}`;
+    const run1 = maskAllSecretsInText(fullText);
+    const run2 = maskAllSecretsInText(run1);
+    const run3 = maskAllSecretsInText(run2);
+
+    expect(run1).toBe(`API_KEY=sk_l**** and AWS=AKIA**** and GH=ghp_****`);
+    expect(run2).toBe(run1);
+    expect(run3).toBe(run1);
+  });
+
+  it('detects standard, encrypted, and PGP private key headers', () => {
+    const rsaKey = '-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0...';
+    const opensshKey = '-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjE...';
+    const encryptedKey = '-----BEGIN ENCRYPTED PRIVATE KEY-----\nMIIFDjBABgkqhkiG9w0BBQ0w...';
+    const pgpKey = '-----BEGIN PGP PRIVATE KEY BLOCK-----\nVersion: GnuPG v2...';
+
+    expect(scanContentForSecrets(rsaKey, 'id_rsa').length).toBe(1);
+    expect(scanContentForSecrets(opensshKey, 'id_ed25519').length).toBe(1);
+    expect(scanContentForSecrets(encryptedKey, 'key.pem').length).toBe(1);
+    expect(scanContentForSecrets(pgpKey, 'secring.gpg').length).toBe(1);
+  });
 });

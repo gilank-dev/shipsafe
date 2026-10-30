@@ -33,7 +33,7 @@ export const enContent: LandingContentSchema = {
       guestClearance: 'Guest Clearance',
     },
     cta: {
-      launchConsole: 'Launch Console',
+      launchConsole: 'Console',
       launchConsoleAria: 'Launch security audit console',
     },
   },
@@ -52,7 +52,7 @@ export const enContent: LandingContentSchema = {
     reassurance:
       'Built for developers prompting at the speed of thought. Catch leaked service keys, unauthenticated API routes, broken RLS, and prompt injection surfaces in 3 seconds before pushing to production.',
     cta: {
-      primary: 'Launch Console',
+      primary: 'Console',
       shortcut: '⌘K',
       secondary: 'Explore Ecosystem',
       dropHint: 'or drop ZIP / repo URL',
@@ -77,7 +77,7 @@ export const enContent: LandingContentSchema = {
       title: 'Web Audit Console',
       description:
         'Upload a ZIP archive or import any public GitHub repository. Get instantaneous AST analysis, risk scoring, and verified security clearance directly in your browser.',
-      action: 'Launch Console ->',
+      action: 'Console ->',
     },
     mcp: {
       tag: 'PILLAR 02 / MCP',

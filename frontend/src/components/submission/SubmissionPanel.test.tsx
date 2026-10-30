@@ -3,10 +3,13 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SubmissionPanel } from './SubmissionPanel'
 import { useStore } from '../../state/store'
-import * as clerkReact from '@clerk/clerk-react'
+import { supabase } from '../../lib/supabase'
 
-describe('SubmissionPanel Clerk OAuth integration', () => {
-  const authenticateWithRedirectMock = vi.fn().mockResolvedValue({})
+describe('SubmissionPanel Supabase OAuth integration', () => {
+  const signInWithOAuthMock = vi.fn().mockResolvedValue({
+    data: { url: 'https://placeholder.supabase.co/oauth' },
+    error: null,
+  })
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -18,40 +21,39 @@ describe('SubmissionPanel Clerk OAuth integration', () => {
       },
     })
 
-    vi.spyOn(clerkReact, 'useSignIn').mockReturnValue({
-      isLoaded: true,
-      signIn: {
-        authenticateWithRedirect: authenticateWithRedirectMock,
-      } as unknown as NonNullable<ReturnType<typeof clerkReact.useSignIn>['signIn']>,
-    } as unknown as ReturnType<typeof clerkReact.useSignIn>)
+    vi.spyOn(supabase.auth, 'signInWithOAuth').mockImplementation(signInWithOAuthMock)
   })
 
-  it('triggers Clerk OAuth for Google when Sign in with Google is clicked', async () => {
+  it('triggers Supabase OAuth for Google when Sign in with Google is clicked', async () => {
     const user = userEvent.setup()
     render(<SubmissionPanel />)
 
     const googleBtn = screen.getByRole('button', { name: /Sign in with Google/i })
     await user.click(googleBtn)
 
-    expect(authenticateWithRedirectMock).toHaveBeenCalledWith(
+    expect(signInWithOAuthMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        strategy: 'oauth_google',
-        redirectUrl: expect.stringContaining('/sso-callback'),
+        provider: 'google',
+        options: expect.objectContaining({
+          redirectTo: expect.stringContaining('/'),
+        }),
       }),
     )
   })
 
-  it('triggers Clerk OAuth for GitHub when Sign in with GitHub is clicked', async () => {
+  it('triggers Supabase OAuth for GitHub when Sign in with GitHub is clicked', async () => {
     const user = userEvent.setup()
     render(<SubmissionPanel />)
 
     const githubBtn = screen.getByRole('button', { name: /Sign in with GitHub/i })
     await user.click(githubBtn)
 
-    expect(authenticateWithRedirectMock).toHaveBeenCalledWith(
+    expect(signInWithOAuthMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        strategy: 'oauth_github',
-        redirectUrl: expect.stringContaining('/sso-callback'),
+        provider: 'github',
+        options: expect.objectContaining({
+          redirectTo: expect.stringContaining('/'),
+        }),
       }),
     )
   })

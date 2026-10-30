@@ -56,7 +56,7 @@ flowchart TD
   - `CLI GUIDE` (Link ke panduan terminal).
   - `THREAT MATRIX` (Link ke matriks 10 ancaman).
 - **Aksi Cepat**:
-  - Tombol Teks `LOGIN` (Membuka Auth Modal Clerk / Supabase).
+  - Tombol Teks `LOGIN` (Membuka Auth Modal Supabase Auth).
   - Tombol Utama `LAUNCH CONSOLE ->` (Border 2px, black fill, white text, membuka web app audit).
 
 #### 2. Hero Section (Customs Docket & Quick Audit Terminal)
@@ -125,8 +125,8 @@ flowchart TD
     - On-premises Docker deployment, kustomisasi aturan keamanan organisasi, integrasi bot PR GitHub privat, faktur transfer bank / invoice perusahaan, SLA support.
 - **Direct Admin Contact Box**:
   - Judul: *"Butuh aturan audit kustom, lisensi tim, atau invoice transfer bank lokal? Kontak admin inti langsung."*
-  - Tombol Kontak 1: `[TALK ON WHATSAPP ->]` (Link langsung ke nomor admin).
-  - Tombol Kontak 2: `[TALK ON TELEGRAM ->]` (Link langsung ke username telegram admin).
+  - Tombol Kontak 1: `[TALK ON WHATSAPP ->]` (Link langsung ke WhatsApp Lead: `+62 821-2415-3732` / `082124153732`).
+  - Tombol Kontak 2: `[EMAIL ADMIN ->]` (Link langsung ke pure Gmail admin: `gilankdev@gmail.com`).
   - Status Badge: `● ADMIN ONLINE // RATA-RATA RESPON < 15 MENIT`.
 
 #### 8. Review & Cerita Pengembang Nyata (Developer Testimonials)
@@ -165,16 +165,23 @@ ShipSafe MCP Server (`shipsafe-mcp`) mengimplementasikan spesifikasi **Model Con
 ### 3.2 Daftar Tools MCP yang Disediakan
 1. **`audit_codebase`**:
    - Parameter:
-     - `projectPath` (string, path direktori lokal yang akan diaudit).
-     - `targetAgent` (string: `'Cursor' | 'ClaudeCode' | 'Copilot' | 'Windsurf'`).
-     - `failOnSeverity` (opsional: `'Critical' | 'High'`).
+     - `path` (string, opsional: path direktori lokal yang akan diaudit, default `.`).
+     - `targetAgent` (string, opsional: `'Cursor' | 'ClaudeCode' | 'Copilot' | 'Windsurf' | 'Generic'`).
    - Output: `AuditReport` ringkas dengan Skor Postur, Matriks 10 Ancaman, dan Daftar Temuan.
-2. **`get_remediation_prompt`**:
-   - Parameter: `findingId` (e.g. `'F-001'`).
-   - Output: Prompt perbaikan lengkap dengan cuplikan kode dan cara verifikasi.
-3. **`verify_fix`**:
-   - Parameter: `originalReportId`, `projectPath`.
-   - Output: Evaluasi diff apakah masalah telah tuntas (*Resolved*) atau menimbulkan regresi (*Regressed*).
+2. **`get_threat_matrix`**:
+   - Parameter: `path` (string, opsional: path target direktori).
+   - Output: Status komprehensif 10 Vektor Ancaman (`Secure`, `Warning`, `Vulnerable`).
+3. **`get_remediation_prompt`**:
+   - Parameter:
+     - `findingId` (string, wajib: misal `'F-SEC-001'`).
+     - `filePath` (string, opsional: berkas target).
+     - `targetAgent` / `agent` (string: `'Cursor' | 'ClaudeCode' | 'Copilot' | 'Windsurf'`).
+   - Output: Prompt perbaikan lengkap yang siap ditempel ke AI Coding Agent.
+4. **`verify_fix`**:
+   - Parameter:
+     - Single File Mode: `filePath` (string, wajib), `findingType` (string, opsional).
+     - Directory Comparison Mode: `baseDir` (string), `fixedDir` (string).
+   - Output: Evaluasi diff apakah masalah telah tuntas (`ALL_RESOLVED`), sebagian (`PARTIALLY_RESOLVED`), atau memicu regresi (`REGRESSION_DETECTED`).
 
 ### 3.3 Dokumentasi Konfigurasi Klien MCP
 - **Claude Desktop (`claude_desktop_config.json`)**:
@@ -182,11 +189,8 @@ ShipSafe MCP Server (`shipsafe-mcp`) mengimplementasikan spesifikasi **Model Con
   {
     "mcpServers": {
       "shipsafe": {
-        "command": "npx",
-        "args": ["-y", "@shipsafe/mcp-server"],
-        "env": {
-          "SHIPSAFE_API_URL": "https://shipsafe.lankdev.my.id/api"
-        }
+        "command": "node",
+        "args": ["C:/Users/HYPE AMD/files/PROJECT/PERSONAL/ShipSafe/mcp/dist/index.js"]
       }
     }
   }
@@ -197,7 +201,7 @@ ShipSafe MCP Server (`shipsafe-mcp`) mengimplementasikan spesifikasi **Model Con
     "mcpServers": {
       "shipsafe": {
         "command": "node",
-        "args": ["./node_modules/@shipsafe/mcp-server/dist/index.js"]
+        "args": ["./mcp/dist/index.js"]
       }
     }
   }
@@ -205,33 +209,41 @@ ShipSafe MCP Server (`shipsafe-mcp`) mengimplementasikan spesifikasi **Model Con
 
 ---
 
-## 4. Bagian III: Spesifikasi ShipSafe CLI di `cli/` (Oh My Pi)
+## 4. Bagian III: Spesifikasi ShipSafe CLI di `cli/`
 
-### 4.1 Pertanyaan: *"Bisa dan work ga kalau pakai `cli/`?"*
-**Jawaban: BISA DAN 100% WORK!**
-Alasan teknis:
-1. Direktori `cli/` terisolasi sebagai npm package tersendiri (`shipsafe-cli`).
-2. Menggunakan `commander` v12+, `chalk` untuk pewarnaan terminal, dan `adm-zip` untuk in-memory compression.
-3. Membaca `.gitignore` lokal sehingga tidak mengunggah folder besar `node_modules` atau `.git`.
-4. Berjalan sempurna sebagai executable lokal:
-   ```bash
-   cd cli && npm run build
-   node dist/index.js scan ../
-   # Atau via npx:
-   npx shipsafe scan .
-   ```
+### 4.1 Arsitektur & Pelaksanaan CLI
+Paket CLI `@lankdev/shipsafe-cli` beroperasi sebagai gatekeeper keamanan lokal dan integrasi CI/CD:
+1. Menggunakan parser argumen native Node.js (`util.parseArgs`), pewarnaan ANSI escape codes murni, dan `adm-zip` untuk pemindaian remote opsional.
+2. Mematuhi `.gitignore` lokal dan whitelist folder untuk menghindari pembacaan `node_modules` atau file biner.
+3. Mendukung eksekusi tanpa login (audit lokal 100% anonim dan instan) serta sinkronisasi sesi akun via token console.
 
-### 4.2 Fitur Lengkap yang Dikerjakan OMP di `cli/`
+### 4.2 Fitur & Perintah CLI Lengkap
 1. **Command `shipsafe scan [dir]`**:
-   - Scanning otomatis terhadap path direktori target.
-   - Mengabaikan file biner dan mematuhi `.gitignore`.
-   - Streaming multipart ZIP in-memory ke backend ShipSafe API.
-2. **Terminal Scorecard Visualizer (ASCII Table)**:
-   - Menampilkan ringkasan audit kotak tajam bergaris tebal di terminal.
-   - Pewarnaan teks: Merah untuk Critical/High, Kuning untuk Warning, Hijau untuk Clear.
-3. **CI/CD & Pre-commit Quality Gate**:
-   - Flag `--fail-on=critical` atau `--fail-on=high`.
-   - Mengembalikan `process.exit(1)` jika ada temuan yang melanggar batas toleransi.
-   - Siap dipakai langsung di Husky git hook (`.husky/pre-commit`).
-4. **Auto-Export Prompts (`--export-prompts`)**:
-   - Otomatis menyimpan file `./shipsafe-remediation.md` di root repo user berisi seluruh prompt perbaikan per file.
+   - Pengecekan statis terhadap 10 Vektor Ancaman.
+   - Flag `--agent=<agent>`: Menghasilkan prompt remediasi AI langsung di docket teks terminal atau laporan markdown (`cursor`, `claudecode`, `copilot`, `windsurf`).
+   - Flag `--format=<type>`: Pilihan output `text` (Customs Docket), `json`, `sarif` (SARIF 2.1.0 untuk GitHub Code Scanning), atau `markdown`.
+   - Flag `--fail-on=<level>`: Ambang batas exit code 1 (`critical`, `high`, `medium`, `low`).
+2. **Sinkronisasi Akun Pengguna (`login`, `whoami`, `logout`)**:
+   - `shipsafe login --token=<token>`: Mengaitkan CLI ke akun pengguna Supabase Auth dan menyimpan kredensial di `~/.shipsafe/credentials.json`.
+   - `shipsafe whoami`: Memeriksa email aktif dan masa berlaku token.
+   - `shipsafe logout`: Menghapus kredensial tersimpan secara aman.
+3. **Re-Audit Diff Command (`shipsafe diff <base> [target]`)**:
+   - Membandingkan direktori sebelum perbaikan (`baseDir`) dan sesudah perbaikan (`targetDir`).
+   - Melaporkan delta skor postur keamanan, daftar temuan yang tuntas ditutup, dan mendeteksi jika timbul celah regresi baru.
+4. **Git Pre-Commit Hook & CI/CD**:
+   - Skrip instalasi otomatis: `node scripts/install-hook.js --install`.
+   - Workflow GitHub Actions siap pakai di `.github/workflows/shipsafe-gatekeeper.yml`.
+
+---
+
+## 5. Bagian IV: Kebijakan Super Admin Clearance & Whitelist
+
+Untuk melindungi integritas buku besar sistem (*System-Wide Ledger*), manajemen kuota kustom, dan audit tenant cross-organization, ShipSafe memberlakukan aturan Super Admin Whitelist yang ketat di tingkat Supabase Auth:
+
+- **Daftar Email Super Admin Terverifikasi**:
+  1. `hi@lankdev.my.id`
+  2. `gilankdev@gmail.com`
+  3. `ghilankputraramadhan@gmail.com`
+- **Tingkat Otorisasi**:
+  - Hanya identitas terotentikasi yang cocok dengan salah satu dari ketiga email di atas yang dapat mengakses `/console?tab=admin` atau mengeksekusi override administratif.
+  - Sesi dari email non-whitelist secara otomatis dialihkan ke interface standar dengan peringatan `[CLEARANCE: ACCESS RESTRICTED]`.

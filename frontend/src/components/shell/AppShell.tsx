@@ -52,6 +52,10 @@ export function AppShell({ submission, report }: AppShellProps) {
 
   const handleSelectView = (view: 'audit' | 'docs' | 'pricing') => {
     setConsoleView(view)
+    if (typeof window !== 'undefined') {
+      const url = view === 'audit' ? '/console' : `/console?view=${view}`
+      window.history.pushState({}, '', url)
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 

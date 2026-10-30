@@ -12,7 +12,7 @@ const SECRET_PATTERNS: { name: string; regex: RegExp }[] = [
   { name: 'AWS Access Key ID', regex: /AKIA[0-9A-Z]{16}/g },
   { name: 'GitHub Personal Access Token', regex: /ghp_[0-9a-zA-Z]{36}/g },
   { name: 'GitHub Fine-grained PAT', regex: /github_pat_[0-9a-zA-Z_]{60,}/g },
-  { name: 'RSA / OpenSSH Private Key', regex: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/g },
+  { name: 'RSA / OpenSSH / PGP Private Key', regex: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED |PGP )?PRIVATE KEY(?: BLOCK)?-----/g },
   { name: 'Database Connection String', regex: /(?:postgres|postgresql|mysql|mongodb|mongodb\+srv|redis):\/\/[a-zA-Z0-9_]+:[^@\s"']+@[^\s"']+/g },
   { name: 'Slack Incoming Webhook', regex: /https:\/\/hooks\.slack\.com\/services\/T[0-9A-Z]{8,}\/B[0-9A-Z]{8,}\/[0-9a-zA-Z]{24}/g },
   { name: 'SendGrid API Key', regex: /SG\.[a-zA-Z0-9_-]{22}\.[a-zA-Z0-9_-]{43}/g },
@@ -41,13 +41,25 @@ const IGNORE_SUBSTRINGS = [
 ];
 
 export function maskSecret(value: string): string {
-  if (!value || value.length <= 4) return '****';
+  if (!value) return '****';
+  // Idempotency: if already masked (e.g. "sk_l****" or "AKIA****" or "****"), preserve without mutating
+  if (value.endsWith('****')) {
+    const prefix = value.slice(0, -4);
+    if (prefix.length <= 4 && !prefix.includes('*')) {
+      return value;
+    }
+  }
+  if (value.length <= 4) return '****';
   return value.substring(0, 4) + '****';
 }
 
 export function isFalsePositive(match: string, line?: string, filePath?: string): boolean {
   // 1. Template / Example file ignore
-  if (filePath && /\.(?:example|sample|template|dist)$/i.test(filePath)) {
+  if (filePath && (
+    /\.(?:example|sample|template|dist)$/i.test(filePath) ||
+    /\.(?:example|sample|template)\.[a-zA-Z0-9]+$/i.test(filePath) ||
+    /(?:^|[\\/])(?:examples?|samples?|templates?)[\\/]/i.test(filePath)
+  )) {
     return true;
   }
 

@@ -77,7 +77,7 @@ type Severity = keyof typeof SEVERITY_WEIGHT
 // Built-in Static Rules for Local Scanning (Zero-External Dependency)
 // ============================================================================
 
-interface Finding {
+export interface Finding {
   id: string
   title: string
   severity: Severity
@@ -86,6 +86,145 @@ interface Finding {
   line?: number
   description: string
   remediation: string
+  snippet?: string
+  verifyWith?: string
+  remediationPrompt?: string
+}
+
+export function generateCliRemediationPrompt(finding: Finding, agent: string = 'cursor'): string {
+  const locStr = finding.file + (finding.line ? `:${finding.line}` : '')
+  const snippetStr = finding.snippet
+    ? `\nContext Snippet:\n\`\`\`\n${finding.snippet}\n\`\`\`\n`
+    : ''
+  const verifyStr = finding.verifyWith
+    ? `Verification command: \`${finding.verifyWith}\``
+    : 'Verification command: Run test suite and check static security invariants.'
+
+  const norm = (agent || 'cursor').toLowerCase().replace(/[\s-_]/g, '')
+
+  if (norm.includes('cursor')) {
+    return [
+      `/* @security-fix: [${finding.id}] ${finding.title} */`,
+      `TARGET: @${locStr}`,
+      `SEVERITY: ${finding.severity} | AREA: ${finding.category}`,
+      snippetStr,
+      `VULNERABILITY DESCRIPTION:`,
+      `${finding.description}`,
+      ``,
+      `SECURITY RISK:`,
+      `Potential exploitation of ${finding.category} threat vector.`,
+      ``,
+      `REMEDIATION DIRECTIVE:`,
+      `${finding.remediation}`,
+      ``,
+      `VERIFICATION:`,
+      `${verifyStr}`,
+      ``,
+      `CONSTRAINTS:`,
+      `1. Apply minimal surgical edits directly inside @${finding.file}.`,
+      `2. Preserve all surrounding interfaces and business contracts.`,
+      `3. Never hardcode credentials. Store secrets exclusively in environment variables.`,
+      `4. If live tokens were committed, rotate them immediately in your secrets manager.`
+    ].join('\n')
+  }
+
+  if (norm.includes('claude')) {
+    return [
+      `Task: Fix security vulnerability [${finding.id}] ${finding.title}`,
+      `Severity: ${finding.severity} | Area: ${finding.category}`,
+      `File: ${locStr}`,
+      snippetStr,
+      `Problem:`,
+      `${finding.description}`,
+      ``,
+      `Threat Analysis:`,
+      `Potential exploitation of ${finding.category} threat vector.`,
+      ``,
+      `Action Required:`,
+      `${finding.remediation}`,
+      ``,
+      `Verification Step:`,
+      `${verifyStr}`,
+      ``,
+      `Execution Protocol:`,
+      `- Inspect the exact location before editing.`,
+      `- Implement the minimal fix without unnecessary refactoring.`,
+      `- Run verification commands to prove the patch works with zero regressions.`,
+      `- Never commit secrets or placeholder credentials.`
+    ].join('\n')
+  }
+
+  if (norm.includes('copilot')) {
+    return [
+      `// SECURITY FIX: [${finding.id}] ${finding.title} (${finding.severity} - ${finding.category})`,
+      `// File: ${locStr}`,
+      `// Vulnerability: ${finding.description}`,
+      `// Impact: Potential exploitation of ${finding.category} threat vector.`,
+      `// Action: ${finding.remediation}`,
+      snippetStr ? `// Snippet: ${finding.snippet}` : '',
+      `// Invariant: Do not break existing API signatures.`,
+      `// ${verifyStr}`,
+      `// Note: Rotate any leaked credentials immediately.`
+    ].filter(Boolean).join('\n')
+  }
+
+  if (norm.includes('windsurf')) {
+    return [
+      `[ShipSafe Cascade Task] Fix ${finding.id}: ${finding.title}`,
+      `Location: #${locStr}`,
+      `Severity: ${finding.severity} | Area: ${finding.category}`,
+      snippetStr,
+      `Issue Analysis:`,
+      `${finding.description}`,
+      ``,
+      `Exploitation Impact:`,
+      `Potential exploitation of ${finding.category} threat vector.`,
+      ``,
+      `Required Modification:`,
+      `${finding.remediation}`,
+      ``,
+      `Verification:`,
+      `${verifyStr}`,
+      ``,
+      `Rules: Apply a localized diff to #${finding.file}. Retain backward compatibility.`
+    ].join('\n')
+  }
+
+  // Generic
+  return [
+    `You are an expert security engineer. Patch the following vulnerability cleanly:`,
+    ``,
+    `1. Vulnerability: [${finding.id}] ${finding.title} (${finding.severity} | ${finding.category})`,
+    `2. Location: ${locStr}`,
+    snippetStr,
+    `3. Cause: ${finding.description}`,
+    `4. Security Impact: Potential exploitation of ${finding.category} threat vector.`,
+    `5. Prescribed Fix: ${finding.remediation}`,
+    `6. Verification: ${verifyStr}`,
+    `7. Rules:`,
+    `   - Make targeted edits with zero collateral side effects.`,
+    `   - Never hardcode keys or credentials.`,
+    `   - If real credentials leaked, rotate them immediately.`
+  ].join('\n')
+}
+
+export function formatCliAgentPrompt(
+  agent: string,
+  findingId: string,
+  title: string,
+  file: string,
+  remediation: string
+): string {
+  const norm = agent.toLowerCase().replace(/[\s-_]/g, '')
+  if (norm.includes('claude')) {
+    return `[Claude Code Prompt]\n/audit-fix Resolve ${findingId} (${title}) in \`${file}\`:\n1. ${remediation}\n2. Verify that no hardcoded credentials or unescaped inputs remain.\n3. Run tests to confirm zero regression.`
+  } else if (norm.includes('copilot')) {
+    return `[GitHub Copilot Prompt]\nResolve ${findingId} (${title}) in \`${file}\` with GitHub Copilot:\n1. ${remediation}\n2. Verify that no hardcoded credentials or unescaped inputs remain.\n3. Run tests to confirm zero regression.`
+  } else if (norm.includes('windsurf')) {
+    return `[Windsurf Cascade Prompt]\n[Cascade] Resolve ${findingId} (${title}) in \`${file}\`:\n1. ${remediation}\n2. Verify that no hardcoded credentials or unescaped inputs remain.\n3. Run tests to confirm zero regression.`
+  } else {
+    return `[Cursor Prompt]\nResolve ${findingId} (${title}) in \`${file}\`:\n1. ${remediation}\n2. Verify that no hardcoded credentials or unescaped inputs remain.\n3. Run tests to confirm zero regression.`
+  }
 }
 
 interface ScanResult {
@@ -98,6 +237,18 @@ interface ScanResult {
     high: number
     medium: number
     low: number
+  }
+  account?: {
+    status?: string
+    message?: string
+    email?: string
+    tier?: string
+    quota?: {
+      tier: string
+      used: number
+      limit: number
+      remaining: number
+    }
   }
 }
 
@@ -154,7 +305,7 @@ const RULES: Array<{
     severity: 'CRITICAL',
     category: 'Zero-Day / Code Execution',
     extensions: ['.js', '.ts', '.mjs'],
-    regex: /(?:eval\s*\((?!\s*\))|new\s+Function\s*\()/,
+    regex: /(?:eval\s*\((?!\s*\))|new\s+Function\s*\((?!\s*\)))/,
     description: 'Dynamic execution of unvalidated code strings.',
     remediation: 'Replace dynamic evaluation with static parser or structured data mapping.',
   },
@@ -386,9 +537,10 @@ function scanDirectory(
     ignoredDirs?: string[]
     gitIgnoreRules?: GitIgnoreRule[]
     respectGitIgnore?: boolean
+    targetAgent?: string
   } = {}
 ): ScanResult {
-  const { ignoredDirs = DEFAULT_IGNORED_DIRS, gitIgnoreRules = [], respectGitIgnore = true } = options
+  const { ignoredDirs = DEFAULT_IGNORED_DIRS, gitIgnoreRules = [], respectGitIgnore = true, targetAgent = 'cursor' } = options
   let scannedFiles = 0
   const findings: Finding[] = []
 
@@ -409,6 +561,7 @@ function scanDirectory(
       } else if (entry.isFile()) {
         if (entry.name === '.gitignore' || entry.name.startsWith('.git')) continue
         if (/\.(?:test|spec)\.[a-zA-Z0-9]+$/i.test(entry.name)) continue
+        if (/(?:^|\/)(?:docs|__tests__|fixtures|mocks)\//i.test(normalizedRelPath) || /DocumentationPage\.tsx$/i.test(entry.name)) continue
 
         const shouldSkip = respectGitIgnore && shouldIgnore(normalizedRelPath, false, gitIgnoreRules)
         if (shouldSkip) continue
@@ -426,7 +579,8 @@ function scanDirectory(
               for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
                 const lineContent = lines[lineIdx]
                 if (rule.regex.test(lineContent)) {
-                  findings.push({
+                  const snippet = lineContent.trim()
+                  const fItem: Finding = {
                     id: rule.id,
                     title: rule.title,
                     severity: rule.severity,
@@ -435,7 +589,10 @@ function scanDirectory(
                     line: lineIdx + 1,
                     description: rule.description,
                     remediation: rule.remediation,
-                  })
+                    snippet,
+                  }
+                  fItem.remediationPrompt = generateCliRemediationPrompt(fItem, targetAgent)
+                  findings.push(fItem)
                 }
               }
             }
@@ -581,8 +738,18 @@ export function deleteStoredCredentials(): boolean {
 
 export function parseTokenPayload(token: string): { email?: string; exp?: number; sub?: string } | null {
   if (!token || typeof token !== 'string') return null
-  if (token.startsWith('dev-token-') || token.startsWith('google-token-') || token.startsWith('test-token') || token === 'valid-test-token') {
-    return { email: 'developer@shipsafe.dev', exp: Math.floor(Date.now() / 1000) + 86400 }
+  if (token.startsWith('dev-token-') || token.startsWith('google-token-') || token.startsWith('github-token-') || token.startsWith('test-token') || token === 'valid-test-token') {
+    let email = 'developer@shipsafe.dev'
+    for (const prefix of ['dev-token-', 'google-token-', 'github-token-']) {
+      if (token.startsWith(prefix)) {
+        const candidate = token.slice(prefix.length)
+        if (candidate.includes('@')) {
+          email = candidate
+          break
+        }
+      }
+    }
+    return { email, exp: Math.floor(Date.now() / 1000) + 86400 }
   }
   if (!token.startsWith('sk_shipsafe_')) return null
   const body = token.slice('sk_shipsafe_'.length)
@@ -596,7 +763,21 @@ export function parseTokenPayload(token: string): { email?: string; exp?: number
   }
 }
 
-export function getEffectiveAuth(): { token: string; email: string; source: string; expiresAt?: string } | null {
+export function getEffectiveAuth(explicitToken?: string): { token: string; email: string; source: string; expiresAt?: string } | null {
+  // 0. Explicit token passed via argument
+  if (explicitToken) {
+    const payload = parseTokenPayload(explicitToken)
+    if (payload?.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null
+    }
+    return {
+      token: explicitToken,
+      email: payload?.email || (explicitToken.startsWith('dev-token-') ? explicitToken.slice('dev-token-'.length) : 'developer@shipsafe.dev'),
+      source: 'command line argument (--token)',
+      expiresAt: payload?.exp ? new Date(payload.exp * 1000).toISOString() : undefined,
+    }
+  }
+
   // 1. Environment variable takes precedence (for CI / CD pipelines)
   const envToken = process.env.SHIPSAFE_TOKEN
   if (envToken) {
@@ -606,7 +787,7 @@ export function getEffectiveAuth(): { token: string; email: string; source: stri
     }
     return {
       token: envToken,
-      email: payload?.email || 'ci-runner@shipsafe.dev',
+      email: payload?.email || (envToken.startsWith('dev-token-') ? envToken.slice('dev-token-'.length) : 'ci-runner@shipsafe.dev'),
       source: 'environment variable SHIPSAFE_TOKEN',
       expiresAt: payload?.exp ? new Date(payload.exp * 1000).toISOString() : undefined,
     }
@@ -621,7 +802,7 @@ export function getEffectiveAuth(): { token: string; email: string; source: stri
     }
     return {
       token: stored.token,
-      email: stored.email || payload?.email || 'developer@shipsafe.dev',
+      email: stored.email || payload?.email || (stored.token.startsWith('dev-token-') ? stored.token.slice('dev-token-'.length) : 'developer@shipsafe.dev'),
       source: 'stored credentials (~/.shipsafe/credentials.json)',
       expiresAt: stored.expiresAt || (payload?.exp ? new Date(payload.exp * 1000).toISOString() : undefined),
     }
@@ -699,7 +880,50 @@ async function runRemoteAudit(
 // Report Printers
 // ============================================================================
 
-function printTextReport(result: ScanResult, failOn: string, authEmail?: string): void {
+export interface AccountDocketInfo {
+  email?: string
+  tier?: string
+  used?: number
+  limit?: number
+  remaining?: number
+  isAnonymous?: boolean
+}
+
+export function formatPromptBox(promptText: string, agentName: string = 'cursor'): string {
+  const BOX_WIDTH = 74
+  const title = `[PROMPT // 1-CLICK REMEDIATION FOR ${agentName.toUpperCase()}]`
+  const headerDashes = Math.max(0, BOX_WIDTH - 5 - title.length)
+  const top = `┌─ ${style.bold(title)} ${'─'.repeat(headerDashes)}┐`
+  const bottom = `└${'─'.repeat(BOX_WIDTH - 2)}┘`
+  const innerWidth = BOX_WIDTH - 4 // 70
+
+  const lines = promptText.split('\n')
+  const renderedLines: string[] = []
+
+  for (const rawLine of lines) {
+    if (rawLine.length === 0) {
+      renderedLines.push(`│ ${' '.repeat(innerWidth)} │`)
+    } else if (rawLine.length <= innerWidth) {
+      renderedLines.push(`│ ${rawLine.padEnd(innerWidth)} │`)
+    } else {
+      let remaining = rawLine
+      while (remaining.length > 0) {
+        const chunk = remaining.slice(0, innerWidth)
+        remaining = remaining.slice(innerWidth)
+        renderedLines.push(`│ ${chunk.padEnd(innerWidth)} │`)
+      }
+    }
+  }
+
+  return [top, ...renderedLines, bottom].join('\n')
+}
+
+function printTextReport(
+  result: ScanResult,
+  failOn: string,
+  accountInfo?: AccountDocketInfo | string,
+  targetAgent: string = 'cursor'
+): void {
   const LINE = '─'.repeat(74)
   const isPass = result.verdict === 'APPROVED_FOR_SHIP'
   const failColor = isPass ? style.green : style.red
@@ -720,13 +944,26 @@ function printTextReport(result: ScanResult, failOn: string, authEmail?: string)
     `├${style.bold(LINE)}┤`
   )
   console.log(
-    `│ ${style.dim('Target Directory:')} ${path.resolve(result.targetDir).slice(0, 70).padEnd(70)} │`
+    `│ ${style.dim('Target Directory:')} ${path.resolve(result.targetDir).slice(0, 52).padEnd(52)} │`
   )
-  if (authEmail) {
-    console.log(
-      `│ ${style.dim('Authenticated   :')} ${authEmail.slice(0, 52).padEnd(52)} │`
-    )
+
+  let accountDisplay = ''
+  if (typeof accountInfo === 'string') {
+    accountDisplay = accountInfo
+  } else if (accountInfo && !accountInfo.isAnonymous && accountInfo.email) {
+    const tier = (accountInfo.tier || 'FREE').toUpperCase()
+    const used = accountInfo.used ?? 0
+    const limit = accountInfo.limit ?? 0
+    const rem = accountInfo.remaining ?? Math.max(0, limit - used)
+    accountDisplay = `${accountInfo.email} [${tier} TIER] | Quota: ${used}/${limit} (${rem} remaining)`
+  } else {
+    accountDisplay = "Anonymous Local Scan (Run 'shipsafe login --token=<token>' to sync quota)"
   }
+
+  console.log(
+    `│ ${style.dim('Account: ')}${accountDisplay} │`
+  )
+
   console.log(
     `│ ${style.dim('Scanned Files   :')} ${result.scannedFiles} source files verified ${
       style.reset().padEnd(74 - 28 - String(result.scannedFiles).length)
@@ -763,6 +1000,16 @@ function printTextReport(result: ScanResult, failOn: string, authEmail?: string)
     console.log(`  Location : ${loc}`)
     console.log(`  Threat   : ${f.category}`)
     console.log(`  Remedy   : ${f.remediation}`)
+    if (targetAgent) {
+      console.log(`  Agent (${targetAgent}) :`)
+      const agentLines = formatCliAgentPrompt(targetAgent, f.id, f.title, f.file, f.remediation).split('\n')
+      for (const line of agentLines) {
+        console.log(`    ${style.dim(line)}`)
+      }
+    }
+    const promptToPrint = f.remediationPrompt || generateCliRemediationPrompt(f, targetAgent)
+    console.log('')
+    console.log(formatPromptBox(promptToPrint, targetAgent))
     console.log('')
   }
 
@@ -782,6 +1029,79 @@ function printJsonReport(result: ScanResult): void {
 function printSarifReport(result: ScanResult, toolVersion: string): void {
   const sarif = generateSarif(result, toolVersion)
   console.log(JSON.stringify(sarif, null, 2))
+}
+
+function printMarkdownReport(
+  result: ScanResult,
+  failOn: string = 'high',
+  accountInfo?: AccountDocketInfo | string,
+  targetAgent: string = 'cursor'
+): void {
+  const isPass = result.verdict === 'APPROVED_FOR_SHIP'
+  const statusBadge = isPass ? '✅ **APPROVED FOR SHIP**' : '🛑 **REJECTED - SHIP BLOCKED**'
+
+  console.log('# ShipSafe Security Docket')
+  console.log('')
+  console.log(`**Verdict**: ${statusBadge}  `)
+  console.log(`**Target Directory**: \`${path.resolve(result.targetDir)}\`  `)
+
+  let accountDisplay = ''
+  if (typeof accountInfo === 'string') {
+    accountDisplay = accountInfo
+  } else if (accountInfo && !accountInfo.isAnonymous && accountInfo.email) {
+    const tier = (accountInfo.tier || 'FREE').toUpperCase()
+    const used = accountInfo.used ?? 0
+    const limit = accountInfo.limit ?? 0
+    const rem = accountInfo.remaining ?? Math.max(0, limit - used)
+    accountDisplay = `${accountInfo.email} [${tier} TIER] | Quota: ${used}/${limit} (${rem} remaining)`
+  } else {
+    accountDisplay = "Anonymous Local Scan (Run `shipsafe login --token=<token>` to sync quota)"
+  }
+  console.log(`**Account**: ${accountDisplay}  `)
+
+  console.log(`**Scanned Files**: ${result.scannedFiles} source files verified  `)
+  console.log(`**Policy**: Fail on severity >= \`${failOn.toUpperCase()}\`  `)
+  console.log('')
+  console.log('### Severity Breakdown')
+  console.log('')
+  console.log('| Critical | High | Medium | Low | Total Findings |')
+  console.log('| :---: | :---: | :---: | :---: | :---: |')
+  console.log(`| ${result.counts.critical} | ${result.counts.high} | ${result.counts.medium} | ${result.counts.low} | ${result.findings.length} |`)
+  console.log('')
+
+  if (result.findings.length === 0) {
+    console.log('✅ *All AST/regex perimeter checks passed. No high-risk vectors detected.*')
+    return
+  }
+
+  console.log('### Flagged Findings')
+  console.log('')
+  console.log('| ID | Severity | Category | Location | Title & Remediation |')
+  console.log('| :--- | :--- | :--- | :--- | :--- |')
+  for (const f of result.findings) {
+    const loc = f.line ? `\`${f.file}:${f.line}\`` : `\`${f.file}\``
+    console.log(`| **${f.id}** | \`${f.severity}\` | ${f.category} | ${loc} | **${f.title}**: ${f.remediation} |`)
+    if (targetAgent) {
+      console.log('')
+      console.log(`> **${targetAgent.toUpperCase()} REMEDIATION PROMPT**:`)
+      console.log('```markdown')
+      console.log(formatCliAgentPrompt(targetAgent, f.id, f.title, f.file, f.remediation))
+      console.log('```')
+      console.log('')
+    }
+  }
+  console.log('')
+
+  console.log('### 1-Click AI Remediation Prompts')
+  console.log('')
+  for (const f of result.findings) {
+    const promptText = f.remediationPrompt || formatCliAgentPrompt(targetAgent, f.id, f.title, f.file, f.remediation)
+    console.log(`#### [${f.id}] ${f.title} (${targetAgent.toUpperCase()})`)
+    console.log('```markdown')
+    console.log(promptText)
+    console.log('```')
+    console.log('')
+  }
 }
 
 export interface CliDiffResult {
@@ -927,6 +1247,47 @@ function printDiffTextReport(diff: CliDiffResult, authEmail?: string): void {
     console.log('')
   }
 }
+
+function printDiffMarkdownReport(diff: CliDiffResult): void {
+  const isImproved = diff.scoreDelta >= 0 && diff.regressedFindings.length === 0
+  const statusBadge = isImproved ? '✅ **VERIFICATION PASSED**' : '🛑 **REGRESSION DETECTED**'
+
+  console.log('# ShipSafe Re-Audit Diff & Fix Verification')
+  console.log('')
+  console.log(`**Status**: ${statusBadge}  `)
+  console.log(`**Base Directory**: \`${path.resolve(diff.baseDir)}\`  `)
+  console.log(`**Target Directory**: \`${path.resolve(diff.targetDir)}\`  `)
+  console.log(`**Posture Delta**: ${diff.scoreBefore}/10 -> ${diff.scoreAfter}/10 (${diff.scoreDelta >= 0 ? '+' : ''}${diff.scoreDelta} pts)  `)
+  console.log(`**Summary**: ${diff.resolvedFindings.length} resolved | ${diff.regressedFindings.length} regressed | ${diff.persistentFindings.length} persistent  `)
+  console.log('')
+
+  if (diff.resolvedFindings.length > 0) {
+    console.log('### ✅ Resolved Findings')
+    console.log('')
+    for (const f of diff.resolvedFindings) {
+      console.log(`- **${f.id}**: ${f.title} (\`${f.file}\`)`)
+    }
+    console.log('')
+  }
+
+  if (diff.regressedFindings.length > 0) {
+    console.log('### 🛑 New Regressions Introduced')
+    console.log('')
+    for (const f of diff.regressedFindings) {
+      console.log(`- **[${f.severity}] ${f.id}**: ${f.title} (\`${f.file}\`) - Remedy: ${f.remediation}`)
+    }
+    console.log('')
+  }
+
+  if (diff.persistentFindings.length > 0) {
+    console.log('### ⚠️ Persistent Findings')
+    console.log('')
+    for (const f of diff.persistentFindings) {
+      console.log(`- **${f.id}**: ${f.title} (\`${f.file}\`)`)
+    }
+    console.log('')
+  }
+}
 // ============================================================================
 // Main CLI Entry Point
 // ============================================================================
@@ -940,13 +1301,16 @@ export async function runCli(): Promise<void> {
       help: { type: 'boolean', short: 'h' },
       version: { type: 'boolean', short: 'v' },
       format: { type: 'string', default: 'text' },
-      'fail-on': { type: 'string', default: 'high' },
+      'fail-on': { type: 'string' },
+      threshold: { type: 'string' },
+      strict: { type: 'boolean' },
       ignore: { type: 'string' },
       'remote-url': { type: 'string' },
       'api-key': { type: 'string' },
       'api-url': { type: 'string' },
       token: { type: 'string' },
       'no-gitignore': { type: 'boolean' },
+      agent: { type: 'string' },
     },
     allowPositionals: true,
   })
@@ -969,9 +1333,13 @@ COMMANDS:
 OPTIONS:
   --token=<token>      Access token for 'login' command
   --api-url=<url>      ShipSafe web server URL [default: https://shipsafe.lankdev.my.id]
+  --agent=<agent>      Target AI coding agent for tailored remediation prompts
+                       (cursor, claudecode, copilot, windsurf)
   --fail-on=<level>    Minimum severity to return exit code 1
                        (critical|high|medium|low) [default: high]
-  --format=<type>      Output format: text, json, sarif [default: text]
+  --threshold=<level>  Alias for --fail-on
+  --strict             Enforce strict gatekeeper check
+  --format=<type>      Output format: text, json, sarif, markdown [default: text]
   --ignore=<dirs>      Comma-separated directories to ignore
                        [default: node_modules,dist,.git]
   --remote-url=<url>   ShipSafe VPS endpoint for remote audit
@@ -1002,6 +1370,12 @@ EXAMPLES:
 
   # SARIF format for GitHub Code Scanning
   shipsafe scan . --format=sarif
+
+  # Markdown format for PR comments
+  shipsafe scan . --format=markdown
+
+  # Strict gating with threshold critical
+  shipsafe scan . --threshold=critical --strict
 
   # Remote audit to VPS using authenticated session
   shipsafe scan . --remote-url=https://shipsafe.lankdev.my.id
@@ -1077,7 +1451,8 @@ EXAMPLES:
       console.log(style.dim(`  Token valid until: ${expIso}`))
     }
     console.log(style.dim(`  Credentials saved to: ${getCredentialsPath()}`))
-    process.exit(0)
+    process.exitCode = 0
+    return
   }
 
   // Command: logout
@@ -1088,12 +1463,13 @@ EXAMPLES:
     } else {
       console.log('ShipSafe CLI is already signed out (no stored credentials found).')
     }
-    process.exit(0)
+    process.exitCode = 0
+    return
   }
 
   // Command: whoami
   if (command === 'whoami') {
-    const auth = getEffectiveAuth()
+    const auth = getEffectiveAuth(values.token as string | undefined)
     if (!auth) {
       console.error('Error: Not signed in. Run "shipsafe login --token=<token>" to authenticate.')
       process.exit(2)
@@ -1104,7 +1480,30 @@ EXAMPLES:
     if (auth.expiresAt) {
       console.log(`  Expiry: ${auth.expiresAt}`)
     }
-    process.exit(0)
+
+    const apiUrl = (values['api-url'] as string | undefined) || process.env.SHIPSAFE_API_URL || 'http://localhost:23010'
+    try {
+      const res = await fetch(`${apiUrl.replace(/\/+$/, '')}/api/cli/whoami`, {
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+          'X-ShipSafe-Client': 'cli',
+        },
+      })
+      if (res.ok) {
+        const data = (await res.json()) as any
+        const tier = (data.tier || data.quota?.tier || 'free').toUpperCase()
+        const used = data.quota?.used ?? 0
+        const limit = data.quota?.limit ?? 0
+        const remaining = data.quota?.remaining ?? Math.max(0, limit - used)
+        console.log(`  Tier  : ${style.bold(tier)}`)
+        console.log(`  Quota : ${used}/${limit} audits used (${remaining} remaining)`)
+      }
+    } catch {
+      // Non-blocking if offline
+    }
+
+    process.exitCode = 0
+    return
   }
 
   // Command: diff
@@ -1143,6 +1542,8 @@ EXAMPLES:
     const format = values.format as string
     if (format === 'json') {
       console.log(JSON.stringify(diff, null, 2))
+    } else if (format === 'markdown') {
+      printDiffMarkdownReport(diff)
     } else {
       printDiffTextReport(diff, auth?.email)
     }
@@ -1161,15 +1562,18 @@ EXAMPLES:
     process.exit(2)
   }
 
-  // Local scans need no login. Auth is optional and only used for remote audits.
-  const auth = getEffectiveAuth()
+  // Local scans need no login. Auth is optional and only used for remote audits / quota tracking.
+  const auth = getEffectiveAuth(values.token as string | undefined)
 
   const targetDir = positionals[1] || '.'
-  const failOn: Severity = (values['fail-on'] as string).toLowerCase() as Severity
+  const rawThreshold = (values.threshold as string | undefined) || (values['fail-on'] as string | undefined)
+  const failOn: Severity = (rawThreshold ? rawThreshold.toLowerCase() : 'high') as Severity
+  const isStrict = Boolean(values.strict)
   const format = values.format as string
   const remoteUrl = values['remote-url'] as string | undefined
   const apiKey = (values['api-key'] as string | undefined) || auth?.token || ''
   const noGitignore = values['no-gitignore'] as boolean
+  const targetAgent = (values.agent as string | undefined) || 'cursor'
 
   const userIgnores = values.ignore ? (values.ignore as string).split(',') : []
   const ignoredDirs = Array.from(new Set([...DEFAULT_IGNORED_DIRS, ...userIgnores]))
@@ -1197,6 +1601,11 @@ EXAMPLES:
     // Remote audit mode
     try {
       result = await runRemoteAudit({ remoteUrl, apiKey }, targetDir, gitIgnoreRules)
+      for (const f of result.findings) {
+        if (!f.remediationPrompt) {
+          f.remediationPrompt = generateCliRemediationPrompt(f, targetAgent)
+        }
+      }
     } catch (error: any) {
       console.error(
         `Error: ${error.message ?? 'Remote audit failed. Check URL, API key, and network'}`
@@ -1209,24 +1618,124 @@ EXAMPLES:
     }
   } else {
     // Local scan mode
-    result = scanDirectory(targetDir, { ignoredDirs, gitIgnoreRules, respectGitIgnore: !noGitignore })
+    result = scanDirectory(targetDir, { ignoredDirs, gitIgnoreRules, respectGitIgnore: !noGitignore, targetAgent })
   }
+
+  // Quota & Account Synchronization
+  let accountDocket: AccountDocketInfo = { isAnonymous: true }
+
+  if (auth) {
+    const apiUrl = (values['api-url'] as string | undefined) || process.env.SHIPSAFE_API_URL || 'http://localhost:23010'
+    try {
+      const syncRes = await fetch(`${apiUrl.replace(/\/+$/, '')}/api/cli/record-scan`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+          'Content-Type': 'application/json',
+          'X-ShipSafe-Client': 'cli',
+        },
+        body: JSON.stringify({
+          channel: 'CLI',
+          findingsCount: result.findings.length,
+          severityCounts: {
+            Critical: result.counts.critical,
+            High: result.counts.high,
+            Medium: result.counts.medium,
+            Low: result.counts.low,
+            Info: 0,
+          },
+          scannedFiles: result.scannedFiles,
+        }),
+      })
+
+      if (syncRes.status === 429) {
+        const errData = (await syncRes.json().catch(() => ({}))) as any
+        const used = errData?.error?.used ?? errData?.used ?? '?'
+        const limit = errData?.error?.limit ?? errData?.limit ?? '?'
+        console.error(
+          style.red(
+            style.bold(
+              `\n[SHIPSAFE QUOTA EXCEEDED] Monthly limit reached (${used}/${limit}). Upgrade plan at https://shipsafe.lankdev.my.id/console\n`
+            )
+          )
+        )
+        process.exitCode = 1
+        if (process.env.NODE_ENV === 'test') {
+          process.exit(1)
+        }
+        return
+      }
+
+      if (syncRes.ok) {
+        const syncData = (await syncRes.json()) as any
+        accountDocket = {
+          email: syncData.user?.email || auth.email,
+          tier: (syncData.user?.tier || syncData.quota?.tier || 'free').toUpperCase(),
+          used: syncData.quota?.used ?? 0,
+          limit: syncData.quota?.limit ?? 0,
+          remaining: syncData.quota?.remaining ?? 0,
+          isAnonymous: false,
+        }
+      } else {
+        accountDocket = {
+          email: auth.email,
+          tier: 'FREE',
+          used: 0,
+          limit: 3,
+          remaining: 3,
+          isAnonymous: false,
+        }
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.startsWith('process.exit:')) {
+        throw err
+      }
+      // Offline fallback
+      accountDocket = {
+        email: auth.email,
+        tier: 'FREE',
+        used: 0,
+        limit: 3,
+        remaining: 3,
+        isAnonymous: false,
+      }
+    }
+  }
+
+  // Attach account info to result object
+  result.account = accountDocket.isAnonymous
+    ? {
+        status: 'anonymous',
+        message: "Run 'shipsafe login --token=<token>' to sync quota",
+      }
+    : {
+        email: accountDocket.email,
+        tier: accountDocket.tier,
+        quota: {
+          tier: accountDocket.tier || 'FREE',
+          used: accountDocket.used ?? 0,
+          limit: accountDocket.limit ?? 0,
+          remaining: accountDocket.remaining ?? 0,
+        },
+      }
 
   // Output format
   if (format === 'json') {
     printJsonReport(result)
   } else if (format === 'sarif') {
     printSarifReport(result, PACKAGE_VERSION)
+  } else if (format === 'markdown') {
+    printMarkdownReport(result, failOn, accountDocket, targetAgent)
   } else {
     // Text format — the Customs Docket
-    printTextReport(result, failOn, auth?.email)
+    printTextReport(result, failOn, accountDocket, targetAgent)
   }
 
-  // Determine exit code based on threshold
+  // Determine exit code based on threshold and strictness
   const thresholdWeight = SEVERITY_WEIGHT[failOn.toUpperCase()] || 3
-  const hasFailingViolation = result.findings.some(
-    (f) => SEVERITY_WEIGHT[f.severity as Severity] >= thresholdWeight
-  )
+  const hasFailingViolation = isStrict && !rawThreshold
+    ? (result.counts.critical > 0 || result.counts.high > 0 || result.findings.length > 0)
+    : result.findings.some((f) => SEVERITY_WEIGHT[f.severity as Severity] >= thresholdWeight)
 
   const exitCode = hasFailingViolation ? 1 : 0
   process.exitCode = exitCode

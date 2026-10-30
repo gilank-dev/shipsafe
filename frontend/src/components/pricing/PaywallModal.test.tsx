@@ -29,11 +29,11 @@ describe('PaywallModal Component', () => {
 
     render(<PaywallModal />)
 
-    expect(screen.getByText('Batas Kuota Audit Bulanan Tercapai')).toBeInTheDocument()
-    expect(screen.getByText(/3x audit gratis/i)).toBeInTheDocument()
-    expect(screen.getByText(/28 November 2026/i)).toBeInTheDocument()
+    expect(screen.getByText('Monthly Audit Quota Limit Reached')).toBeInTheDocument()
+    expect(screen.getByText(/3 free audits/i)).toBeInTheDocument()
+    expect(screen.getByText(/November 28, 2026/i)).toBeInTheDocument()
     expect(screen.getByText('Rp 79.000')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Upgrade ke Pro Sekarang' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upgrade to Pro' })).toBeInTheDocument()
   })
 
   it('renders remediation locked paywall state when triggered from finding #2+', () => {
@@ -44,9 +44,9 @@ describe('PaywallModal Component', () => {
 
     render(<PaywallModal />)
 
-    expect(screen.getByText('Buka Semua Prompt Perbaikan AI Instan')).toBeInTheDocument()
+    expect(screen.getByText('Unlock All Instant AI Remediation Prompts')).toBeInTheDocument()
     expect(
-      screen.getByText(/Pada paket Free, prompt perbaikan instan terbuka untuk temuan pertama/i)
+      screen.getByText(/On the Free plan, 1-click remediation prompts are unlocked for finding #1/i)
     ).toBeInTheDocument()
   })
 
@@ -56,7 +56,7 @@ describe('PaywallModal Component', () => {
 
     render(<PaywallModal />)
 
-    const upgradeBtn = screen.getByRole('button', { name: 'Upgrade ke Pro Sekarang' })
+    const upgradeBtn = screen.getByRole('button', { name: 'Upgrade to Pro' })
     fireEvent.click(upgradeBtn)
 
     expect(windowOpenSpy).toHaveBeenCalledTimes(1)

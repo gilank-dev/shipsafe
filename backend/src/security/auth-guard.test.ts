@@ -10,7 +10,7 @@ import {
 } from './auth-guard';
 import { Response } from 'express';
 
-describe('Clerk Auth Guard Middleware', () => {
+describe('Supabase Auth Guard Middleware', () => {
   it('exports backward compatibility aliases matching clerk equivalents', () => {
     expect(supabaseAuthGuard).toBe(clerkAuthGuard);
     expect(requireSupabaseAuth).toBe(requireClerkAuth);
@@ -25,7 +25,7 @@ describe('Clerk Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await clerkAuthGuard(req, res, next);
+    await supabaseAuthGuard(req, res, next);
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toBeNull();
@@ -40,7 +40,7 @@ describe('Clerk Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await clerkAuthGuard(req, res, next);
+    await supabaseAuthGuard(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
@@ -61,7 +61,7 @@ describe('Clerk Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await clerkAuthGuard(req, res, next);
+    await supabaseAuthGuard(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
@@ -82,7 +82,7 @@ describe('Clerk Auth Guard Middleware', () => {
     } as unknown as Response;
     const next = vi.fn();
 
-    await clerkAuthGuard(req, res, next);
+    await supabaseAuthGuard(req, res, next);
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({
@@ -91,14 +91,14 @@ describe('Clerk Auth Guard Middleware', () => {
     });
   });
 
-  it('verifyClerkJwt returns valid user for valid test token', async () => {
-    const result = await verifyClerkJwt('valid-test-token');
+  it('verifySupabaseJwt returns valid user for valid test token', async () => {
+    const result = await verifySupabaseJwt('valid-test-token');
     expect(result.valid).toBe(true);
     expect(result.user?.id).toBe('usr-test-123');
   });
 
-  it('verifyClerkJwt returns lead auditor user for dev-token-developer@example.com', async () => {
-    const result = await verifyClerkJwt('dev-token-developer@example.com');
+  it('verifySupabaseJwt returns lead auditor user for dev-token-developer@example.com', async () => {
+    const result = await verifySupabaseJwt('dev-token-developer@example.com');
     expect(result.valid).toBe(true);
     expect(result.user).toEqual({
       id: 'usr-dev-auditor',
@@ -106,8 +106,8 @@ describe('Clerk Auth Guard Middleware', () => {
     });
   });
 
-  it('verifyClerkJwt parses custom email in dev-token prefix', async () => {
-    const result = await verifyClerkJwt('dev-token-alice@custom.io');
+  it('verifySupabaseJwt parses custom email in dev-token prefix', async () => {
+    const result = await verifySupabaseJwt('dev-token-alice@custom.io');
     expect(result.valid).toBe(true);
     expect(result.user).toEqual({
       id: 'usr-dev-auditor',
@@ -115,13 +115,49 @@ describe('Clerk Auth Guard Middleware', () => {
     });
   });
 
-  it('verifyClerkJwt returns 401 for empty or invalid token', async () => {
-    const result = await verifyClerkJwt('');
+  it('verifySupabaseJwt returns 401 for empty or invalid token', async () => {
+    const result = await verifySupabaseJwt('');
     expect(result.valid).toBe(false);
     expect(result.statusCode).toBe(401);
   });
 
-  describe('requireClerkAuth', () => {
+  it('correctly decodes and validates a Supabase JWT structure', async () => {
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+    const payload = Buffer.from(
+      JSON.stringify({
+        sub: '8f7a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c',
+        email: 'auditor@supabase.internal',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      })
+    ).toString('base64url');
+    const token = `${header}.${payload}.mockSignature`;
+
+    const result = await verifySupabaseJwt(token);
+    expect(result.valid).toBe(true);
+    expect(result.user).toEqual({
+      id: '8f7a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c',
+      email: 'auditor@supabase.internal',
+    });
+  });
+
+  it('rejects expired Supabase JWT with HTTP 401', async () => {
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+    const payload = Buffer.from(
+      JSON.stringify({
+        sub: 'expired-user',
+        email: 'expired@example.com',
+        exp: Math.floor(Date.now() / 1000) - 3600, // expired 1 hr ago
+      })
+    ).toString('base64url');
+    const token = `${header}.${payload}.mockSignature`;
+
+    const result = await verifySupabaseJwt(token);
+    expect(result.valid).toBe(false);
+    expect(result.statusCode).toBe(401);
+    expect(result.error).toContain('expired');
+  });
+
+  describe('requireSupabaseAuth (and requireClerkAuth alias)', () => {
     it('rejects unauthenticated requests with HTTP 401 and unauthorized code', async () => {
       const req = { headers: {} } as AuthRequest;
       const res = {
@@ -130,7 +166,7 @@ describe('Clerk Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireClerkAuth(req, res, next);
+      await requireSupabaseAuth(req, res, next);
 
       expect(next).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(401);
@@ -150,7 +186,7 @@ describe('Clerk Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireClerkAuth(req, res, next);
+      await requireSupabaseAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -167,7 +203,7 @@ describe('Clerk Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireClerkAuth(req, res, next);
+      await requireSupabaseAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -184,7 +220,7 @@ describe('Clerk Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireClerkAuth(req, res, next);
+      await requireSupabaseAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -201,7 +237,7 @@ describe('Clerk Auth Guard Middleware', () => {
       } as unknown as Response;
       const next = vi.fn();
 
-      await requireClerkAuth(req, res, next);
+      await requireSupabaseAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
       expect(req.user).toEqual({
@@ -210,21 +246,21 @@ describe('Clerk Auth Guard Middleware', () => {
       });
     });
 
-    it('rejects tampered or forged Clerk tokens with 401', async () => {
-      const fakeClerkHeader = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
-      const fakeClerkPayload = Buffer.from(
-        JSON.stringify({
-          sub: 'user_fake_attacker',
-          iss: 'https://poetic-locust-5326.clerk.accounts.dev',
-          exp: Math.floor(Date.now() / 1000) + 3600,
-        })
-      ).toString('base64url');
-      const fakeClerkToken = `${fakeClerkHeader}.${fakeClerkPayload}.invalidsignature123`;
+    it('allows requests with github-token- header format for GitHub authenticated users', async () => {
+      const req = { headers: { authorization: 'Bearer github-token-gilankdev@gmail.com' } } as AuthRequest;
+      const res = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      } as unknown as Response;
+      const next = vi.fn();
 
-      const result = await verifyClerkJwt(fakeClerkToken);
-      expect(result.valid).toBe(false);
-      expect(result.statusCode).toBe(401);
-      expect(result.error).toContain('Clerk verification failed');
+      await requireClerkAuth(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(req.user).toEqual({
+        id: 'usr-github',
+        email: 'gilankdev@gmail.com',
+      });
     });
   });
 });

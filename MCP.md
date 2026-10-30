@@ -43,16 +43,20 @@ Memindai seluruh struktur direktori proyek terhadap 10 vektor ancaman web:
   ```
 
 ### 2. `get_threat_matrix`
-Mengembalikan status keamanan untuk 10 Vektor Ancaman (`Secure`, `Warning`, `Vulnerable`):
-- **Argumen**: `path` (string).
+Mengembalikan status keamanan komprehensif untuk 10 Vektor Ancaman (`Secure`, `Warning`, `Vulnerable`):
+- **Argumen**: `path` (string, opsional: default `.`).
 
 ### 3. `get_remediation_prompt`
-Mengambil prompt remediasi spesifik dan mandiri untuk temuan tertentu:
-- **Argumen**: `findingId` (string, wajib), `filePath` (string), `targetAgent` (string).
+Mengambil prompt remediasi spesifik dan mandiri untuk temuan tertentu dengan format yang disesuaikan untuk coding agent:
+- **Argumen**:
+  - `findingId` (string, wajib): ID temuan (misal: `F-SEC-001`).
+  - `filePath` (string, opsional): Path file temuan.
+  - `targetAgent` / `agent` (string, opsional): Target coding agent (`Cursor`, `ClaudeCode`, `Copilot`, `Windsurf`, default `Cursor`).
 
 ### 4. `verify_fix`
-Memverifikasi ulang file yang telah diedit untuk memastikan kerentanan benar-benar tertutup:
-- **Argumen**: `filePath` (string, wajib), `findingType` (string).
+Memverifikasi ulang file atau membandingkan direktori untuk memastikan kerentanan benar-benar tertutup tanpa regresi baru:
+- **Mode 1 (Single File)**: `filePath` (string, wajib), `findingType` (string, opsional).
+- **Mode 2 (Directory Comparison)**: `baseDir` (string), `fixedDir` (string). Mengembalikan status `ALL_RESOLVED`, `PARTIALLY_RESOLVED`, atau `REGRESSION_DETECTED`.
 
 ---
 
@@ -112,3 +116,18 @@ Tambahkan ke konfigurasi provider tools MCP:
   }
 }
 ```
+
+---
+
+## 🔒 Privasi & Keamanan (Zero-Persistence Guarantee)
+- MCP server membaca kode sumber secara lokal dan sementara.
+- Secret yang terdeteksi di-mask secara otomatis sebelum ditampilkan di output tool.
+- Tidak ada kode yang diunggah ke cloud publik tanpa otorisasi eksplisit pengguna.
+- Terintegrasi dengan sistem akun Supabase Auth dan CLI Gatekeeper.
+
+---
+
+## 📞 Saluran Dukungan Resmi
+- **WhatsApp Lead**: [+62 821-2415-3732](https://wa.me/6282124153732) (`082124153732`)
+- **Direct Email**: [gilankdev@gmail.com](mailto:gilankdev@gmail.com)
+- **Web App**: [https://shipsafe.lankdev.my.id](https://shipsafe.lankdev.my.id)

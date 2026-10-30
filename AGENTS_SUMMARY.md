@@ -13,10 +13,9 @@
   - `test`: `vitest run` — run tests
   - `test:watch`: `vitest` — watch mode
 - **Dependencies** (major):
-  - `@clerk/clerk-react`: 5.61.10 — React authentication
   - `@fontsource-variable/archivo`: 5.3.0 — variable font source
   - `@fontsource/ibm-plex-mono`: 5.3.0 — monospace font source
-  - `@supabase/supabase-js`: 2.117.3 — Supabase client
+  - `@supabase/supabase-js`: 2.117.3 — Supabase client (Primary Auth & Database)
   - `@vercel/analytics`: 2.0.1 — Vercel analytics
   - `react`: 19.3.0 — UI library
   - `react-dom`: 19.3.0 — React DOM
@@ -56,7 +55,6 @@
   - `dev`: `ts-node src/server.ts` — development with ts-node
   - `test`: `vitest run` — run tests
 - **Dependencies** (major):
-  - `@clerk/backend`: ^3.23.2 — Clerk server-side auth
   - `adm-zip`: 0.5.16 — ZIP archive reading
   - `cors`: 2.8.5 — CORS middleware
   - `dotenv`: 16.4.7 — environment variable loading
@@ -189,11 +187,9 @@
 ## 6. Environment Variable Patterns (.env)
 - **Root `.env.example`** (template for all folders):
   - Frontend vars: `VITE_API_MODE`, `VITE_API_BASE_URL`, `VITE_MOCK_LATENCY`
-  - Clerk: `VITE_CLERK_PUBLISHABLE_KEY`
-  - Supabase: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+  - Supabase Auth: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
   - Turnstile: `VITE_TURNSTILE_ENABLED`, `VITE_CLOUDFLARE_TURNSTILE_SITE_KEY`
-  - Backend vars: `PORT`, `NODE_ENV`, `CORS_ORIGIN`, `MAX_ZIP_SIZE_MB`
-  - Clerk secret: `CLERK_SECRET_KEY`, `AUTH_TEST_BYPASS`
+  - Backend vars: `PORT`, `NODE_ENV`, `CORS_ORIGIN`, `MAX_ZIP_SIZE_MB`, `AUTH_TEST_BYPASS`
   - Supabase server: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`
   - AI gateway: `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`
   - Turnstile backend: `TURNSTILE_ENABLED`, `TURNSTILE_SECRET`, `CLOUDFLARE_TURNSTILE_SECRET_KEY`, `TURNSTILE_EXPECTED_ACTION`, `TURNSTILE_HOSTNAMES`
@@ -201,7 +197,6 @@
   - `VITE_API_MODE=http` (mock or http)
   - `VITE_API_BASE_URL=/api`
   - `VITE_MOCK_LATENCY=normal`
-  - `VITE_CLERK_PUBLISHABLE_KEY=pk_test_placeholder_clerk_publishable_key`
   - `VITE_SUPABASE_URL=https://your-project-ref.supabase.co`
   - `VITE_SUPABASE_ANON_KEY=your-supabase-anon-key-here`
   - `VITE_TURNSTILE_ENABLED=true`
@@ -211,11 +206,17 @@
   - `NODE_ENV=development`
   - `CORS_ORIGIN=http://localhost:5173,https://ship-safe.lankdev.my.id,https://shipsafe-lankdev.vercel.app`
   - `MAX_ZIP_SIZE_MB=10`
-  - `CLERK_SECRET_KEY=sk_test_placeholder_clerk_secret_key`
   - `AUTH_TEST_BYPASS=false`
   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`
   - `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`
   - Turnstile: `TURNSTILE_ENABLED`, `TURNSTILE_SECRET`, `CLOUDFLARE_TURNSTILE_SECRET_KEY`, `TURNSTILE_EXPECTED_ACTION`, `TURNSTILE_HOSTNAMES`
+
+**Super Admin Whitelist**:
+- Primary ledger access restricted to: `hi@lankdev.my.id`, `gilankdev@gmail.com`, `ghilankputraramadhan@gmail.com`
+
+**Official Support Channels**:
+- WhatsApp Lead: `+62 821-2415-3732` (`082124153732`)
+- Direct Email: `gilankdev@gmail.com`
 
 **Key patterns**:
 - Frontend vars prefixed with `VITE_` (Vite requirement)

@@ -71,11 +71,11 @@ flowchart TD
 ### 2.2 Mandatory Authentication Gate
 Untuk mencegah penyalahgunaan antrean dan serangan DoS terhadap server:
 - Pengguna wajib login menggunakan akun **GitHub OAuth**, **Google OAuth**, **Magic Link**, atau **Email/Password**.
-- Sesi diamankan menggunakan enkripsi token JWT berbasis Clerk dan Supabase Auth.
+- Sesi diamankan menggunakan enkripsi token JWT berbasis **Supabase Auth** sebagai mesin autentikasi utama (*Primary Authentication Engine*).
 - Setelah login, pengguna mendapatkan akses ke fitur riwayat audit (*History Modal*) untuk membuka kembali laporan sebelumnya.
 
 ### 2.3 High-Density Landing Page & Integrasi MCP Server
-1. **Landing Page Resmi (Customs Desk)**: Tersedia di rute `/` dengan estetika *ink-on-ruled-paper*, menyajikan 10 bagian komprehensif: pengenalan, use case (Vibe coder, Indie Hacker, Engineering teams), protokol 3-detik, matriks 10 vektor ancaman, batasan jujur (*radical transparency* batas 10MB & SAST), transparansi harga developer, kontak langsung WhatsApp & Telegram admin, ulasan teknis, FAQ interaktif, serta akses instan ke konsol audit via tombol `Launch Console ->` (`/console`).
+1. **Landing Page Resmi (Customs Desk)**: Tersedia di rute `/` dengan estetika *ink-on-ruled-paper*, menyajikan 10 bagian komprehensif: pengenalan, use case (Vibe coder, Indie Hacker, Engineering teams), protokol 3-detik, matriks 10 vektor ancaman, batasan jujur (*radical transparency* batas 10MB & SAST), transparansi harga developer, kontak langsung WhatsApp Lead (`082124153732`) & Gmail (`gilankdev@gmail.com`), ulasan teknis, FAQ interaktif, serta akses instan ke konsol audit via tombol `Launch Console ->` (`/console`).
 2. **ShipSafe MCP Server (`@lankdev/shipsafe-mcp`)**: Server Model Context Protocol standar berbasis stdio JSON-RPC 2.0 di folder `mcp/` untuk integrasi native dengan Cursor, Claude Desktop, Windsurf, OpenCode, dan Hermes. Menyediakan tools `audit_codebase`, `get_threat_matrix`, `get_remediation_prompt`, dan `verify_fix`. Panduan konfigurasi lengkap tersedia di [`MCP.md`](file:///C:/Users/HYPE%20AMD/files/PROJECT/PERSONAL/ShipSafe/MCP.md).
 
 ---
@@ -103,7 +103,7 @@ Untuk mencegah penyalahgunaan antrean dan serangan DoS terhadap server:
 │  • Node.js 20 + Express + TS    │   │                           │
 │  • Isolated /tmp Sandbox Engine │   │ • PostgreSQL Database     │
 │  • Zip-Bomb & Zip-Slip Guards   │   │ • Row Level Security (RLS)│
-│  • Static Rule Engine (SAST)    │   │ • Clerk & Supabase Auth   │
+│  • Static Rule Engine (SAST)    │   │ • Supabase Auth (Primary) │
 │  • Concurrency Queue Limiter    │   │ • Multi-tenant Isolation  │
 │    (Max 3 concurrent processes, │   └───────────────────────────┘
 │     kapasitas FIFO 25 antrean)  │
@@ -268,7 +268,7 @@ Backend ShipSafe menyediakan endpoint RESTful yang aman:
 ### 10.1 `POST /api/audit`
 Menjalankan audit keamanan terhadap berkas ZIP atau repositori GitHub.
 - **Headers**:
-  - `Authorization: Bearer <clerk_or_supabase_jwt>` (Wajib)
+  - `Authorization: Bearer <supabase_jwt_or_cli_token>` (Opsional untuk anonim, wajib untuk sinkronisasi akun)
   - `Content-Type: multipart/form-data`
 - **Body Form-Data**:
   - `file`: Berkas biner ZIP (maksimal 10 MB) *ATAU*
@@ -315,44 +315,56 @@ ShipSafe menggunakan pendekatan **Freemium Developer-First**:
 
 ---
 
-## 12. Roadmap Pengembangan Masa Depan
+## 12. Status Implementasi & Roadmap
 
-1. **GitHub Actions CI/CD Security Gatekeeper**: Plugin GitHub Action resmi yang memindai setiap Pull Request secara otomatis dan bertindak sebagai *blocking gate* jika ditemukan celah *Critical* atau *High*.
-2. **Auto-PR Remediation Agent**: Otomatis membuat branch git dan draft Pull Request berisi patch perbaikan kode yang telah terverifikasi, langsung ke repositori pengembang.
-3. **Re-Audit Diff & Fix Verification Engine**: Fitur perbandingan diff (*before vs after*) untuk memvalidasi bahwa celah keamanan berhasil ditutup oleh AI agent tanpa menimbulkan celah baru.
-4. **Ekspansi Bahasa & Framework**: Menambahkan parser khusus AST untuk ekosistem Python (FastAPI/Django), Go, Rust, dan PHP/Laravel.
-5. **ShipSafe CLI (`npx shipsafe`)**: Antarmuka baris perintah agar developer dapat menjalankan audit pra-rilis langsung di terminal sebelum `git commit` atau `git push`.
+1. **GitHub Actions CI/CD Security Gatekeeper [SELESAI]**: Workflow `.github/workflows/shipsafe-gatekeeper.yml` aktif menjalankan pemindaian otomatis, menghasilkan SARIF 2.1.0, dan mengunggah temuan ke GitHub Code Scanning.
+2. **Re-Audit Diff & Fix Verification Engine [SELESAI]**: Perintah `shipsafe diff <base> [target]` dan MCP tool `verify_fix` aktif untuk memvalidasi resolusi celah keamanan tanpa regresi.
+3. **ShipSafe Developer CLI [SELESAI]**: Paket `@lankdev/shipsafe-cli` di folder `cli/` menyediakan audit lokal instan, sinkronisasi akun pengguna (`login`, `whoami`, `logout`), dan generator prompt AI via flag `--agent`.
+4. **Auto-PR Remediation Agent [Tahap Riset]**: Pembuatan otomatis branch git dan Pull Request patch keamanan ke repositori GitHub pengembang.
+5. **Ekspansi Bahasa & Framework [Tahap Pengembangan]**: Menambahkan parser AST mendalam untuk ekosistem Python (FastAPI/Django), Go, Rust, dan PHP/Laravel.
 
 ---
 
-## 9. Ekosistem ShipSafe v4: Web Client, MCP Server, & CLI Gatekeeper
+## 13. Ekosistem ShipSafe v4: Web Client, MCP Server, & CLI Gatekeeper
 
 ShipSafe kini hadir dalam 3 bentuk terintegrasi untuk menjamin keamanan di setiap tahap siklus pengembangan:
 
-### 9.1 Web Client & Landing Page (`frontend/`)
+### 13.1 Web Client & Landing Page (`frontend/`)
 - **Landing Page (`/` atau `/landing`)**:
-  - Menampilkan Customs Docket hero, peragaan live AST telemetry, 3 use-case spesifik, perbandingan 10 vektor ancaman, batasan transparan (10MB limit & SAST boundaries), tombol pricing direct WhatsApp & Telegram admin, testimoni teknis terverifikasi, dan FAQ interaktif.
+  - Menampilkan Customs Docket hero, peragaan live AST telemetry, 3 use-case spesifik, perbandingan 10 vektor ancaman, batasan transparan (10MB limit & SAST boundaries), tombol pricing direct WhatsApp Lead (`082124153732`) & Gmail (`gilankdev@gmail.com`), testimoni teknis terverifikasi, dan FAQ interaktif.
 - **Audit Console (`/console`)**:
-  - Panel inspeksi berkas ZIP interaktif dengan scorecard keamanan, detail temuan baris demi baris, filtering severity (Critical, High, Medium, Low), dan generator prompt perbaikan untuk 5 coding agent (Cursor, Claude Code, GitHub Copilot, Windsurf, Generic).
+  - Panel inspeksi berkas ZIP interaktif dengan scorecard keamanan, detail temuan baris demi baris, filtering severity (Critical, High, Medium, Low), sinkronisasi token CLI, dan generator prompt perbaikan untuk 5 coding agent (Cursor, Claude Code, GitHub Copilot, Windsurf, Generic).
 
-### 9.2 ShipSafe MCP Server (`mcp/`)
+### 13.2 ShipSafe MCP Server (`mcp/`)
 - Protokol: stdio JSON-RPC 2.0 (`node mcp/dist/index.js`).
-- 4 Tools:
-  1. `audit_codebase`: Memindai folder proyek lokal terhadap 10 vektor ancaman.
-  2. `get_threat_matrix`: Mendapatkan daftar 10 vektor ancaman dan rekomendasi mitigasinya.
-  3. `get_remediation_prompt`: Menghasilkan prompt perbaikan spesifik agen untuk temuan tertentu.
-  4. `verify_fix`: Memverifikasi ulang berkas apakah celah keamanan telah tuntas diperbaiki.
+- 4 Tools Utama:
+  1. `audit_codebase`: Memindai folder proyek lokal terhadap 10 vektor ancaman dengan argumen `path` dan opsi `targetAgent`.
+  2. `get_threat_matrix`: Mengembalikan status keamanan lengkap 10 vektor ancaman web (`Secure`, `Warning`, `Vulnerable`).
+  3. `get_remediation_prompt`: Menghasilkan prompt perbaikan spesifik per-agen (`Cursor`, `ClaudeCode`, `Copilot`, `Windsurf`) untuk temuan tertentu.
+  4. `verify_fix`: Memverifikasi ulang berkas tunggal atau membandingkan direktori (`baseDir` vs `fixedDir`) untuk memastikan kerentanan tuntas ditutup tanpa regresi baru.
 - Didukung penuh di Claude Desktop, Cursor, Windsurf, OpenCode, dan Hermes Agent.
 
-### 9.3 ShipSafe CLI Gatekeeper & CI/CD (`cli/`)
+### 13.3 ShipSafe CLI Gatekeeper & CI/CD (`cli/`)
 - Paket: `@lankdev/shipsafe-cli` (tersedia secara lokal dan npm executable).
-- Penggunaan:
+- Fitur & Perintah:
   ```bash
+  # 1. Pemindaian lokal standar (tanpa login akun)
   node cli/dist/index.js scan .
-  # atau
-  shipsafe scan . --fail-on=high --format=text
+  
+  # 2. Pemindaian dengan pembuatan prompt remediasi AI otomatis
+  node cli/dist/index.js scan . --agent=cursor # (atau claude, copilot, windsurf)
+  
+  # 3. Sinkronisasi Akun Pengguna (Supabase Auth)
+  node cli/dist/index.js login --token=sk_shipsafe_...
+  node cli/dist/index.js whoami
+  node cli/dist/index.js logout
+  
+  # 4. Verifikasi perbaikan diff (Before vs After)
+  node cli/dist/index.js diff ./before-fix ./after-fix
+  
+  # 5. Output format kustom untuk CI/CD (text, json, sarif, markdown)
+  node cli/dist/index.js scan . --fail-on=high --format=sarif
   ```
-- Output: Format tabel ASCII terminal *ink-on-ruled-paper* Customs Docket, `json`, dan standard OASIS SARIF 2.1.0 (`--format=sarif`).
 - Exit code deterministik:
   - `0`: Lolos audit.
   - `1`: Ditemukan celah dengan tingkat keparahan $\ge$ threshold `--fail-on` (menggagalkan commit / pipeline CI).
@@ -364,4 +376,25 @@ ShipSafe kini hadir dalam 3 bentuk terintegrasi untuk menjamin keamanan di setia
   Memasang barrier hook otomatis yang memblokir commit berisiko tinggi.
 - **GitHub Actions CI Workflow**:
   Berkas `.github/workflows/shipsafe-gatekeeper.yml` otomatis menjalankan audit SARIF pada setiap Pull Request/push dan mengunggah laporan ke GitHub Code Scanning.
+
+---
+
+## 14. Kontrol Akses & Whitelist Super Admin
+
+ShipSafe menerapkan kontrol akses berbasis peran (RBAC) ketat yang dikelola langsung melalui Supabase Auth dan Row Level Security (RLS). Akses ke buku besar administratif (*Super Admin Ledger*), manajemen voucher, kuota tenant kustom, dan metrik sistem global dibatasi secara eksklusif hanya untuk email yang terdaftar dalam whitelist resmi:
+
+- `hi@lankdev.my.id`
+- `gilankdev@gmail.com`
+- `ghilankputraramadhan@gmail.com`
+
+Akun lain yang login hanya dapat mengelola data tenant milik akunnya sendiri dan tidak memiliki hak akses administratif.
+
+---
+
+## 15. Kontak Dukungan & Saluran Resmi
+
+Untuk konsultasi lisensi tim/enterprise, integrasi on-premises, atau pembayaran lokal:
+- **WhatsApp Lead**: [+62 821-2415-3732](https://wa.me/6282124153732) (`082124153732`)
+- **Direct Email**: [gilankdev@gmail.com](mailto:gilankdev@gmail.com)
+- **Official Web Console**: [https://shipsafe.lankdev.my.id](https://shipsafe.lankdev.my.id)
 

@@ -29,14 +29,14 @@ export const BrandLogo: FC<BrandLogoProps> = ({
         : 'text-h3 leading-none font-extrabold [font-stretch:125%]'
 
   return (
-    <div className={`inline-flex items-center gap-2.5 shrink-0 ${className}`}>
+    <div className={`group inline-flex items-center gap-2.5 shrink-0 select-none cursor-pointer ${className}`}>
       <span
-        className={`block ${markSize} bg-ink dark:bg-white bg-[#18181B] shrink-0 ${markClassName}`}
+        className={`block ${markSize} bg-ink dark:bg-white bg-[#18181B] shrink-0 transition-transform duration-200 ease-out group-hover:group-hover-micro-tremble active:scale-90 ${markClassName}`}
         aria-hidden="true"
       />
       {showText && (
         <span
-          className={`leading-none font-extrabold [font-stretch:125%] font-sans tracking-tight text-ink dark:text-white text-[#18181B] ${textSize} ${textClassName}`}
+          className={`leading-none font-extrabold [font-stretch:125%] font-sans tracking-tight text-ink dark:text-white text-[#18181B] transition-colors duration-150 group-hover:text-neutral-950 dark:group-hover:text-white ${textSize} ${textClassName}`}
         >
           ShipSafe
         </span>

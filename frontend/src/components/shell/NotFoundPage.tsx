@@ -42,7 +42,7 @@ export function NotFoundPage({ onGoHome }: NotFoundPageProps) {
               onClick={handleReturn}
               className="rounded-full px-3.5 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
             >
-              Beranda
+              Home
             </button>
           </div>
         </div>
@@ -56,11 +56,11 @@ export function NotFoundPage({ onGoHome }: NotFoundPageProps) {
           </div>
           
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
-            Halaman Tidak Ditemukan
+            Page Not Found
           </h1>
 
           <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6 max-w-md mx-auto">
-            Halaman yang Anda tuju tidak tersedia atau telah dipindahkan. Silakan periksa kembali tautan yang Anda masukkan.
+            The page you requested is unavailable or has been moved. Please verify the URL or return to home.
           </p>
 
           {/* Diagnostic Box */}
@@ -75,7 +75,7 @@ export function NotFoundPage({ onGoHome }: NotFoundPageProps) {
             </div>
             <div>
               <span className="text-neutral-400">RESOLUTION: </span>
-              <span>Kembali ke beranda utama atau buka konsol pemindaian keamanan.</span>
+              <span>Return to the main homepage or open the security scanner console.</span>
             </div>
           </div>
 
@@ -86,14 +86,14 @@ export function NotFoundPage({ onGoHome }: NotFoundPageProps) {
               onClick={handleReturn}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 px-6 py-2.5 text-sm font-semibold shadow-xs transition-all cursor-pointer"
             >
-              <span>Kembali ke Beranda</span>
+              <span>Return to Home</span>
             </button>
             <button
               type="button"
               onClick={handleLaunchConsole}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 px-6 py-2.5 text-sm font-medium transition-all cursor-pointer"
             >
-              <span>Buka Console Audit</span>
+              <span>Open Audit Console</span>
             </button>
           </div>
         </div>

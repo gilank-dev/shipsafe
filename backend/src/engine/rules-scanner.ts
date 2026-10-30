@@ -89,6 +89,7 @@ function isTestOrDocFile(relativePath: string): boolean {
     }
 
     // Check lines in files
+    let hasReportedMissingDockerignore = false;
     const lines = file.content.split('\n');
     lines.forEach((line, idx) => {
       const lineNum = idx + 1;
@@ -110,9 +111,13 @@ function isTestOrDocFile(relativePath: string): boolean {
         });
       }
 
-      // 1.2 Insecure logging of sensitive parameters (only when logging actual variables, not static strings)
+      // 1.2 Insecure logging of sensitive parameters (only when logging actual variables, not static strings or benign body fields)
+      const hasSensitiveVar = /(?:password|passwd|token|secret|credit_card|card_number|authorization|private_key|apiKey|api_key|access_token|ssn|pin|cvv)\b/i.test(line);
+      const hasUnredactedBody = /\breq\.body\b(?!\s*[\.\[])/i.test(line);
+      const hasSensitiveBodyProp = /req\.body\.[a-zA-Z0-9_.]*(?:password|passwd|token|secret|credit_card|card_number|authorization|private_key|apiKey|api_key|access_token|ssn|pin|cvv)\b/i.test(line);
       if (
-        /console\.(?:log|debug|info)\s*\([^)]*(?:,\s*|\{\s*|\$\{\s*)(?:[a-zA-Z0-9_.]*(?:password|token|secret|credit_card|card_number|authorization)|req\.body\.[a-zA-Z0-9_]+)/i.test(line) &&
+        /console\.(?:log|debug|info)\s*\(/i.test(line) &&
+        (hasSensitiveVar || hasUnredactedBody || hasSensitiveBodyProp) &&
         !/console\.(?:log|debug|info)\s*\(\s*['"`][^'"`$]*(?:success|received|sent|started|finished|verified)['"`]\s*\)/i.test(line)
       ) {
         addThreatFinding({
@@ -263,8 +268,8 @@ function isTestOrDocFile(relativePath: string): boolean {
         });
       }
 
-      // Plaintext HTTP request for credentials
-      if (/http:\/\/[a-zA-Z0-9.-]+\/(?:login|auth|token|credential|api\/v1)/i.test(line)) {
+      // Plaintext HTTP request for credentials (exclude local development hosts)
+      if (/http:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0|test\.local)[a-zA-Z0-9.-]+\/(?:login|auth|token|credential|api\/v1)/i.test(line)) {
         addThreatFinding({
           title: `Insecure Plaintext HTTP Transmission for API / Authentication`,
           severity: 'High',
@@ -438,17 +443,17 @@ function isTestOrDocFile(relativePath: string): boolean {
         });
       }
 
-      // Dockerfile hardcoded secrets
+      // Dockerfile hardcoded secrets (ENV and ARG)
       if (/(?:^|\/)Dockerfile(?:\..*)?$/i.test(file.relativePath)) {
-        if (/^\s*ENV\s+[A-Za-z0-9_]*(?:PASSWORD|SECRET|KEY|TOKEN|AUTH)\s*=\s*['"]?[^\s"']{6,}/i.test(line)) {
+        if (/^\s*(?:ENV|ARG)\s+[A-Za-z0-9_]*(?:PASSWORD|SECRET|KEY|TOKEN|AUTH)\s*=\s*['"]?[^\s"']{6,}/i.test(line)) {
           addThreatFinding({
             title: `Hardcoded Secret in Dockerfile Image Layer`,
             severity: 'Critical',
             area: 'Secrets',
             threatCategory: 'mitm',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
-            what: `Sensitive credentials or tokens are statically defined in Dockerfile ENV instructions.`,
-            why: `ENV variables are stored permanently in Docker image layer metadata and can be extracted via image inspection.`,
+            what: `Sensitive credentials or tokens are statically defined in Dockerfile ENV or ARG instructions.`,
+            why: `ENV and ARG variables are stored permanently in Docker image layer metadata and can be extracted via image inspection.`,
             recommendedFix: `Use Docker BuildKit secrets (--secret id=mysecret) or inject credentials at container runtime via environment variables.`,
             verifyWith: `Run docker history <image-name> to inspect layers for exposed environment variables.`,
             confidence: 'Confirmed'
@@ -500,14 +505,15 @@ function isTestOrDocFile(relativePath: string): boolean {
         }
 
         // SSRF: requests.get(user_url) / httpx.get(user_url)
-        if (/requests\.get\s*\(|httpx\.get\s*\(/i.test(line) ||
-            /fetch\s*\(\s*req\.(?:query|body)\.(?:url|target)/i.test(line)
+        if (
+          /(?:requests|httpx)\.(?:get|post|put|delete|request)\s*\(\s*(?!['"][a-zA-Z0-9+.-]+:\/\/[^'"]+['"]\s*[,)])(?:request\.|params\.|user_|input_|url|target|userInput|f['"])/i.test(line) ||
+          /fetch\s*\(\s*req\.(?:query|body)\.(?:url|target)/i.test(line)
         ) {
           addThreatFinding({
             title: `SSRF via requests / httpx tanpa validasi hostname`,
             severity: 'High',
             area: 'Code',
-            threatCategory: 'mitm',
+            threatCategory: 'lfi_rfi',
             location: { file: file.relativePath, line: lineNum, snippet: line.trim() },
             what: `Direct invocations of requests.get() or httpx.get() using user-supplied URLs without host/IP validation.`,
             why: `Server-Side Request Forgery allows attackers to force the server to issue requests to internal networks or private IP ranges.`,
@@ -517,8 +523,8 @@ function isTestOrDocFile(relativePath: string): boolean {
           });
         }
 
-        // Insecure CORS in FastAPI
-        if (/fastapi.*Helmet|allow_origins\s*=\s*\["\*"/i.test(file.content)) {
+        // Insecure CORS in FastAPI (check exact line to prevent duplicate findings across file)
+        if (/allow_origins\s*=\s*\[\s*["']\*["']\s*\]/i.test(line)) {
           addThreatFinding({
             title: `Insecure CORS Configuration FastAPI`,
             severity: 'High',
@@ -559,9 +565,10 @@ function isTestOrDocFile(relativePath: string): boolean {
           // Check if tag is not latest/stable - already covered by regex above
         }
 
-        // Missing .dockerignore
+        // Missing .dockerignore (flag once per Dockerfile)
         const fileContent = file.content;
-        if (/^ADD\s+|^COPY\s+/i.test(line) && !/\\.dockerignore/i.test(fileContent)) {
+        if (!hasReportedMissingDockerignore && /^ADD\s+|^COPY\s+/i.test(line) && !/\.dockerignore/i.test(fileContent)) {
+          hasReportedMissingDockerignore = true;
           addThreatFinding({
             title: `Missing .dockerignore File`,
             severity: 'Medium',
@@ -615,12 +622,30 @@ function isTestOrDocFile(relativePath: string): boolean {
   // THREAT 3: DISTRIBUTED DENIAL-OF-SERVICE (DDoS)
   // Check if project has rate limiting configured across API files
   // ==========================================
-  const isBackendProject = files.securityFiles.some(f =>
-    /server\.(?:ts|js)|app\.(?:ts|js)|routes\//.test(f.relativePath)
-  );
+  const isBackendProject = files.securityFiles.some((f) => {
+    // Frontend UI files are never backend servers
+    if (/\.(?:tsx|jsx|vue|svelte|astro|html|css|scss)$/i.test(f.relativePath)) return false;
+
+    // Direct backend server entry points
+    if (/(?:^|\/)(?:server|backend|api)\.(?:ts|js|mjs|cjs)$/i.test(f.relativePath)) return true;
+
+    // Backend server frameworks or listeners
+    if (/(?:from|require\()\s*['"](?:express|fastify|koa|@nestjs\/core|hapi|restify)['"]/i.test(f.content)) return true;
+    if (/\b(?:app|server)\.listen\s*\(|\bcreateServer\s*\(/i.test(f.content)) return true;
+
+    // Python backend frameworks
+    if (f.relativePath.endsWith('.py') && /(?:from\s+(?:flask|fastapi|django)|import\s+(?:flask|fastapi|django))/i.test(f.content)) return true;
+
+    // Backend API route files: must be .ts/.js and contain server router primitives
+    if (/(?:^|\/)(?:api|controllers|routes)\/[^/]+\.(?:ts|js)$/i.test(f.relativePath)) {
+      return /(?:express|Router\(\)|req\s*:\s*Request|res\s*:\s*Response|\bNextFunction\b)/i.test(f.content);
+    }
+
+    return false;
+  });
 
   const hasRateLimiting = files.securityFiles.some(f =>
-    /rateLimit|rate-limiter|express-rate-limit|upstash|limiter/i.test(f.content)
+    /rateLimit|rate-limiter|express-rate-limit|upstash|limiter|slowDown|throttle/i.test(f.content)
   );
 
   if (isBackendProject && !hasRateLimiting) {

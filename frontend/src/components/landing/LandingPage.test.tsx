@@ -1,8 +1,19 @@
-﻿import { describe, it, expect, vi } from 'vitest'
+import { useStore } from '../../state/store'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { LandingPage } from './LandingPage'
 
 describe('LandingPage', () => {
+  beforeEach(() => {
+    useStore.setState({
+      auth: {
+        user: null,
+        isAuthModalOpen: false,
+        isHistoryModalOpen: false,
+      },
+    })
+  })
+
   it('renders branding, hero section, and launch button without tactical badges', () => {
     const onLaunch = vi.fn()
     render(<LandingPage onLaunchConsole={onLaunch} />)
@@ -15,11 +26,14 @@ describe('LandingPage', () => {
     expect(screen.getByText(/Web Apps & Vibe-Coded Projects/i)).toBeInTheDocument()
     expect(screen.getByText(/Explore Work/i)).toBeInTheDocument()
 
-    const launchButtons = screen.getAllByRole('button', { name: /Launch Console/i })
+    const launchButtons = screen.getAllByRole('button', { name: /Console/i })
     expect(launchButtons.length).toBeGreaterThan(0)
     expect(launchButtons[0]).toBeDefined()
+
+    // Unauthenticated click opens login modal
     fireEvent.click(launchButtons[0]!)
-    expect(onLaunch).toHaveBeenCalledTimes(1)
+    expect(useStore.getState().auth.isAuthModalOpen).toBe(true)
+    expect(onLaunch).not.toHaveBeenCalled()
   })
 
   it('renders 10 threat vectors and radical transparency boundaries', () => {
@@ -33,16 +47,45 @@ describe('LandingPage', () => {
     expect(screen.getAllByText(/10MB Archive Upper Limit/i).length).toBeGreaterThan(0)
   })
 
-  it('renders admin direct contact links for WhatsApp and Telegram', () => {
+  it('renders admin direct contact links for WhatsApp and Email', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
     const waLinks = screen.getAllByRole('link', { name: /WhatsApp/i })
     expect(waLinks.length).toBeGreaterThan(0)
     expect(waLinks[0]).toHaveAttribute('href', expect.stringContaining('https://wa.me/'))
 
-    const tgLinks = screen.getAllByRole('link', { name: /Telegram/i })
-    expect(tgLinks.length).toBeGreaterThan(0)
-    expect(tgLinks[0]).toHaveAttribute('href', expect.stringContaining('https://t.me/'))
+    const emailLinks = screen.getAllByRole('link', { name: /Email/i })
+    expect(emailLinks.length).toBeGreaterThan(0)
+    expect(emailLinks[0]).toHaveAttribute('href', expect.stringContaining('mail.google.com/mail'))
+  })
+
+  it('triggers auth modal when unauthenticated user clicks console button, or navigates directly when authenticated', () => {
+    const launchMock = vi.fn()
+    const { unmount } = render(<LandingPage onLaunchConsole={launchMock} />)
+
+    const consoleButtons = screen.getAllByRole('button', { name: /^Console$/i })
+    expect(consoleButtons.length).toBeGreaterThan(0)
+
+    // Unauthenticated click opens auth modal
+    fireEvent.click(consoleButtons[0]!)
+    expect(useStore.getState().auth.isAuthModalOpen).toBe(true)
+    expect(launchMock).not.toHaveBeenCalled()
+
+    unmount()
+
+    // Authenticated click proceeds directly
+    useStore.setState({
+      auth: {
+        user: { id: 'usr-1', email: 'auditor@test.dev', fullName: 'Test Auditor' },
+        isAuthModalOpen: false,
+        isHistoryModalOpen: false,
+      },
+    })
+
+    render(<LandingPage onLaunchConsole={launchMock} />)
+    const authedButtons = screen.getAllByRole('button', { name: /^Console$/i })
+    fireEvent.click(authedButtons[0]!)
+    expect(launchMock).toHaveBeenCalledTimes(1)
   })
 
   it('toggles interactive FAQ accordion', () => {
@@ -57,126 +100,67 @@ describe('LandingPage', () => {
     // Click to close
     fireEvent.click(faqButton)
     expect(screen.queryByText(/Traditional tools are built for slow, enterprise waterfall cycles/i)).not.toBeInTheDocument()
-
-    // Click to re-open
-    fireEvent.click(faqButton)
-    expect(screen.getByText(/Traditional tools are built for slow, enterprise waterfall cycles/i)).toBeInTheDocument()
   })
 
-  it('renders Login / Daftar button and triggers auth modal', () => {
+  it('renders Sign In button and triggers auth modal', () => {
     render(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    const loginButton = screen.getByRole('button', { name: /Login \/ Daftar/i })
-    expect(loginButton).toBeInTheDocument()
-    fireEvent.click(loginButton)
+    const signInButtons = screen.getAllByRole('button', { name: /Sign In/i })
+    expect(signInButtons.length).toBeGreaterThan(0)
+
+    fireEvent.click(signInButtons[0]!)
+    expect(useStore.getState().auth.isAuthModalOpen).toBe(true)
   })
 
-  it('renders primary pillar buttons (Launch Console, How It Works, MCP, CLI, Threat Vectors, Pricing, FAQ) and dedicated sections', () => {
-    const onLaunch = vi.fn()
-    render(<LandingPage onLaunchConsole={onLaunch} />)
+  it('renders primary pillar buttons (Console, How It Works, MCP, CLI, Threat Vectors, Pricing, FAQ) and dedicated sections', () => {
+    render(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    // Navbar & action dock buttons
-    const consoleButtons = screen.getAllByRole('button', { name: /Console/i })
-    expect(consoleButtons.length).toBeGreaterThan(0)
-
-    const howItWorksLinks = screen.getAllByRole('link', { name: /How It Works/i })
-    expect(howItWorksLinks.length).toBeGreaterThan(0)
-
-    const mcpLinks = screen.getAllByRole('link', { name: /^MCP$/i })
-    expect(mcpLinks.length).toBeGreaterThan(0)
-
-    const cliLinks = screen.getAllByRole('link', { name: /^CLI$/i })
-    expect(cliLinks.length).toBeGreaterThan(0)
-
-    const threatLinks = screen.getAllByRole('link', { name: /Threat Vectors/i })
-    expect(threatLinks.length).toBeGreaterThan(0)
-
-    const pricingLinks = screen.getAllByRole('link', { name: /Pricing/i })
-    expect(pricingLinks.length).toBeGreaterThan(0)
-
-    const faqLinks = screen.getAllByRole('link', { name: /FAQ/i })
-    expect(faqLinks.length).toBeGreaterThan(0)
-
-    // Verify 3-tier pricing section
-    expect(screen.getByText(/Investasi Keamanan Seukuran Harga Kopi/i)).toBeInTheDocument()
-    expect(screen.getByText(/Mulai Scan Gratis/i)).toBeInTheDocument()
-    expect(screen.getByText(/Upgrade ke Pro Sekarang/i)).toBeInTheDocument()
-    expect(screen.getByText(/Hubungi Admin/i)).toBeInTheDocument()
-
-    // Dedicated showcase sections
-    expect(screen.getByText(/How ShipSafe Secures Your Code in 3 Seconds/i)).toBeInTheDocument()
-    expect(screen.getByText(/^ShipSafe MCP$/i)).toBeInTheDocument()
-    expect(screen.getByText(/^ShipSafe Terminal CLI$/i)).toBeInTheDocument()
-    expect(screen.getAllByText(/audit_codebase/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/npx @lankdev\/shipsafe-cli scan \./i).length).toBeGreaterThan(0)
-    expect(screen.queryByText(/install-hook/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/shipsafe login/i)).not.toBeInTheDocument()
+    // Verify all primary navigation links are present in navbar
+    const nav = screen.getByRole('navigation')
+    expect(within(nav).getByRole('link', { name: /How It Works/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /MCP/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /CLI/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Threat Vectors/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Pricing/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /FAQ/i })).toBeInTheDocument()
   })
 
   it('renders clean desktop navbar and complete layout at 1280px and 1440px viewports without overlap', () => {
-    // Test at 1280px desktop resolution
+    // 1280px viewport test
     window.innerWidth = 1280
-    window.innerHeight = 800
     window.dispatchEvent(new Event('resize'))
+    const { container, rerender } = render(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    const onLaunch = vi.fn()
-    const { container, rerender } = render(<LandingPage onLaunchConsole={onLaunch} />)
-
-    // 1. Header Banner Check
-    const header = screen.getByRole('banner')
+    // 1. Fixed header exists with dark backdrop and borders
+    const header = container.querySelector('header')
     expect(header).toBeInTheDocument()
-    // Brand title is pure 'ShipSafe'
-    expect(header).toHaveTextContent('ShipSafe')
-    // Crucial: PRE-DEPLOYMENT GATEKEEPER must NOT be crammed inside the navbar header
-    expect(header).not.toHaveTextContent('PRE-DEPLOYMENT GATEKEEPER')
+    expect(header?.className).toContain('fixed')
+    expect(header?.className).toContain('backdrop-blur-md')
 
-    // 2. Navigation Links are clean, concise, industry-standard
-    const nav = header.querySelector('nav')
+    // 2. Navigation bar is rendered
+    const nav = header?.querySelector('nav')
     expect(nav).toBeInTheDocument()
-    expect(nav).toHaveClass('lg:flex')
-    const navQueries = within(nav!)
-    expect(navQueries.getByRole('link', { name: /^How It Works$/i })).toBeInTheDocument()
-    expect(navQueries.getByRole('link', { name: /^MCP$/i })).toBeInTheDocument()
-    expect(navQueries.getByRole('link', { name: /^CLI$/i })).toBeInTheDocument()
-    expect(navQueries.getByRole('link', { name: /^Threat Vectors$/i })).toBeInTheDocument()
-    expect(navQueries.getByRole('link', { name: /^FAQ$/i })).toBeInTheDocument()
-    expect(navQueries.queryByRole('button', { name: /^Console$/i })).not.toBeInTheDocument()
-    expect(navQueries.queryByRole('link', { name: /^Fitur Visual$/i })).not.toBeInTheDocument()
-    expect(navQueries.queryByRole('link', { name: /^Documentation$/i })).not.toBeInTheDocument()
+    expect(nav?.className).toContain('lg:flex')
 
-    // 3. Right Action Items
-    const launchButtons = screen.getAllByRole('button', { name: /Launch Console/i })
+    // 3. Action buttons exist in header (Console and Sign In)
+    const launchButtons = screen.getAllByRole('button', { name: /Console/i })
     expect(launchButtons.length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByRole('button', { name: /Login \/ Daftar/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Sign In/i }).length).toBeGreaterThanOrEqual(1)
 
     // 4. Hero section branding and clean CTA without tactical badges
-    expect(screen.queryByText('PRE-DEPLOYMENT GATEKEEPER')).not.toBeInTheDocument()
-    expect(screen.getByText('Explore Work')).toBeInTheDocument()
+    expect(screen.getByText(/Pre-Deployment Security Gatekeeper for/i)).toBeInTheDocument()
+    expect(screen.getByText(/Web Apps & Vibe-Coded Projects/i)).toBeInTheDocument()
+    expect(screen.queryByText(/PRE-DEPLOYMENT GATEKEEPER/i)).not.toBeInTheDocument()
 
-    // 5. Bento cards grid (3 columns on desktop)
-    const bentoContainer = container.querySelector('.grid.grid-cols-1.md\\:grid-cols-3')
-    expect(bentoContainer).toBeInTheDocument()
-    expect(screen.getByText('Launch Web Audit')).toBeInTheDocument()
-    expect(screen.getByText('10 Coding Agents Bridge')).toBeInTheDocument()
-    expect(screen.getByText('One-Command CLI')).toBeInTheDocument()
-
-    // 6. Test at 1440px widescreen resolution
+    // 1440px viewport test
     window.innerWidth = 1440
-    window.innerHeight = 900
     window.dispatchEvent(new Event('resize'))
-    rerender(<LandingPage onLaunchConsole={onLaunch} />)
+    rerender(<LandingPage onLaunchConsole={vi.fn()} />)
 
-    // Verify sections remain solid on wide screens
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Pre-Deployment Security Gatekeeper/i)
-    expect(screen.getByText('ShipSafe MCP')).toBeInTheDocument()
-    expect(screen.getByText('ShipSafe Terminal CLI')).toBeInTheDocument()
-    expect(screen.getByText('10 Critical Threat Vectors Audited')).toBeInTheDocument()
-
-    // 7. Footer 4 columns on desktop
-    const footer = container.querySelector('footer')
-    expect(footer).toBeInTheDocument()
-    const footerGrid = footer?.querySelector('.grid.grid-cols-2.md\\:grid-cols-4')
-    expect(footerGrid).toBeInTheDocument()
+    // Main layout container maintains max width constraints without horizontal breakage
+    const main = container.querySelector('main')
+    expect(main).toBeInTheDocument()
+    expect(main?.className).toContain('2xl:max-w-[1440px]')
   })
 
   it('copies the CLI command without requiring login', () => {

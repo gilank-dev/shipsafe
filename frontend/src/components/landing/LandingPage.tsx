@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useClerk } from '@clerk/clerk-react'
+
+import { LogOut } from 'lucide-react'
 import { ThemeToggle } from '../shell/ThemeToggle'
 import { signOut } from '../../lib/supabase'
 import { useStore } from '../../state/store'
@@ -350,7 +351,7 @@ For every finding reported in the ASCII docket:
 
 Alur kerja perbaikan:
 1. Panggil \`audit_codebase\` untuk memindai seluruh workspace terhadap 10 vektor ancaman keamanan web.
-2. Identifikasi temuan berlabel FAIL atau WARN (kunci API bocor, SQL Injection, ketiadaan RLS Supabase, SSRF).
+2. Identify findings flagged as FAIL or WARN (leaked API keys, SQL Injection, missing Supabase RLS, SSRF).
 3. Terapkan diff perbaikan minimal langsung pada file dan baris kode yang terdampak.
 4. Verifikasi hasil perbaikan dengan tool \`verify_fix\` dan pastikan test suite tetap berjalan normal.`,
   },
@@ -376,9 +377,17 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
   const setAuthUser = useStore((s) => s.setAuthUser)
   const user = useStore((s) => s.auth.user)
   const quota = useStore((s) => s.quota)
-  const clerk = useClerk()
+
 
   const effectiveTier = user?.tier || quota?.tier || 'free'
+
+  const handleConsoleClick = () => {
+    if (!user) {
+      setAuthModalOpen(true)
+    } else {
+      onLaunchConsole()
+    }
+  }
 
   const navigate = (path: string) => {
     if (typeof window !== 'undefined') {
@@ -419,13 +428,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
 
   const handleSignOut = async () => {
     try {
-      if (clerk?.signOut) {
-        await clerk.signOut()
-      }
+      await signOut()
     } catch {
       // non-blocking
     }
-    await signOut()
     setAuthUser(null)
   }
 
@@ -582,9 +588,11 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={() => void handleSignOut()}
-                  className="text-xs px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.12] bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all cursor-pointer font-medium shrink-0 active:scale-[0.98]"
+                  className="size-8 rounded-full border border-black/[0.08] dark:border-white/[0.12] bg-neutral-100/90 dark:bg-neutral-800/90 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer shrink-0 active:scale-[0.96] flex items-center justify-center shadow-xs"
+                  title="Sign out"
+                  aria-label="Sign out"
                 >
-                  Keluar
+                  <LogOut className="size-3.5" strokeWidth={1.75} />
                 </button>
               </div>
             ) : (
@@ -593,15 +601,15 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 onClick={() => setAuthModalOpen(true)}
                 className="rounded-full px-4 py-1.5 text-[13px] font-medium text-neutral-800 dark:text-neutral-200 bg-neutral-100/90 hover:bg-neutral-200 dark:bg-neutral-800/90 dark:hover:bg-neutral-700 border border-black/[0.08] dark:border-white/[0.12] shadow-xs active:scale-[0.98] transition-all cursor-pointer shrink-0"
               >
-                Login / Daftar
+                Sign In
               </button>
             )}
             <button
               type="button"
-              onClick={onLaunchConsole}
+              onClick={handleConsoleClick}
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-1.5 text-[13px] font-medium shadow-xs hover:shadow-sm active:scale-[0.98] transition-all cursor-pointer shrink-0"
             >
-              <span>Launch Console</span>
+              <span>Console</span>
               <svg className="size-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
@@ -628,10 +636,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           <div className="flex flex-wrap items-center justify-center gap-3.5 mb-6 mx-auto">
             <button
               type="button"
-              onClick={onLaunchConsole}
+              onClick={handleConsoleClick}
               className="group inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-100 text-white dark:text-neutral-900 px-6 py-3 text-sm font-semibold transition-all shadow-sm hover:shadow active:scale-[0.98] cursor-pointer"
             >
-              <span>Launch Console</span>
+              <span>Console</span>
               <svg className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
@@ -665,18 +673,18 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <button
                 type="button"
                 onClick={handleCopyCli}
-                className="font-mono text-xs sm:text-sm font-semibold px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center justify-center gap-2 active:scale-98"
+                className="group font-mono text-xs sm:text-sm font-semibold px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-all shadow-xs cursor-pointer shrink-0 inline-flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 {copiedCli ? (
                   <>
-                    <svg className="size-4 text-neutral-900 dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <svg className="size-4 text-emerald-400 dark:text-emerald-600 shrink-0 animate-micro-pop" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    <span className="text-neutral-900 dark:text-white font-bold">Copied</span>
+                    <span className="font-bold">Copied</span>
                   </>
                 ) : (
                   <>
-                    <svg className="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="size-4 shrink-0 transition-transform duration-200 group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
@@ -693,7 +701,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 mb-16 text-left">
             <button
               type="button"
-              onClick={onLaunchConsole}
+              onClick={handleConsoleClick}
               className="group rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 text-left cursor-pointer transition-all hover:border-neutral-300 dark:hover:border-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between"
             >
               <div>
@@ -707,7 +715,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     </svg>
                     <span>Upload ZIP / GitHub Repo</span>
                   </div>
-                  <span className="transition-transform group-hover:translate-x-0.5 text-neutral-400">&rarr;</span>
+                  <span className="transition-transform group-hover:translate-x-0.5 text-neutral-400">→</span>
                 </div>
                 <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
                   Launch Web Audit
@@ -739,7 +747,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     </svg>
                     <span>Autonomous MCP Server</span>
                   </div>
-                  <span className="transition-transform group-hover:translate-x-0.5 text-neutral-400">&rarr;</span>
+                  <span className="transition-transform group-hover:translate-x-0.5 text-neutral-400">→</span>
                 </div>
                 <div className="font-semibold text-lg text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
                   10 Coding Agents Bridge
@@ -767,7 +775,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                     </svg>
                     <span>Terminal CLI</span>
                   </div>
-                  <span className="transition-transform group-hover:translate-x-0.5 text-neutral-400">&rarr;</span>
+                  <span className="transition-transform group-hover:translate-x-0.5 text-neutral-400">→</span>
                 </div>
                 <div className="font-semibold text-lg text-neutral-900 dark:text-neutral-100 tracking-tight mb-2">
                   One-Command CLI
@@ -876,7 +884,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all min-h-[360px]">
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                  <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100 tabular-nums">
                     01
                   </span>
                   <span className="font-mono text-[11px] px-2.5 py-1 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
@@ -902,7 +910,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all min-h-[360px]">
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                  <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100 tabular-nums">
                     02
                   </span>
                   <span className="font-mono text-[11px] px-2.5 py-1 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
@@ -928,7 +936,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-neutral-300 dark:hover:border-neutral-700 transition-all min-h-[360px]">
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+                  <span className="font-mono text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100 tabular-nums">
                     03
                   </span>
                   <span className="font-mono text-[11px] px-2.5 py-1 rounded-full border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
@@ -959,7 +967,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               ShipSafe Documentation &amp; Architecture Guide
             </h2>
             <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-base sm:text-lg">
-              Arsitektur keamanan pre-deployment, panduan integrasi 10 AI coding agents via MCP, terminal gatekeeper CLI, dan alur audit end-to-end dengan jaminan zero-persistence.
+              Pre-deployment security architecture, integration guide for 10 AI coding agents via MCP, terminal gatekeeper CLI, and end-to-end audit workflow with zero-persistence guarantee.
             </p>
           </div>
 
@@ -973,7 +981,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               }}
               className="px-3 py-1.5 rounded-full text-xs font-medium border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#121316] text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors shrink-0"
             >
-              1. Fitur Utama
+              1. Core Features
             </a>
             <a
               href="#doc-alur"
@@ -1030,7 +1038,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           {/* SUB-SECTION 1: FITUR UTAMA */}
           <div id="doc-fitur" className="scroll-mt-24 mb-20">
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-6">
-              Fitur Utama Arsitektur ShipSafe
+              Core Architectural Features of ShipSafe
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="rounded-2xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs">
@@ -1067,10 +1075,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           {/* SUB-SECTION 2: ALUR PENGGUNAAN */}
           <div id="doc-alur" className="scroll-mt-24 mb-20">
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
-              Alur Kerja Pemrosesan Keamanan (End-to-End)
+              End-to-End Security Processing Pipeline
             </h3>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6 max-w-3xl">
-              Setiap berkas yang masuk melalui konsol web, terminal CLI, atau protokol MCP diproses melalui alur karantina deterministik berikut:
+              Every file ingested via the web console, terminal CLI, or MCP protocol is processed through the following deterministic quarantine pipeline:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
               <div className="rounded-xl border border-neutral-200/90 dark:border-neutral-800 bg-white dark:bg-[#121316] p-6 sm:p-7 shadow-xs flex flex-col justify-between">
@@ -1135,15 +1143,15 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   <div className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mb-1">MODE A</div>
                   <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Web Console</h4>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-                    Buka konsol browser, unggah file ZIP (&lt;= 10MB) atau masukkan URL repositori GitHub publik, lalu klik "Run Security Audit".
+                    Open the browser console, upload a ZIP file (&lt;= 10MB) or provide a public GitHub repository URL, then click "Run Security Audit".
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={onLaunchConsole}
+                  onClick={handleConsoleClick}
                   className="w-full text-xs py-2 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-semibold cursor-pointer text-center"
                 >
-                  Buka Console &rarr;
+                  Open Console →
                 </button>
               </div>
 
@@ -1275,18 +1283,18 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                         agentViewMode === 'config' ? 'mcp' : 'prompt'
                       )
                     }
-                    className="text-xs px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors cursor-pointer font-mono shrink-0 inline-flex items-center gap-1.5"
+                    className="group text-xs px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all cursor-pointer font-mono shrink-0 inline-flex items-center gap-1.5 active:scale-[0.96]"
                   >
                     {(agentViewMode === 'config' ? copiedMcp : copiedPrompt) ? (
                       <>
-                        <svg className="size-3.5 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="size-3.5 text-emerald-500 shrink-0 animate-micro-pop" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                         <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
                       </>
                     ) : (
                       <>
-                        <svg className="size-3.5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="size-3.5 text-neutral-500 group-hover:text-neutral-800 dark:group-hover:text-neutral-200 transition-transform duration-200 group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                         </svg>
@@ -1389,18 +1397,18 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   <button
                     type="button"
                     onClick={handleCopyCli}
-                    className="ml-2 px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-mono hover:border-neutral-400 transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5"
+                    className="group ml-2 px-2.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-mono hover:border-neutral-400 transition-all cursor-pointer shrink-0 inline-flex items-center gap-1.5 active:scale-[0.96]"
                   >
                     {copiedCli ? (
                       <>
-                        <svg className="size-3.5 text-neutral-900 dark:text-neutral-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="size-3.5 text-emerald-500 shrink-0 animate-micro-pop" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                         <span className="text-neutral-900 dark:text-neutral-100 font-bold">Copied</span>
                       </>
                     ) : (
                       <>
-                        <svg className="size-3.5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="size-3.5 text-neutral-500 group-hover:text-neutral-800 dark:group-hover:text-neutral-200 transition-transform duration-200 group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                         </svg>
@@ -1459,14 +1467,14 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
         </div>
 
-        {/* SUB-SECTION 6: SEMUA DOKUMENTASI & SPESIFIKASI TEKNIS */}
+        {/* SUB-SECTION 6: TECHNICAL DOCUMENTATION & SPECIFICATIONS */}
         <div id="doc-specs" className="scroll-mt-24 pt-8 border-t border-neutral-200 dark:border-neutral-800">
           <div className="max-w-4xl mb-8">
             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 mb-3">
-              Dokumentasi Teknis &amp; Standar Kepatuhan
+              Technical Documentation &amp; Compliance Standards
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed text-sm sm:text-base">
-              Referensi arsitektur lengkap, spesifikasi standar, dan berkas dokumentasi resmi ShipSafe yang tersedia di repositori:
+              Comprehensive architecture references, standard specifications, and official ShipSafe documentation files available in the repository:
             </p>
           </div>
 
@@ -1475,7 +1483,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div>
                 <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">DOCUMENTATION.md</h4>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  Spesifikasi resmi berbahasa Indonesia mencakup arsitektur 3-tier, rincian 10 vektor ancaman, standar mitigasi, dan panduan operasional produksi.
+                  Official specification covering 3-tier architecture, 10 threat vector specifications, remediation standards, and production operational runbooks.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-[11px] text-neutral-500">
@@ -1487,7 +1495,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div>
                 <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">MCP.md &amp; docs/mcp.md</h4>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  Panduan integrasi protokol Model Context Protocol (MCP) untuk 10 AI coding agent, payload skema JSON-RPC 2.0 stdio, dan implementasi 4 native tools.
+                  Model Context Protocol (MCP) integration guide for 10 AI coding agents, stdio JSON-RPC 2.0 schema payloads, and 4 native tools implementation.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-[11px] text-neutral-500">
@@ -1499,7 +1507,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div>
                 <h4 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-2">SARIF 2.1.0 &amp; ASVS v4.0</h4>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  Kepatuhan penuh pada standar OASIS SARIF v2.1.0 untuk integrasi otomatis CI/CD GitHub Actions dan validasi keamanan OWASP Application Security Verification Standard.
+                  Full compliance with OASIS SARIF v2.1.0 standard for automated GitHub Actions CI/CD pipeline integration and OWASP ASVS security validation.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800/80 font-mono text-[11px] text-neutral-500">
@@ -1607,6 +1615,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={() => toggleFaq(idx)}
+                  aria-expanded={openFaq === idx}
+                  aria-controls={`faq-answer-${idx}`}
                   className="flex w-full items-center justify-between text-left font-medium text-sm sm:text-base text-neutral-900 dark:text-neutral-100 cursor-pointer transition-colors hover:text-neutral-600 dark:hover:text-neutral-300"
                 >
                   <span>{item.q}</span>
@@ -1615,7 +1625,10 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                   </span>
                 </button>
                 {openFaq === idx && (
-                  <div className="pt-3 text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
+                  <div
+                    id={`faq-answer-${idx}`}
+                    className="pt-3 text-sm sm:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal"
+                  >
                     {item.a}
                   </div>
                 )}
@@ -1690,15 +1703,15 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <span>Talk on WhatsApp</span>
               </a>
               <a
-                href="https://t.me/gilankdev"
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=gilankdev@gmail.com&su=ShipSafe%20Security%20Consultation"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 text-sm font-semibold px-5 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all inline-flex items-center gap-2.5 shadow-xs active:scale-98"
               >
                 <svg className="size-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                 </svg>
-                <span>Talk on Telegram</span>
+                <span>Email Maintainer</span>
               </a>
             </div>
           </div>
@@ -1712,8 +1725,8 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <div className="flex items-center gap-2">
                 <BrandLogo size="md" />
               </div>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                Automated security auditor and AST gatekeeper for modern web applications.
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed font-sans">
+                Automated security auditor and AST gatekeeper for modern web applications. Zero code retention.
               </p>
             </div>
 
@@ -1726,10 +1739,11 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                 <li>
                   <button
                     type="button"
-                    onClick={onLaunchConsole}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-pointer text-left"
+                    onClick={handleConsoleClick}
+                    className="group hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer text-left inline-flex items-center gap-1 active:scale-[0.98]"
                   >
-                    Console
+                    <span>Console</span>
+                    <span className="text-[10px] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">→</span>
                   </button>
                 </li>
                 <li>
@@ -1739,7 +1753,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       e.preventDefault()
                       scrollToSection('how-it-works')
                     }}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
                   >
                     How It Works
                   </a>
@@ -1751,9 +1765,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       e.preventDefault()
                       scrollToSection('mcp')
                     }}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
                   >
-                    Coding Agents
+                    MCP Server
                   </a>
                 </li>
                 <li>
@@ -1763,7 +1777,7 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       e.preventDefault()
                       scrollToSection('cli')
                     }}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
                   >
                     Terminal CLI
                   </a>
@@ -1775,9 +1789,33 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       e.preventDefault()
                       scrollToSection('threat-matrix')
                     }}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
                   >
                     Threat Vectors
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#pricing"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection('pricing')
+                    }}
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
+                  >
+                    Pricing &amp; Plans
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#faq"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection('faq')
+                    }}
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
+                  >
+                    FAQ
                   </a>
                 </li>
               </ul>
@@ -1791,28 +1829,39 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
               <ul className="space-y-2 text-xs">
                 <li>
                   <a
+                    href="#documentation"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection('documentation')
+                    }}
+                    className="group hover:text-neutral-950 dark:hover:text-white transition-colors inline-flex items-center gap-1.5"
+                  >
+                    <span>Documentation</span>
+                    <span className="text-[10px] opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">→</span>
+                  </a>
+                </li>
+                <li>
+                  <a
                     href="#mcp"
                     onClick={(e) => {
                       e.preventDefault()
                       scrollToSection('mcp')
                     }}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
                   >
-                    MCP Docs
+                    MCP Server Guide
                   </a>
                 </li>
                 <li>
                   <a
-                    href="https://github.com/gilank-dev/shipsafe"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors inline-flex items-center gap-1.5"
+                    href="#cli"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToSection('cli')
+                    }}
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
                   >
-                    <svg className="size-3.5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                    </svg>
-                    <span>GitHub</span>
-                    <span className="text-[10px]">&nearr;</span>
+                    CLI &amp; CI/CD SARIF
                   </a>
                 </li>
                 <li>
@@ -1822,21 +1871,9 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
                       e.preventDefault()
                       scrollToSection('limitations')
                     }}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                    className="hover:text-neutral-950 dark:hover:text-white transition-colors block"
                   >
-                    Security Rules
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#faq"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      scrollToSection('faq')
-                    }}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
-                  >
-                    FAQ
+                    Security Limitations
                   </a>
                 </li>
               </ul>
@@ -1845,48 +1882,48 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
             {/* Column 4: Channels */}
             <div className="space-y-3">
               <div className="font-mono text-[11px] font-semibold uppercase tracking-wider text-neutral-900 dark:text-neutral-100">
-                Channels
+                Direct Channels
               </div>
               <ul className="space-y-2 text-xs">
                 <li>
                   <a
-                    href="https://wa.me/6285156559384?text=Halo%20Admin%20ShipSafe%2C%20saya%20tertarik%20konsultasi%20keamanan%20proyek%20saya"
+                    href="https://wa.me/6282124153732?text=Hello%20ShipSafe%20Admin%2C%20I%20am%20interested%20in%20security%20consultation%20for%20my%20project"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors inline-flex items-center gap-1.5"
+                    className="group hover:text-neutral-950 dark:hover:text-white transition-colors inline-flex items-center gap-1.5"
                   >
-                    <svg className="size-3.5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg className="size-3.5 fill-current shrink-0 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-6" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.761.884 2.796.885h.005c3.179 0 5.767-2.587 5.768-5.766 0-3.18-2.588-5.769-5.773-5.772zm3.374 8.211c-.147.418-.749.775-1.042.825-.294.05-.67.07-1.085-.064-.265-.086-.607-.207-1.053-.401-1.895-.824-3.128-2.739-3.223-2.865-.094-.125-.769-1.023-.769-1.95 0-.927.487-1.383.66-1.573.174-.189.38-.237.507-.237.127 0 .253.002.364.007.118.005.276-.045.432.329.162.391.554 1.349.602 1.448.048.099.08.214.016.34-.063.125-.095.203-.189.314-.095.111-.2.247-.286.332-.095.095-.195.198-.084.388.111.19.493.813 1.057 1.316.726.647 1.339.848 1.53.943.19.095.302.079.414-.048.111-.126.475-.554.602-.744.126-.19.253-.158.428-.095.174.064 1.109.523 1.3.618.19.095.317.143.364.222.048.079.048.459-.099.877z" />
                     </svg>
-                    <span>WhatsApp</span>
-                    <span className="text-[10px]">&nearr;</span>
+                    <span>WhatsApp Consultation</span>
+                    <span className="text-[10px] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
                   </a>
                 </li>
                 <li>
                   <a
-                    href="https://t.me/gilankdev"
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=gilankdev@gmail.com&su=ShipSafe%20Inquiry%20%2F%20Security%20Audit"
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors inline-flex items-center gap-1.5"
+                    className="group hover:text-neutral-950 dark:hover:text-white transition-colors inline-flex items-center gap-1.5"
                   >
-                    <svg className="size-3.5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                    <svg className="size-3.5 fill-current shrink-0 transition-transform duration-200 group-hover:scale-110" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                     </svg>
-                    <span>Telegram</span>
-                    <span className="text-[10px]">&nearr;</span>
+                    <span>Email: gilankdev@gmail.com</span>
+                    <span className="text-[10px] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
                   </a>
                 </li>
                 <li>
                   <button
                     type="button"
                     onClick={() => setAuthModalOpen(true)}
-                    className="hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors cursor-pointer text-left inline-flex items-center gap-1.5"
+                    className="group hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer text-left inline-flex items-center gap-1.5 active:scale-[0.98]"
                   >
-                    <svg className="size-3.5 text-neutral-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <svg className="size-3.5 text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white shrink-0 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
-                    <span>{user ? 'Account' : 'Sign In'}</span>
+                    <span>{user ? 'Account Management' : 'Sign In'}</span>
                   </button>
                 </li>
               </ul>
@@ -1894,14 +1931,18 @@ export function LandingPage({ onLaunchConsole }: LandingPageProps) {
           </div>
 
           {/* Bottom Bar */}
-          <div className="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-neutral-400">
+          <div className="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-neutral-500 font-mono">
             <div>
-              &copy; {new Date().getFullYear()} ShipSafe. All rights reserved.
+              &copy; {new Date().getFullYear()} ShipSafe. Built by LankDev. All rights reserved.
             </div>
-            <div className="flex items-center gap-3 font-mono">
+            <div className="flex flex-wrap items-center gap-3">
               <span>Zero Code Retention</span>
               <span>/</span>
+              <span>OASIS SARIF 2.1.0</span>
+              <span>/</span>
               <span>WCAG AA</span>
+              <span>/</span>
+              <span>10 Threat Vectors</span>
             </div>
           </div>
         </footer>

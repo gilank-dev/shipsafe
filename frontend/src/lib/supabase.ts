@@ -312,44 +312,31 @@ export async function signInWithOtp(email: string): Promise<{ error: Error | nul
   return { error: error ? new Error(error.message) : null }
 }
 
-export async function signInWithOAuth(provider: 'google' | 'github'): Promise<{ data: { provider: string; url: string | null } | null; error: Error | null }> {
+export async function signInWithOAuth(
+  provider: 'google' | 'github',
+  options?: { redirectTo?: string; queryParams?: Record<string, string> }
+): Promise<{ data: { provider: string; url: string | null } | null; error: Error | null }> {
   if (!isSupabaseConfigured) {
     return { data: null, error: new Error('Supabase credentials are not configured in environment.') }
   }
 
-  // Pre-check provider availability to avoid redirecting user to Supabase raw error page
-  try {
-    const enabled = await isProviderEnabled(provider)
-    if (enabled === false) {
-      const name = provider === 'github' ? 'GitHub' : 'Google'
-      return {
-        data: null,
-        error: new Error(`OAuth provider '${name}' is not enabled in Supabase configuration. Please use 'Instant Sign-in as Developer' or Email sign-in.`),
-      }
-    }
-  } catch {
-    // proceed if probe fails
-  }
-
-  const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined
+  const redirectTo = options?.redirectTo || (typeof window !== 'undefined' ? `${window.location.origin}/` : undefined)
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
       redirectTo,
+      queryParams: options?.queryParams,
     },
   })
-  if (
-    data?.url &&
-    (data.url.includes('HR%20SaaS') || data.url.includes('HR+SaaS') || data.url.includes('client_id=HR'))
-  ) {
-    return {
-      data: null,
-      error: new Error(
-        "Supabase OAuth client_id is invalid ('HR SaaS'). Please use Clerk authentication for GitHub and Google.",
-      ),
-    }
-  }
   return { data, error: error ? new Error(error.message) : null }
+}
+
+export async function signInWithGoogle(redirectTo?: string) {
+  return signInWithOAuth('google', { redirectTo })
+}
+
+export async function signInWithGitHub(redirectTo?: string) {
+  return signInWithOAuth('github', { redirectTo })
 }
 
 export async function signOut(): Promise<{ error: Error | null }> {

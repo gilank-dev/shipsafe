@@ -65,7 +65,7 @@ flowchart TD
 
     subgraph DataTier["Data & Identity Layer"]
         SupabaseDB["Supabase Postgres<br/>Tables: audits, findings, audit_diffs, teams"]
-        ClerkAuth["Clerk & Supabase Auth<br/>JWT Verification & RLS Multi-Tenancy"]
+        SupabaseAuth["Supabase Auth Engine<br/>JWT Verification & RLS Multi-Tenancy"]
     end
 
     WebUI -->|REST + JWT / Turnstile| APIGateway
@@ -81,7 +81,7 @@ flowchart TD
     MultiLangRules --> AIGateway
     AIGateway --> PromptSynth
     
-    APIGateway --> ClerkAuth
+    APIGateway --> SupabaseAuth
     APIGateway --> SupabaseDB
 ```
 

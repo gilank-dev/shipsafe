@@ -201,7 +201,7 @@ export function EcosystemModal() {
               onClick={() => navigateToLandingAnchor('#mcp')}
               className="text-small font-bold text-ink hover:underline cursor-pointer flex items-center gap-1"
             >
-              <span>Buka Konfigurasi MCP Lengkap</span>
+              <span>Open Full MCP Configuration</span>
               <span>&rarr;</span>
             </button>
           </div>
@@ -279,9 +279,16 @@ export function EcosystemModal() {
                 <button
                   type="button"
                   onClick={handleCopyCli}
-                  className="text-caption px-2 py-0.5 border border-rule hover:border-ink bg-surface font-bold uppercase cursor-pointer"
+                  className="text-caption px-2 py-0.5 border border-rule hover:border-ink bg-surface font-bold uppercase cursor-pointer transition-all active:scale-95 inline-flex items-center gap-1"
                 >
-                  {copiedCli ? '✓' : 'COPY'}
+                  {copiedCli ? (
+                    <>
+                      <span className="text-pass animate-micro-pop">✓</span>
+                      <span>COPIED</span>
+                    </>
+                  ) : (
+                    'COPY'
+                  )}
                 </button>
               </div>
             </div>
@@ -293,9 +300,16 @@ export function EcosystemModal() {
                 <button
                   type="button"
                   onClick={handleCopyHook}
-                  className="text-caption px-2 py-0.5 border border-rule hover:border-ink bg-surface font-bold uppercase cursor-pointer"
+                  className="text-caption px-2 py-0.5 border border-rule hover:border-ink bg-surface font-bold uppercase cursor-pointer transition-all active:scale-95 inline-flex items-center gap-1"
                 >
-                  {copiedHook ? '✓' : 'COPY'}
+                  {copiedHook ? (
+                    <>
+                      <span className="text-pass animate-micro-pop">✓</span>
+                      <span>COPIED</span>
+                    </>
+                  ) : (
+                    'COPY'
+                  )}
                 </button>
               </div>
               <p className="text-[11px] text-ink-2 mt-1.5 font-mono">
@@ -319,7 +333,7 @@ export function EcosystemModal() {
               onClick={() => navigateToLandingAnchor('#cli')}
               className="text-small font-bold text-ink hover:underline cursor-pointer flex items-center gap-1"
             >
-              <span>Buka Panduan Terminal CLI Lengkap</span>
+              <span>Open Full Terminal CLI Guide</span>
               <span>&rarr;</span>
             </button>
           </div>

@@ -5,45 +5,12 @@ import * as axeMatchers from 'vitest-axe/matchers'
 
 expect.extend(axeMatchers)
 
-if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
-  vi.stubEnv('VITE_CLERK_PUBLISHABLE_KEY', 'pk_test_mock_clerk_key_for_testing')
+if (!import.meta.env.VITE_SUPABASE_URL) {
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://mock.supabase.co')
 }
-
-const clerkMock = vi.hoisted(() => () => ({
-  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
-  useUser: () => ({ isSignedIn: false, user: null, isLoaded: true }),
-  useAuth: () => ({ isSignedIn: false, userId: null, getToken: async () => null, isLoaded: true }),
-  useClerk: () => ({
-    openSignIn: vi.fn(),
-    openSignUp: vi.fn(),
-    signOut: vi.fn(),
-  }),
-  useSignIn: () => ({
-    isLoaded: true,
-    signIn: {
-      authenticateWithRedirect: vi.fn().mockResolvedValue({}),
-      create: vi.fn().mockResolvedValue({}),
-    },
-  }),
-  useSignUp: () => ({
-    isLoaded: true,
-    signUp: {
-      create: vi.fn().mockResolvedValue({}),
-    },
-  }),
-  AuthenticateWithRedirectCallback: () => null,
-  HandleSSOCallback: () => null,
-  SignIn: () => null,
-  SignUp: () => null,
-  SignInButton: ({ children }: { children: React.ReactNode }) => children,
-  SignUpButton: ({ children }: { children: React.ReactNode }) => children,
-  UserButton: () => null,
-}))
-
-// Mock Clerk React SDK for test suites
-vi.mock('@clerk/clerk-react', clerkMock)
-vi.mock('@clerk/react', clerkMock)
-
+if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'mock-supabase-anon-key')
+}
 
 // jsdom has no <dialog> showModal/close; provide the minimum behaviour the app relies on.
 if (typeof HTMLDialogElement !== 'undefined') {
@@ -66,4 +33,3 @@ if (typeof window.ResizeObserver === 'undefined') {
 }
 
 afterEach(() => cleanup())
-

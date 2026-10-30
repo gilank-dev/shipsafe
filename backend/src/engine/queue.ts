@@ -50,6 +50,23 @@ export class AuditQueue {
   }
 
   /**
+   * Flushes all waiting tasks in the queue, clearing timeout timers
+   * and rejecting waiting requests with QUEUE_FLUSHED.
+   */
+  flush(): number {
+    const count = this.queue.length;
+    for (const item of this.queue) {
+      clearTimeout(item.timeoutTimer);
+      const flushErr: any = new Error('Task flushed from queue by Super Admin.');
+      flushErr.code = 'QUEUE_FLUSHED';
+      flushErr.statusCode = 499;
+      item.reject(flushErr);
+    }
+    this.queue = [];
+    return count;
+  }
+
+  /**
    * Run a task respecting concurrency and tier priority.
    * Higher priority weight (Enterprise=3, Pro=2, Free=1) dequeues first while preserving FIFO order within same priority.
    */

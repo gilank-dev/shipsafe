@@ -15,3 +15,5 @@ backend/.env*
 frontend/.env*
 !frontend/.env.example
 supabase/.temp/
+scratch/
+backend/data/admin-store.json

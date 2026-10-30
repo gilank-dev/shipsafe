@@ -49,8 +49,16 @@ export const corsMiddleware = cors({
       callback(new Error(`CORS_NOT_ALLOWED: Origin ${origin} not allowed by whitelist`));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CLI-Version'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'X-CLI-Version',
+    'x-admin-email',
+    'x-user-email',
+    'apikey',
+  ],
   exposedHeaders: ['Content-Disposition', 'X-File-Name', 'X-Repo-Owner', 'X-Repo-Name', 'X-Repo-Size'],
 });
 

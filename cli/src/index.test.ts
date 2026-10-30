@@ -226,6 +226,21 @@ describe('ShipSafe CLI', () => {
       expect(result.locations[0].physicalLocation).toHaveProperty('artifactLocation')
       expect(result.locations[0].physicalLocation.artifactLocation).toHaveProperty('uri', 'vuln.ts')
     })
+
+    it('should output markdown format with --format=markdown', async () => {
+      writeTestFile('clean.ts', `const x = 1;\n`)
+      await runCliWithArgs(['scan', testDir, '--format=markdown'])
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('# ShipSafe Security Docket'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('### Severity Breakdown'))
+    })
+
+    it('should output markdown format with findings included', async () => {
+      writeTestFile('vuln.ts', `eval("alert(1)");\n`)
+      await runCliWithArgs(['scan', testDir, '--format=markdown'])
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('# ShipSafe Security Docket'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('### Flagged Findings'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('SEC-EVAL-01'))
+    })
   })
 
   describe('Ignore patterns', () => {
@@ -265,6 +280,36 @@ describe('ShipSafe CLI', () => {
       writeTestFile('vuln.ts', `eval("alert(1)");\n`)
       const code = await runCliWithArgs(['scan', testDir, '--fail-on=critical'])
       expect(code).toBe(1)
+    })
+
+    it('should respect --threshold critical flag and pass when only HIGH findings', async () => {
+      writeTestFile('vuln.tsx', `return <div dangerouslySetInnerHTML={{ __html: userInput }} />;\n`)
+      const code = await runCliWithArgs(['scan', testDir, '--threshold=critical'])
+      expect(code).toBe(0)
+    })
+
+    it('should respect --threshold critical flag and fail when CRITICAL findings present', async () => {
+      writeTestFile('vuln.ts', `eval("alert(1)");\n`)
+      const code = await runCliWithArgs(['scan', testDir, '--threshold=critical'])
+      expect(code).toBe(1)
+    })
+
+    it('should respect --strict flag and fail on any finding', async () => {
+      writeTestFile('vuln.tsx', `return <div dangerouslySetInnerHTML={{ __html: userInput }} />;\n`)
+      const code = await runCliWithArgs(['scan', testDir, '--strict'])
+      expect(code).toBe(1)
+    })
+
+    it('should respect both --strict and --threshold critical flags', async () => {
+      writeTestFile('vuln.ts', `eval("alert(1)");\n`)
+      const code = await runCliWithArgs(['scan', testDir, '--strict', '--threshold=critical'])
+      expect(code).toBe(1)
+    })
+
+    it('should pass with 0 exit code under --strict when codebase is clean', async () => {
+      writeTestFile('clean.ts', `const x = 100;\n`)
+      const code = await runCliWithArgs(['scan', testDir, '--strict', '--threshold=critical'])
+      expect(code).toBe(0)
     })
   })
 
@@ -405,6 +450,129 @@ describe('ShipSafe CLI', () => {
       expect(code).toBe(1)
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('REGRESSION DETECTED'))
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('NEW REGRESSIONS INTRODUCED'))
+    })
+
+    it('should output markdown diff when --format=markdown is provided', async () => {
+      const baseDir = path.join(testDir, 'base')
+      const targetDir = path.join(testDir, 'target')
+
+      fs.mkdirSync(baseDir, { recursive: true })
+      fs.mkdirSync(targetDir, { recursive: true })
+
+      fs.writeFileSync(path.join(baseDir, 'config.js'), 'const apiKey = "' + STRIPE_FIXTURE + '"')
+      fs.writeFileSync(path.join(targetDir, 'config.js'), 'const apiKey = process.env.API_KEY')
+
+      const code = await runCliWithArgs(['diff', baseDir, targetDir, '--format=markdown'])
+      expect(code).toBe(0)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('# ShipSafe Re-Audit Diff & Fix Verification'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('### ✅ Resolved Findings'))
+    })
+  })
+
+  describe('AI Agent Remediation Prompt Generation (--agent)', () => {
+    it('should generate agent remediation prompt in text docket when --agent=cursor is provided', async () => {
+      fs.writeFileSync(path.join(testDir, 'vulnerable.js'), 'const token = "ghp_123456789012345678901234567890123456"')
+      const code = await runCliWithArgs(['scan', testDir, '--agent=cursor'])
+      expect(code).toBe(1)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('Agent (cursor) :'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('[Cursor Prompt]'))
+    })
+
+    it('should format agent prompt for Claude Code in markdown output', async () => {
+      fs.writeFileSync(path.join(testDir, 'vulnerable.js'), 'eval(input)')
+      const code = await runCliWithArgs(['scan', testDir, '--agent=claude', '--format=markdown'])
+      expect(code).toBe(1)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('> **CLAUDE REMEDIATION PROMPT**:'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('/audit-fix'))
+    })
+
+    it('should render 1-click remediation prompt box in text docket', async () => {
+      fs.writeFileSync(path.join(testDir, 'vulnerable.js'), 'const key = "' + STRIPE_FIXTURE + '"')
+      const code = await runCliWithArgs(['scan', testDir, '--agent=cursor'])
+      expect(code).toBe(1)
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('[PROMPT // 1-CLICK REMEDIATION FOR CURSOR]'))
+      expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('/* @security-fix:'))
+    })
+
+    it('should include remediationPrompt and account in JSON output', async () => {
+      fs.writeFileSync(path.join(testDir, 'vulnerable.js'), 'const key = "' + STRIPE_FIXTURE + '"')
+      await runCliWithArgs(['scan', testDir, '--format=json'])
+      const jsonCall = mockLog.mock.calls.find((call: unknown[]) => {
+        try {
+          const parsed = JSON.parse(call[0] as string)
+          return parsed && Array.isArray(parsed.findings)
+        } catch {
+          return false
+        }
+      })
+      expect(jsonCall).toBeDefined()
+      const parsed = JSON.parse(jsonCall![0] as string)
+      expect(parsed.findings[0]).toHaveProperty('remediationPrompt')
+      expect(parsed.findings[0].remediationPrompt).toContain('@security-fix:')
+      expect(parsed).toHaveProperty('account')
+    })
+  })
+
+  describe('Live Account Quota Synchronization & Exhaustion Barrier', () => {
+    it('should display quota exceeded alert and exit 1 when backend returns 429', async () => {
+      fs.writeFileSync(path.join(testDir, 'clean.js'), 'console.log("clean");')
+      const originalFetch = global.fetch
+      global.fetch = vi.fn().mockResolvedValue({
+        status: 429,
+        ok: false,
+        json: async () => ({
+          error: {
+            code: 'quota_exhausted',
+            message: 'Monthly audit quota exhausted. Upgrade your tier at https://shipsafe.lankdev.my.id/console',
+            used: 3,
+            limit: 3,
+          },
+        }),
+      } as any)
+
+      try {
+        const code = await runCliWithArgs(['scan', testDir])
+        expect(code).toBe(1)
+        expect(mockError).toHaveBeenCalledWith(
+          expect.stringContaining('[SHIPSAFE QUOTA EXCEEDED] Monthly limit reached (3/3)')
+        )
+      } finally {
+        global.fetch = originalFetch
+      }
+    })
+
+    it('should update docket with live tier and quota when backend responds 200', async () => {
+      fs.writeFileSync(path.join(testDir, 'clean.js'), 'console.log("clean");')
+      const originalFetch = global.fetch
+      global.fetch = vi.fn().mockResolvedValue({
+        status: 200,
+        ok: true,
+        json: async () => ({
+          success: true,
+          user: { email: 'developer@shipsafe.dev', tier: 'pro' },
+          quota: { tier: 'pro', used: 12, limit: 50, remaining: 38 },
+        }),
+      } as any)
+
+      try {
+        const code = await runCliWithArgs(['scan', testDir])
+        expect(code).toBe(0)
+        expect(mockLog).toHaveBeenCalledWith(
+          expect.stringContaining('developer@shipsafe.dev [PRO TIER] | Quota: 12/50 (38 remaining)')
+        )
+      } finally {
+        global.fetch = originalFetch
+      }
+    })
+
+    it('should display anonymous local scan notice when unauthenticated', async () => {
+      delete process.env.SHIPSAFE_TOKEN
+      fs.writeFileSync(path.join(testDir, 'clean.js'), 'console.log("clean");')
+      const code = await runCliWithArgs(['scan', testDir])
+      expect(code).toBe(0)
+      expect(mockLog).toHaveBeenCalledWith(
+        expect.stringContaining("Anonymous Local Scan (Run 'shipsafe login --token=<token>' to sync quota)")
+      )
     })
   })
 })

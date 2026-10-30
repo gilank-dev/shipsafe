@@ -32,7 +32,7 @@
 │     (213.163.197.214:23010)   │  │                              │
 │ • Express + TypeScript        │  │ • Postgres Database          │
 │ • Zip-Bomb & Traversal Guards │  │ • Row Level Security (RLS)   │
-│ • Static Rule Engine (AST)    │  │ • Clerk & Supabase Auth      │
+│ • Static Rule Engine (AST)    │  │ • Supabase Auth (Primary)    │
 │ • Concurrency Queue (Max 3)   │  │ • Cascade Deletion Policies  │
 │ • 9Router AI Gateway Service  │  └──────────────────────────────┘
 │   (Model: hermes-agent)       │
@@ -82,7 +82,7 @@ ShipSafe/
 │   │   │   ├── report/       # ReportView, Scorecard, FindingList, ThreatMatrix
 │   │   │   └── dialogs/      # AuthModal, HistoryModal, ConfirmDialog
 │   │   ├── domain/           # Validation, secret masking, sample data
-│   │   ├── lib/              # Supabase & Clerk client integrations
+│   │   ├── lib/              # Supabase client & API integrations
 │   │   ├── state/            # Zustand global state store
 │   │   └── styles/           # Design tokens (tokens.css) & markdown styles
 │   ├── dist/                 # Production build ready for Vercel
@@ -138,7 +138,21 @@ Can be registered directly to Claude Desktop or Cursor via `.cursor/mcp.json`. S
 ### 4.5 Running ShipSafe CLI & CI/CD
 ```bash
 cd cli
+# Scan local codebase (no account required)
 node dist/index.js scan .
+
+# Scan with AI remediation prompt generation for specific coding agent
+node dist/index.js scan . --agent=cursor # (or claude, copilot, windsurf)
+
+# Link CLI to your ShipSafe account (Supabase user session sync)
+node dist/index.js login --token=sk_shipsafe_...
+
+# Inspect authenticated identity and token status
+node dist/index.js whoami
+
+# Verify fix between commits or folders
+node dist/index.js diff ./before-fix ./after-fix
+
 # Install pre-commit barrier hook
 node scripts/install-hook.js --install
 ```
@@ -169,6 +183,28 @@ Pre-commit blocks commits containing `HIGH`/`CRITICAL` vulnerabilities. GitHub A
 
 ---
 
-## 6. License & Credits
+## 6. Access Control & Super Admin Whitelist
+
+ShipSafe enforces strict Role-Based Access Control (RBAC) powered by Supabase Auth with Row Level Security (RLS). High-privilege administrative functions (Super Admin Ledger, system-wide metrics, voucher code distribution, and tenant override limits) are strictly restricted to the following hardcoded Super Admin email whitelist:
+
+- `hi@lankdev.my.id`
+- `gilankdev@gmail.com`
+- `ghilankputraramadhan@gmail.com`
+
+Any unauthenticated identity or account outside this whitelist is granted standard community/pro tenant access and cannot inspect or alter cross-tenant records.
+
+---
+
+## 7. Direct Support & Official Channels
+
+For custom security audits, enterprise licensing, on-premise deployments, or local bank transfer invoicing:
+
+- **WhatsApp Lead**: [+62 821-2415-3732](https://wa.me/6282124153732) (`082124153732`)
+- **Direct Email**: [gilankdev@gmail.com](mailto:gilankdev@gmail.com)
+- **Production Console**: [https://shipsafe.lankdev.my.id](https://shipsafe.lankdev.my.id)
+
+---
+
+## 8. License & Credits
 
 ShipSafe is designed for builders, vibe-coders, and development teams who need safety verification before shipping to production. Built with precision and strict evidence-first engineering by LankDev & AI Agents.

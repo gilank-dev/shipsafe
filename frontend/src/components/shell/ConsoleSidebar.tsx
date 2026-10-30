@@ -1,11 +1,11 @@
 import React from 'react'
-import { useClerk } from '@clerk/clerk-react'
 import { Shield, BookOpen, Clock, Terminal, ChevronLeft, CreditCard, LogOut } from 'lucide-react'
 import { signOut } from '../../lib/supabase'
 import { announce } from '../../state/announcer'
 import { useStore } from '../../state/store'
 import { QuotaIndicator } from '../pricing/QuotaIndicator'
-import { TierBadge } from '../ui/TierBadge'
+import { TierStamp } from '../ui/TierStamp'
+import { isSuperAdminEmail } from '../../config/super-admin'
 
 interface ConsoleSidebarProps {
   activeView: 'audit' | 'docs' | 'pricing'
@@ -25,20 +25,15 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
   const setHistoryModalOpen = useStore((s) => s.setHistoryModalOpen)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
   const setAuthUser = useStore((s) => s.setAuthUser)
-  const clerk = useClerk()
-
-  const effectiveTier = user?.tier || quota?.tier || 'free'
-  const isSuperAdmin = Boolean(user?.isSuperAdmin)
+  const isSuperAdmin = Boolean(user?.isSuperAdmin) || isSuperAdminEmail(user?.email)
+  const effectiveTier = isSuperAdmin ? 'enterprise' : (user?.tier || quota?.tier || 'free')
 
   const handleSignOut = async () => {
     try {
-      if (clerk?.signOut) {
-        await clerk.signOut()
-      }
+      await signOut()
     } catch {
       // non-blocking
     }
-    await signOut()
     setAuthUser(null)
     announce('Signed out')
   }
@@ -73,26 +68,31 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
         />
       )}
 
+      {/* 
+        Fixed, non-scrolling Left Sidebar:
+        Strictly overflow-hidden on desktop (md:overflow-hidden) so scrolling the page
+        only scrolls the main content pane on the right without any sidebar jitter.
+      */}
       <aside
         className={`${
           isSidebarOpen ? 'flex' : 'hidden'
-        } fixed md:sticky top-[var(--rail-h,3.5rem)] left-0 z-50 md:z-10 flex-col justify-between w-64 md:w-56 lg:w-60 shrink-0 border-r border-rule bg-canvas py-4 px-2.5 h-[calc(100dvh-var(--rail-h,3.5rem))] shadow-lg md:shadow-none transition-all overflow-y-auto custom-scrollbar`}
+        } fixed md:sticky top-[var(--rail-h,3.5rem)] left-0 z-50 md:z-10 flex-col justify-between w-64 md:w-64 lg:w-68 shrink-0 border-r border-rule bg-canvas py-3.5 px-3 h-[calc(100dvh-var(--rail-h,3.5rem))] shadow-lg md:shadow-none transition-all overflow-hidden`}
         data-print="hide"
         aria-label="Console Navigation Sidebar"
       >
-        <div className="flex flex-col space-y-6">
+        <div className="flex flex-col space-y-4">
           {/* Navigation Group Header with Collapse Button */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between px-2.5 mb-2">
+            <div className="flex items-center justify-between px-2 mb-2">
               <p className="text-[10px] font-mono uppercase tracking-wider text-ink-3 font-semibold">
                 Workspace
               </p>
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="p-1 text-ink-3 hover:text-ink hover:bg-surface rounded-sm cursor-pointer transition-colors"
-                title="Sembunyikan Sidebar"
-                aria-label="Sembunyikan Sidebar"
+                className="p-1 text-ink-3 hover:text-ink hover:bg-surface rounded-none cursor-pointer transition-colors"
+                title="Collapse Sidebar"
+                aria-label="Collapse Sidebar"
               >
                 <ChevronLeft className="size-3.5" strokeWidth={1.5} />
               </button>
@@ -102,9 +102,9 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
             <button
               type="button"
               onClick={() => handleSelectView('audit')}
-              className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono transition-colors text-left cursor-pointer rounded-sm ${
+              className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono transition-colors text-left cursor-pointer rounded-none border border-transparent ${
                 activeView === 'audit'
-                  ? 'bg-ink text-canvas font-semibold shadow-xs'
+                  ? 'bg-ink text-canvas font-semibold border-ink shadow-xs'
                   : 'text-ink-2 hover:text-ink hover:bg-surface'
               }`}
             >
@@ -116,9 +116,9 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
             <button
               type="button"
               onClick={() => handleSelectView('docs')}
-              className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono transition-colors text-left cursor-pointer rounded-sm ${
+              className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono transition-colors text-left cursor-pointer rounded-none border border-transparent ${
                 activeView === 'docs'
-                  ? 'bg-ink text-canvas font-semibold shadow-xs'
+                  ? 'bg-ink text-canvas font-semibold border-ink shadow-xs'
                   : 'text-ink-2 hover:text-ink hover:bg-surface'
               }`}
             >
@@ -130,9 +130,9 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
             <button
               type="button"
               onClick={() => handleSelectView('pricing')}
-              className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono transition-colors text-left cursor-pointer rounded-sm ${
+              className={`w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono transition-colors text-left cursor-pointer rounded-none border border-transparent ${
                 activeView === 'pricing'
-                  ? 'bg-ink text-canvas font-semibold shadow-xs'
+                  ? 'bg-ink text-canvas font-semibold border-ink shadow-xs'
                   : 'text-ink-2 hover:text-ink hover:bg-surface'
               }`}
             >
@@ -150,47 +150,50 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
                   }
                   setHistoryModalOpen(true)
                 }}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono text-ink-2 hover:text-ink hover:bg-surface transition-colors text-left cursor-pointer rounded-sm"
-                title="Buka riwayat audit tersimpan"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono text-ink-2 hover:text-ink hover:bg-surface transition-colors text-left cursor-pointer rounded-none"
+                title="Open saved audit history"
               >
                 <Clock className="size-4 shrink-0" strokeWidth={1.5} />
-                <span className="truncate">Riwayat Audit</span>
+                <span className="truncate">Audit History</span>
               </button>
             )}
           </div>
 
-          {/* Admin Group (Strictly gated: ONLY shown if user is super admin) */}
+          {/* Admin Group (Strictly gated: ONLY shown if user has Super Admin clearance) */}
           {isSuperAdmin && (
-            <div className="space-y-1 border-t border-rule pt-4">
-              <p className="px-2.5 text-[10px] font-mono uppercase tracking-wider text-ink-3 font-semibold mb-2">
+            <div className="space-y-1 border-t border-rule pt-3">
+              <p className="px-2 text-[10px] font-mono uppercase tracking-wider text-ink-3 font-semibold mb-1.5">
                 Management
               </p>
 
               <button
                 type="button"
                 onClick={() => handleNavigate('/admin')}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono text-ink hover:bg-surface border border-rule transition-colors text-left cursor-pointer rounded-sm"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs font-mono text-ink hover:bg-surface border border-rule transition-colors text-left cursor-pointer rounded-none"
                 title="Super Admin Dashboard & System Ledger"
               >
                 <Terminal className="size-4 shrink-0" strokeWidth={1.5} />
-                <span className="truncate">Admin Ledger</span>
+                <span className="truncate font-semibold">[ADMIN LEDGER]</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* Bottom Section: Quota & User Profile (Moved from header to keep header uncluttered) */}
-        <div className="border-t border-rule pt-3 px-1 flex flex-col gap-2.5 font-mono">
+        {/* Bottom Section: Quota & User Profile Card */}
+        <div className="border-t border-rule pt-2.5 flex flex-col gap-2 font-mono">
           {user ? (
             <>
               {/* Quota Indicator */}
               <div className="w-full">
-                <QuotaIndicator className="w-full justify-between" />
+                <QuotaIndicator
+                  className="w-full justify-between"
+                  onUpgrade={() => handleSelectView('pricing')}
+                />
               </div>
 
               {/* User Profile Card */}
               <div className="flex items-center justify-between gap-2 pt-2 border-t border-rule/60">
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   {user.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -202,15 +205,28 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
                       {((user.fullName || user.email || 'U')[0] || 'U').toUpperCase()}
                     </span>
                   )}
-                  <div className="min-w-0 flex flex-col">
+                  <div className="min-w-0 flex-1 flex flex-col">
                     <span
-                      className="text-xs text-ink truncate font-medium"
+                      className="text-xs text-ink truncate font-medium block"
                       title={user.email || user.fullName}
                     >
                       {user.fullName || (user.email ? user.email.split('@')[0] : 'User')}
                     </span>
-                    <div className="mt-0.5">
-                      <TierBadge tier={effectiveTier} isSuperAdmin={user.isSuperAdmin} size="xs" />
+                    <div className="mt-1 flex flex-col gap-1 items-start">
+                      {isSuperAdmin ? (
+                        <>
+                          <span
+                            data-testid="tier-stamp-enterprise"
+                            className="inline-flex items-center font-mono font-semibold uppercase tracking-wider border border-ink bg-surface text-ink select-none rounded-none shadow-none text-[9px] px-1.5 py-0.5"
+                            title="Tier: Enterprise Organization"
+                          >
+                            [TIER: ENTERPRISE]
+                          </span>
+                          <TierStamp isSuperAdmin={true} size="xs" />
+                        </>
+                      ) : (
+                        <TierStamp tier={effectiveTier} isSuperAdmin={false} size="xs" />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -218,8 +234,8 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="p-1.5 text-ink-3 hover:text-ink hover:bg-surface border border-transparent hover:border-rule rounded-sm transition-colors cursor-pointer shrink-0"
-                  title="Sign out / Keluar"
+                  className="p-1.5 text-ink-3 hover:text-ink hover:bg-surface border border-transparent hover:border-rule rounded-none transition-colors cursor-pointer shrink-0"
+                  title="Sign out"
                   aria-label="Sign out"
                 >
                   <LogOut className="size-3.5" strokeWidth={1.5} />
@@ -230,7 +246,7 @@ export const ConsoleSidebar: React.FC<ConsoleSidebarProps> = ({
             <button
               type="button"
               onClick={() => setAuthModalOpen(true)}
-              className="w-full py-2 px-3 bg-ink hover:bg-ink-2 text-canvas text-xs font-mono font-medium transition-colors text-center cursor-pointer rounded-sm"
+              className="w-full py-2 px-3 bg-ink hover:bg-ink-2 text-canvas text-xs font-mono font-medium transition-colors text-center cursor-pointer rounded-none border border-ink"
               title="Sign in to save audits"
             >
               Sign in

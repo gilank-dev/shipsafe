@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { MAX_DESCRIPTION_CHARS } from '../config/limits'
+import { isSuperAdminEmail } from '../config/super-admin'
 import type { AgentTarget, ApiErrorKind, AuditReport, AuditStage } from '../domain/types'
 
 export type AuditStatus = 'idle' | 'running' | 'done' | 'error'
@@ -139,7 +140,16 @@ const getInitialUser = (): UserProfile | null => {
   if (typeof window === 'undefined') return null
   try {
     const raw = window.localStorage.getItem('shipsafe.auth.user')
-    return raw ? (JSON.parse(raw) as UserProfile) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as UserProfile
+    if (parsed && isSuperAdminEmail(parsed.email)) {
+      return {
+        ...parsed,
+        isSuperAdmin: true,
+        tier: 'enterprise',
+      }
+    }
+    return parsed
   } catch {
     return null
   }
@@ -227,10 +237,18 @@ export const useStore = create<ShipSafeState>()((set) => ({
     set((s) => ({ submission: { ...s.submission, ...context, file, fileError: null } })),
   patchAudit: (patch) => set((s) => ({ audit: { ...s.audit, ...patch } })),
   setAuthUser: (user) => {
+    let finalUser = user
+    if (finalUser && isSuperAdminEmail(finalUser.email)) {
+      finalUser = {
+        ...finalUser,
+        isSuperAdmin: true,
+        tier: 'enterprise',
+      }
+    }
     try {
       if (typeof window !== 'undefined') {
-        if (user) {
-          window.localStorage.setItem('shipsafe.auth.user', JSON.stringify(user))
+        if (finalUser) {
+          window.localStorage.setItem('shipsafe.auth.user', JSON.stringify(finalUser))
         } else {
           window.localStorage.removeItem('shipsafe.auth.user')
         }
@@ -238,7 +256,7 @@ export const useStore = create<ShipSafeState>()((set) => ({
     } catch {
       // storage blocked
     }
-    set((s) => ({ auth: { ...s.auth, user } }))
+    set((s) => ({ auth: { ...s.auth, user: finalUser } }))
   },
   setAuthModalOpen: (isAuthModalOpen) => set((s) => ({ auth: { ...s.auth, isAuthModalOpen } })),
   setHistoryModalOpen: (isHistoryModalOpen) => set((s) => ({ auth: { ...s.auth, isHistoryModalOpen } })),

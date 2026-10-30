@@ -16,7 +16,7 @@ const MAX_ZIP_BYTES = 10 * 1024 * 1024; // 10 MB compressed
 const MAX_DECOMPRESSED_BYTES = 100 * 1024 * 1024; // 100 MB decompressed
 const MAX_COMPRESSION_RATIO = 100; // 100:1
 const MAX_ENTRIES = 5000;
-const MAX_DEPTH = 15;
+const MAX_DEPTH = 32;
 
 export function checkZipMagicBytes(buffer: Buffer): boolean {
   if (buffer.length < 4) return false;
@@ -137,7 +137,12 @@ export function validateAndExtractZip(fileBuffer: Buffer, options?: ZipValidatio
       // Verify resolved path stays strictly within tempDir
       const resolvedTarget = path.resolve(targetPath);
       const resolvedTemp = path.resolve(tempDir);
-      if (!resolvedTarget.startsWith(resolvedTemp)) {
+      const relative = path.relative(resolvedTemp, resolvedTarget);
+      if (
+        relative.startsWith('..') ||
+        path.isAbsolute(relative) ||
+        (!resolvedTarget.startsWith(resolvedTemp + path.sep) && resolvedTarget !== resolvedTemp)
+      ) {
         throw new Error(`Zip-slip guard prevented extraction to ${resolvedTarget}`);
       }
 

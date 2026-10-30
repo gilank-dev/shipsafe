@@ -25,12 +25,28 @@
       "destination": "http://213.163.197.214:23010/api/ai/:path*"
     },
     {
+      "source": "/api/auth/:path*",
+      "destination": "http://213.163.197.214:23010/api/auth/:path*"
+    },
+    {
       "source": "/api/import-repo",
       "destination": "http://213.163.197.214:23010/api/import-repo"
     },
     {
       "source": "/api/cli/:path*",
       "destination": "http://213.163.197.214:23010/api/cli/:path*"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "http://213.163.197.214:23010/api/admin/:path*"
+    },
+    {
+      "source": "/api/vouchers/:path*",
+      "destination": "http://213.163.197.214:23010/api/vouchers/:path*"
+    },
+    {
+      "source": "/api/user/:path*",
+      "destination": "http://213.163.197.214:23010/api/user/:path*"
     },
     {
       "source": "/(.*)",

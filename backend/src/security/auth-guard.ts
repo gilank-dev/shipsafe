@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken, createClerkClient } from '@clerk/backend';
 import { verifyCliToken, isCliToken } from './cli-token';
 
 export interface AuthenticatedUser {
@@ -18,23 +17,10 @@ export interface VerifyJwtResult {
   statusCode?: number;
 }
 
-const isProd = process.env.NODE_ENV === 'production';
-const envClerkKey = process.env.CLERK_SECRET_KEY;
-
-if (isProd && !envClerkKey) {
-  console.error('[ShipSafe] CRITICAL: CLERK_SECRET_KEY is not configured in production environment.');
-}
-
-const CLERK_SECRET_KEY = envClerkKey || (isProd ? '' : 'test_clerk_secret_key');
-const clerkClient = createClerkClient({ secretKey: CLERK_SECRET_KEY || 'dummy_test_key' });
-
-// In-memory cache for user email lookups to reduce Clerk API calls
-const userEmailCache = new Map<string, { email: string; timestamp: number }>();
-
 /**
- * Verifies authentication token against Clerk or fallback tokens.
+ * Verifies authentication token against Supabase Auth, CLI tokens, or dev tokens.
  */
-export async function verifyClerkJwt(token: string): Promise<VerifyJwtResult> {
+export async function verifySupabaseJwt(token: string): Promise<VerifyJwtResult> {
   if (!token || typeof token !== 'string') {
     return { valid: false, error: 'Token is missing or empty', statusCode: 401 };
   }
@@ -58,95 +44,54 @@ export async function verifyClerkJwt(token: string): Promise<VerifyJwtResult> {
     };
   }
 
-  // 2. Validate developer tokens, provider tokens, or CLI automation API keys
+  // 2. ShipSafe CLI automation API keys must match EXACTLY a configured secret.
+  //    Prefix-only matching was a critical bypass (any "sk_live_*" string got in).
   const configuredApiKey = process.env.SHIPSAFE_API_KEY || process.env.CLI_API_KEY;
-  if (
-    (configuredApiKey && token === configuredApiKey) ||
-    token.startsWith('dev-token-') ||
-    token.startsWith('google-token-') ||
-    token.startsWith('github-token-') ||
-    token.startsWith('sk_live_')
-  ) {
-    let email = 'auditor@shipsafe.dev';
-    let idPrefix = 'usr-cli-runner';
-
-    if (token.startsWith('dev-token-') || token.startsWith('google-token-') || token.startsWith('github-token-')) {
-      const prefix = token.startsWith('google-token-')
-        ? 'google-token-'
-        : token.startsWith('github-token-')
-          ? 'github-token-'
-          : 'dev-token-';
-      const suffix = token.slice(prefix.length);
-      if (suffix && suffix.includes('@')) {
-        email = suffix;
-      }
-      idPrefix = token.startsWith('google-token-')
-        ? 'usr-google'
-        : token.startsWith('github-token-')
-          ? 'usr-github'
-          : 'usr-dev-auditor';
-    }
-
+  if (configuredApiKey && token === configuredApiKey) {
     return {
       valid: true,
-      user: {
-        id: idPrefix,
-        email,
-      },
+      user: { id: 'usr-cli-runner', email: 'auditor@shipsafe.dev' },
     };
   }
 
-  // 2. Check if token is a Clerk JWT or session token
-  const parts = token.split('.');
-  if (parts.length === 3) {
-    try {
-      const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf8');
-      const payload = JSON.parse(payloadJson);
-      if (payload && (payload.iss?.includes('clerk') || payload.sub?.startsWith('user_'))) {
-        if (isProd && !CLERK_SECRET_KEY) {
-          return {
-            valid: false,
-            error: 'Clerk authentication secret key is not configured in production environment',
-            statusCode: 500,
-          };
-        }
-
-        try {
-          const verified = await verifyToken(token, { secretKey: CLERK_SECRET_KEY });
-          if (verified && verified.sub) {
-            let userEmail = (verified as Record<string, unknown>).email as string | undefined;
-            if (!userEmail) {
-              const cached = userEmailCache.get(verified.sub);
-              if (cached && Date.now() - cached.timestamp < 300000) {
-                userEmail = cached.email;
-              } else {
-                try {
-                  const clerkUser = await clerkClient.users.getUser(verified.sub);
-                  userEmail = clerkUser.emailAddresses?.[0]?.emailAddress;
-                  if (userEmail) {
-                    userEmailCache.set(verified.sub, { email: userEmail, timestamp: Date.now() });
-                  }
-                } catch {
-                  // user info lookup non-blocking
-                }
-              }
-            }
-            return {
-              valid: true,
-              user: {
-                id: verified.sub,
-                email: userEmail || `${verified.sub}@clerk.user`,
-              },
-            };
-          }
-        } catch (clerkErr: unknown) {
-          const errMsg = clerkErr instanceof Error ? clerkErr.message : 'Invalid Clerk token';
-          return { valid: false, error: `Clerk verification failed: ${errMsg}`, statusCode: 401 };
-        }
-      }
-    } catch {
-      // Not a valid JSON payload, proceed to standard verifiers
+  // 3. Developer / OAuth-provider placeholder tokens.
+  //    These are self-issued client-side and forgeable, so they are only
+  //    honored outside production. Production requires a real Supabase session.
+  if (
+    token.startsWith('dev-token-') ||
+    token.startsWith('google-token-') ||
+    token.startsWith('github-token-')
+  ) {
+    if (process.env.NODE_ENV === 'production') {
+      return {
+        valid: false,
+        error: 'Self-issued developer tokens are not accepted in production. Sign in with GitHub or Google.',
+        statusCode: 401,
+      };
     }
+
+    let email = 'auditor@shipsafe.dev';
+    let idPrefix = 'usr-cli-runner';
+
+    const prefix = token.startsWith('google-token-')
+      ? 'google-token-'
+      : token.startsWith('github-token-')
+        ? 'github-token-'
+        : 'dev-token-';
+    const suffix = token.slice(prefix.length);
+    if (suffix && suffix.includes('@')) {
+      email = suffix;
+    }
+    idPrefix = token.startsWith('google-token-')
+      ? 'usr-google'
+      : token.startsWith('github-token-')
+        ? 'usr-github'
+        : 'usr-dev-auditor';
+
+    return {
+      valid: true,
+      user: { id: idPrefix, email },
+    };
   }
 
   // Bypass for unit testing / development
@@ -159,11 +104,87 @@ export async function verifyClerkJwt(token: string): Promise<VerifyJwtResult> {
     }
   }
 
+  // 3. Inspect JWT structure (header.payload.signature)
+  const parts = token.split('.');
+  if (parts.length === 3) {
+    try {
+      const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf8');
+      const payload = JSON.parse(payloadJson);
+
+      // Check expiration if exp claim is present
+      if (payload.exp && typeof payload.exp === 'number') {
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (payload.exp < nowSec) {
+          return { valid: false, error: 'Session token has expired. Please sign in again.', statusCode: 401 };
+        }
+      }
+
+      // If Supabase is configured, verify against Supabase /auth/v1/user
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const apiKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+      if (supabaseUrl && apiKey && !supabaseUrl.includes('your-project-ref')) {
+        try {
+          const url = `${supabaseUrl.replace(/\/+$/, '')}/auth/v1/user`;
+          const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'apikey': apiKey,
+            },
+          });
+
+          if (res.ok) {
+            const userData = (await res.json()) as { id?: string; email?: string };
+            if (userData?.id) {
+              return {
+                valid: true,
+                user: {
+                  id: userData.id,
+                  email: userData.email || payload.email || `${userData.id}@supabase.user`,
+                },
+              };
+            }
+          } else if (res.status === 401 || res.status === 403) {
+            return { valid: false, error: 'Supabase verification failed: Invalid session', statusCode: 401 };
+          }
+          // Any other non-OK status means the auth verifier is degraded — fall
+          // through to the fail-closed decision below (never trust the payload).
+        } catch (err) {
+          console.warn('[ShipSafe Auth] Supabase endpoint probe warning:', err);
+        }
+      }
+
+      // FAIL-CLOSED: the token signature was never verified. Offline decoding is
+      // only acceptable outside production (local dev / unit tests). In production
+      // an unverified JWT must NEVER be trusted — this was a complete auth bypass.
+      if (process.env.NODE_ENV === 'production') {
+        return {
+          valid: false,
+          error: 'Authentication service temporarily unavailable. Please try signing in again shortly.',
+          statusCode: 503,
+        };
+      }
+
+      // Offline / decoded JWT user payload fallback (dev and test only)
+      if (payload && payload.sub) {
+        return {
+          valid: true,
+          user: {
+            id: payload.sub,
+            email: payload.email || `${payload.sub}@supabase.user`,
+          },
+        };
+      }
+    } catch {
+      // Not a valid JSON payload, proceed to standard verifiers
+    }
+  }
+
   const supabaseUrl = process.env.SUPABASE_URL;
   const apiKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !apiKey || supabaseUrl.includes('your-project-ref')) {
-    // If Supabase is not configured on backend, return 503 service unavailable
     return { valid: false, error: 'Supabase authentication service is not configured on server', statusCode: 503 };
   }
 
@@ -203,11 +224,11 @@ export async function verifyClerkJwt(token: string): Promise<VerifyJwtResult> {
  * Express middleware:
  * - If no Authorization header: proceeds as anonymous user (req.user = null).
  * - If Authorization header is present:
- *   - Must be `Bearer <JWT>`. Otherwise 401.
- *   - Verifies JWT with Clerk (or fallback). If invalid, 401. If 503, 503.
+ *   - Must be `Bearer <JWT>` or direct dev-token. Otherwise 401.
+ *   - Verifies JWT with Supabase (or fallback). If invalid, 401. If 503, 503.
  *   - If valid, attaches req.user and proceeds.
  */
-export async function clerkAuthGuard(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function supabaseAuthGuard(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
   // Anonymous request allowed (when auth is optional)
@@ -225,7 +246,9 @@ export async function clerkAuthGuard(req: AuthRequest, res: Response, next: Next
   } else if (
     authHeader.startsWith('dev-token-') ||
     authHeader.startsWith('google-token-') ||
-    authHeader.startsWith('github-token-')
+    authHeader.startsWith('github-token-') ||
+    authHeader.startsWith('sk_shipsafe_') ||
+    authHeader.startsWith('sk_live_')
   ) {
     token = authHeader.trim();
   } else {
@@ -238,7 +261,7 @@ export async function clerkAuthGuard(req: AuthRequest, res: Response, next: Next
     return;
   }
 
-  const result = await verifyClerkJwt(token);
+  const result = await verifySupabaseJwt(token);
 
   if (!result.valid || !result.user) {
     const status = result.statusCode || 401;
@@ -258,9 +281,9 @@ export async function clerkAuthGuard(req: AuthRequest, res: Response, next: Next
 /**
  * Mandatory Authentication Middleware:
  * Rejects any unauthenticated requests with HTTP 401 Unauthorized.
- * Users must sign in via Clerk (GitHub/Google) before auditing code or importing repositories.
+ * Users must sign in via Supabase (GitHub/Google) before auditing code or importing repositories.
  */
-export async function requireClerkAuth(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function requireSupabaseAuth(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -281,11 +304,10 @@ export async function requireClerkAuth(req: AuthRequest, res: Response, next: Ne
   }
 
   // Delegate to standard token verifier
-  return clerkAuthGuard(req, res, next);
+  return supabaseAuthGuard(req, res, next);
 }
 
 // Backwards compatibility aliases
-export const supabaseAuthGuard = clerkAuthGuard;
-export const requireSupabaseAuth = requireClerkAuth;
-export const verifySupabaseJwt = verifyClerkJwt;
-
+export const clerkAuthGuard = supabaseAuthGuard;
+export const requireClerkAuth = requireSupabaseAuth;
+export const verifyClerkJwt = verifySupabaseJwt;

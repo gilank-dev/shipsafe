@@ -7,63 +7,63 @@ describe('PricingSection Component', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders exact Indonesian copywriting for section header and 3 tiers', () => {
+  it('renders exact English copywriting for section header and 3 tiers', () => {
     render(<PricingSection />)
 
     // Section Header
-    expect(screen.getByText('Investasi Keamanan Seukuran Harga Kopi')).toBeInTheDocument()
+    expect(screen.getByText('Developer Security for the Price of a Coffee')).toBeInTheDocument()
     expect(
-      screen.getByText('Rilis kode ke production dengan tenang. Pilih paket sesuai frekuensi deployment kamu.')
+      screen.getByText('Ship code to production with complete peace of mind. Choose the plan tailored to your release velocity.')
     ).toBeInTheDocument()
 
     // Tier 1: Free (Sandbox)
     expect(screen.getByText('Free (Sandbox)')).toBeInTheDocument()
     expect(screen.getByText('Rp 0')).toBeInTheDocument()
     expect(
-      screen.getByText('Cocok untuk menguji keamanan proyek sampingan sebelum rilis pertama.')
+      screen.getByText('Ideal for verifying side-project security before your first production launch.')
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Mulai Scan Gratis' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Start Free Scan' })).toBeInTheDocument()
 
     // Tier 2: Pro (Indie / Vibe Coder)
     expect(screen.getByText('Pro (Indie / Vibe Coder)')).toBeInTheDocument()
-    expect(screen.getByText('Paling Populer')).toBeInTheDocument()
+    expect(screen.getByText('Most Popular')).toBeInTheDocument()
     expect(screen.getByText('Rp 79.000')).toBeInTheDocument()
     expect(
-      screen.getByText('Untuk solo developer & vibe coder yang rutin ship aplikasi ke production dengan cepat dan aman.')
+      screen.getByText('For solo developers and vibe coders shipping apps to production rapidly and securely.')
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Upgrade ke Pro Sekarang' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upgrade to Pro' })).toBeInTheDocument()
 
     // Tier 3: Enterprise (Custom SLA)
     expect(screen.getByText('Enterprise (Custom SLA)')).toBeInTheDocument()
-    expect(screen.getByText('Kustom')).toBeInTheDocument()
+    expect(screen.getByText('Custom')).toBeInTheDocument()
     expect(
-      screen.getByText('Untuk proyek skala besar dengan dedicated sandbox dan SLA khusus.')
+      screen.getByText('For large-scale projects requiring dedicated sandboxes and tailored SLAs.')
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Hubungi Admin' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Contact Security Team' })).toBeInTheDocument()
   })
 
   it('opens Enterprise Lead Qualification Modal and submits structured WhatsApp inquiry', () => {
     const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
     render(<PricingSection />)
 
-    // Click Hubungi Admin
-    const enterpriseBtn = screen.getByRole('button', { name: 'Hubungi Admin' })
+    // Click Contact Security Team
+    const enterpriseBtn = screen.getByRole('button', { name: 'Contact Security Team' })
     fireEvent.click(enterpriseBtn)
 
     // Modal should appear
-    expect(screen.getByText('Konsultasi Kebutuhan Enterprise')).toBeInTheDocument()
-    expect(screen.getByLabelText('Nama Perusahaan / Proyek')).toBeInTheDocument()
-    expect(screen.getByLabelText('Estimasi Deployment / Scan per Bulan')).toBeInTheDocument()
+    expect(screen.getByText('Enterprise Security Consultation')).toBeInTheDocument()
+    expect(screen.getByLabelText('Company / Project Name')).toBeInTheDocument()
+    expect(screen.getByLabelText('Estimated Deployment / Scan Volume per Month')).toBeInTheDocument()
 
     // Fill Form
-    const companyInput = screen.getByLabelText('Nama Perusahaan / Proyek')
+    const companyInput = screen.getByLabelText('Company / Project Name')
     fireEvent.change(companyInput, { target: { value: 'Acme Security Tech' } })
 
-    const volumeSelect = screen.getByLabelText('Estimasi Deployment / Scan per Bulan')
+    const volumeSelect = screen.getByLabelText('Estimated Deployment / Scan Volume per Month')
     fireEvent.change(volumeSelect, { target: { value: '500+' } })
 
     // Submit Form
-    const submitBtn = screen.getByRole('button', { name: /Kirim Lead ke WhatsApp Admin/i })
+    const submitBtn = screen.getByRole('button', { name: /Submit Inquiry via WhatsApp/i })
     fireEvent.click(submitBtn)
 
     expect(windowOpenSpy).toHaveBeenCalledTimes(1)

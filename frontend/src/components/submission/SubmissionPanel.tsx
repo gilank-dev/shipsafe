@@ -1,50 +1,54 @@
 import { useState } from 'react'
-import { useSignIn, useClerk } from '@clerk/clerk-react'
 import { AgentSelector } from './AgentSelector'
 import { ContextForm } from './ContextForm'
 import { RunAuditButton } from './RunAuditButton'
 import { UploadDropzone } from './UploadDropzone'
 import { TurnstileWidget } from '../ui/TurnstileWidget'
 import { useStore } from '../../state/store'
+import { supabase } from '../../lib/supabase'
 import { IconLock, IconGitHub, IconGoogle } from '../ui/icons'
 
 export function SubmissionPanel() {
   const user = useStore((s) => s.auth.user)
   const setAuthModalOpen = useStore((s) => s.setAuthModalOpen)
-  const { isLoaded: isSignInLoaded, signIn } = useSignIn()
-  const clerk = useClerk()
   const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | null>(null)
 
   const handleOAuth = async (provider: 'google' | 'github') => {
     setOauthLoading(provider)
-    const strategy = provider === 'google' ? 'oauth_google' : 'oauth_github'
-
-    if (isSignInLoaded && signIn) {
-      try {
-        await signIn.authenticateWithRedirect({
-          strategy,
-          redirectUrl: `${window.location.origin}/sso-callback`,
-          redirectUrlComplete: window.location.origin,
-        })
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      })
+      if (data?.url) {
+        try {
+          window.location.href = data.url
+        } catch {
+          // jsdom fallback
+        }
         return
-      } catch (err) {
-        console.error(`[ShipSafe] Clerk ${provider} OAuth error:`, err)
       }
-    }
-
-    if (clerk?.openSignIn) {
-      clerk.openSignIn()
-    } else {
+      if (error) {
+        setAuthModalOpen(true)
+      }
+    } catch {
       setAuthModalOpen(true)
+    } finally {
+      setOauthLoading(null)
     }
-    setOauthLoading(null)
   }
 
   return (
     <>
       {!user && (
-        <div className="mb-4 border-2 border-ink bg-surface p-3.5 rounded-[var(--radius-control)]">
-          <div className="flex items-center gap-2 mb-1 text-small font-bold text-ink">
+        <div
+          role="region"
+          aria-labelledby="signin-required-title"
+          className="mb-4 border-2 border-ink bg-surface p-3.5 rounded-[var(--radius-control)]"
+        >
+          <div id="signin-required-title" className="flex items-center gap-2 mb-1 text-small font-bold text-ink">
             <IconLock width={16} height={16} />
             <span>Sign In Required</span>
           </div>
@@ -76,7 +80,7 @@ export function SubmissionPanel() {
             className="mt-2 text-xs text-ink-3 hover:text-ink underline block cursor-pointer"
             onClick={() => setAuthModalOpen(true)}
           >
-            Or sign in with email credentials
+            Or open sign-in modal
           </button>
         </div>
       )}
