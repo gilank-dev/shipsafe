@@ -25,6 +25,10 @@ import type { AuditReport, Finding, AgentTarget } from './types';
 
 dotenv.config();
 
+// Fail-fast: production MUST NOT boot with an incomplete or unsafe config.
+import { enforceEnv } from './config/env-validation';
+enforceEnv(process.env);
+
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 23010;
 
@@ -55,7 +59,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'ShipSafe Backend API',
-    version: '1.1.0',
+    version: '1.2.0',
     uptime: process.uptime(),
     queue: globalAuditQueue.stats,
     timestamp: new Date().toISOString()

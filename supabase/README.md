@@ -70,13 +70,25 @@ Menyimpan detail setiap kerentanan individual yang terhubung ke sebuah audit.
 3. Pilih wilayah (region) terdekat (misal `Singapore (ap-southeast-1)` atau `Frankfurt (eu-central-1)` sesuai lokasi target VPS).
 4. Buat kata sandi database yang kuat dan simpan di password manager.
 
-### Langkah 2: Jalankan Skema Database di SQL Editor
-1. Buka menu **SQL Editor** pada panel kiri dashboard Supabase.
-2. Klik **New query**.
-3. Salin dan tempel seluruh isi berkas [`supabase/schema.sql`](./schema.sql).
-4. Klik tombol **Run** (atau tekan `Ctrl+Enter`).
-5. Pastikan muncul pesan `Success. No rows returned`.
-6. Verifikasi pada menu **Table Editor** bahwa tabel `audits` dan `findings` telah terbentuk dengan badge `RLS enabled`.
+### Langkah 2: Jalankan Skema Database
+
+> [!IMPORTANT]
+> **Sumber kebenaran skema adalah folder [`supabase/migrations/`](./migrations)** — BUKAN `schema.sql` (file itu hanyalah snapshot legacy yang tidak lagi dirawat).
+> Semua perubahan skema wajib masuk sebagai file migration baru.
+
+Aturan wajib migration:
+1. **Penamaan**: `<timestamp-14-digit>_<nama>.sql` (contoh: `20261029000003_shipsafe_v4_database_rls_hardening.sql`).
+2. **Versi unik**: Supabase CLI mem-parsing versi HANYA dari digit di depan nama file. Dua file dengan digit depan sama akan **collision** dan gagal push. Gunakan timestamp 14-digit yang unik.
+3. **Idempoten**: selalu gunakan `CREATE TABLE IF NOT EXISTS`, `DROP POLICY IF EXISTS`, dan `ADD COLUMN` kondisional — migration bisa di-re-run tanpa merusak data.
+4. **Verifikasi otomatis**: CI (`.github/workflows/ci.yml`, job `migration-gate`) meng-apply seluruh migration ke Postgres bersih pada setiap push/PR dan menolak merge jika ada versi duplikat, tabel hilang, atau skema final menyimpang.
+
+Cara apply ke produksi:
+```bash
+cd supabase
+supabase db push --dry-run   # selalu lihat plan dulu
+supabase db push             # baru apply
+```
+Jika history remote tidak sinkron dengan lokal, gunakan `supabase migration repair --status reverted|applied <version>` — JANGAN pernah mengedit history secara manual di database.
 
 ### Langkah 3: Konfigurasi Supabase Auth
 1. Buka menu **Authentication** > **Providers**.
@@ -150,8 +162,8 @@ SUPABASE_SERVICE_ROLE_KEY=<YOUR-SUPABASE-SERVICE-ROLE-KEY>
 SUPABASE_JWT_SECRET=<YOUR-SUPABASE-JWT-SECRET>
 
 # AI API Gateway & LLM Engine
-AI_BASE_URL=https://vps-9router.tail98895b.ts.net/v1
-AI_API_KEY=sk-013ff93e8c768285-81m105-781f0714
+AI_BASE_URL=<YOUR-AI-GATEWAY-URL>
+AI_API_KEY=<YOUR-AI-API-KEY>
 AI_MODEL=hermes-agent
 ```
 

@@ -9,8 +9,10 @@ export interface AiConfig {
 
 export function getAiConfig(): AiConfig {
   return {
-    baseUrl: process.env.AI_BASE_URL || 'https://vps-9router.tail98895b.ts.net/v1',
-    apiKey: process.env.AI_API_KEY || 'sk-013ff93e8c768285-81m105-781f0714',
+    // No hardcoded fallbacks: internal endpoints and credentials must only
+    // ever arrive via environment. Empty config -> AI enrichment disabled.
+    baseUrl: process.env.AI_BASE_URL || '',
+    apiKey: process.env.AI_API_KEY || '',
     model: process.env.AI_MODEL || 'hermes-agent',
     timeoutMs: process.env.AI_TIMEOUT_MS ? parseInt(process.env.AI_TIMEOUT_MS, 10) : 4000
   };

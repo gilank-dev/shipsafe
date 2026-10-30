@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { requireClerkAuth, AuthRequest } from './auth-guard'
 import { requireSuperAdmin } from './super-admin'
+import { logAdminAction, buildAuditEntryFromRequest } from './admin-audit-logger'
 import {
   getLiveTelemetry,
   flushStuckQueue,
@@ -80,6 +81,18 @@ export function buildAdminRouter(
     }
     return isTestMode ? 'admin@shipsafe.dev' : ''
   }
+
+  // Layer 1.5: durable audit trail for every mutating /admin action.
+  // Logs successes AND rejected attempts — failed intrusions are data too.
+  // Fire-and-forget: a logging failure must never break the response path.
+  router.use((req: Request, res: Response, next: NextFunction) => {
+    res.on('finish', () => {
+      if (req.method === 'GET') return
+      if (!req.path.startsWith('/admin/')) return
+      logAdminAction(buildAuditEntryFromRequest(resolveActor(req), req, res.statusCode))
+    })
+    next()
+  })
 
   // ---------------------------------------------------------------------------
   // /api/admin/* — Super Admin only

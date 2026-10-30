@@ -182,9 +182,20 @@ shipsafe diff <base> [target]    # re-audit fix verification
 
 ## Known Issues / Spec Deviations
 From `.kiro/specs/shipsafe/requirements.md`:
-- Backend CORS currently `origin: '*'` — **must be strict whitelist** (Req 18)
+- ~~Backend CORS currently `origin: '*'` — **must be strict whitelist** (Req 18)~~ **FIXED (2026-10-30)**: `backend/src/security/cors-guard.ts` enforces a strict whitelist + trusted-domain regexes
 - Frontend uses Vite+React, spec mentions Next.js — framework is design-phase decision
 - Spec values marked "mis." (example) are adopted as configurable defaults
+- **Production Supabase project is shared with an unrelated HR/payroll app** (project "HR SaaS", ref `okbryysoxihmamujoipb`) — ShipSafe tables co-exist with HR tables. Never touch non-ShipSafe tables. Separating the project is a pending owner decision.
+- **Leaked AI gateway key (2026-10-30)**: the real `AI_API_KEY` was committed in `supabase/README.md` and hardcoded as a fallback in `ai-client.ts` (both cleaned in the working tree, but it lives in git history) — **key rotation on the AI gateway is pending owner action**.
+
+---
+
+## Database Migration Discipline (MANDATORY)
+- **Single source of truth**: `supabase/migrations/` — `supabase/schema.sql` is a legacy snapshot, do not evolve it.
+- **Naming**: `<14-digit-timestamp>_<name>.sql`, versions MUST be unique — Supabase CLI parses the version from leading digits only (three files once collided on `20261029`).
+- **Idempotency**: every migration must be re-runnable (`IF NOT EXISTS` / `DROP POLICY IF EXISTS` / conditional `ADD COLUMN`).
+- **Verification**: CI job `migration-gate` (`.github/workflows/ci.yml`) applies all migrations to a clean Postgres on every push/PR — a migration that was never verified against a real database must never reach `main`.
+- **Apply to production**: `supabase db push --dry-run` first, then `supabase db push`.
 
 ---
 

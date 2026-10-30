@@ -1,0 +1,77 @@
+name: ShipSafe CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies (workspaces)
+        run: npm ci
+      - name: Typecheck backend
+        run: npm run build -w backend
+      - name: Run backend tests
+        run: npm test -w backend
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies (workspaces)
+        run: npm ci
+      - name: Typecheck + lint + unit tests (incl. axe-core)
+        run: |
+          npm run typecheck -w frontend
+          npm run lint -w frontend
+          npm test -w frontend
+
+  migration-gate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: shipsafe
+          POSTGRES_PASSWORD: shipsafe-ci
+          POSTGRES_DB: shipsafe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shipsafe"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure psql client
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update && sudo apt-get install -y postgresql-client
+          fi
+      - name: Apply migrations + verify schema
+        env:
+          DATABASE_URL: postgres://shipsafe:shipsafe-ci@localhost:5432/shipsafe
+        run: bash supabase/ci/migrate-verify.sh
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image (verify Dockerfile)
+        run: docker build -f backend/Dockerfile -t shipsafe-backend:ci .
