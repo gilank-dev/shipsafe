@@ -85,7 +85,7 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_org_id ON public.user_profiles(orga
 CREATE INDEX IF NOT EXISTS idx_user_profiles_tier ON public.user_profiles(tier);
 CREATE INDEX IF NOT EXISTS idx_org_invites_org ON public.organization_invites(organization_id);
 CREATE INDEX IF NOT EXISTS idx_org_invites_email ON public.organization_invites(email);
-CREATE INDEX IF NOT EXISTS idx_admin_logs_actor ON public.admin_audit_logs(actor_id);
+CREATE INDEX IF NOT EXISTS idx_admin_logs_actor ON public.admin_audit_logs(actor_email);
 
 -- 7. Row Level Security (RLS)
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;

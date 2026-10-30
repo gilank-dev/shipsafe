@@ -195,6 +195,22 @@ CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
+-- Backward compatibility: materialize union schema on pre-existing admin_audit_logs
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'admin_audit_logs' AND column_name = 'actor_id') THEN
+        ALTER TABLE public.admin_audit_logs ADD COLUMN actor_id UUID;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'admin_audit_logs' AND column_name = 'target_user_id') THEN
+        ALTER TABLE public.admin_audit_logs ADD COLUMN target_user_id UUID;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'admin_audit_logs' AND column_name = 'action') THEN
+        ALTER TABLE public.admin_audit_logs ADD COLUMN action TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'admin_audit_logs' AND column_name = 'metadata') THEN
+        ALTER TABLE public.admin_audit_logs ADD COLUMN metadata JSONB DEFAULT '{}'::jsonb;
+    END IF;
+END $$;
+
 -- ------------------------------------------------------------------------------
 -- 4. PERFORMANCE INDEXES
 -- ------------------------------------------------------------------------------
